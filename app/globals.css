@@ -1,0 +1,298 @@
+:root{
+  --bg:#eceee8; --surface:#f8f9f6;
+  --ink:#161a21; --muted:#5d6672; --faint:#8a929c;
+  --line:#d4d7ce; --line-soft:#e2e4dc;
+  --brass:#8d6414; --brass-wash:rgba(141,100,20,.10);
+  --up:#146b48; --down:#a8352e;
+  --bar:#8d6414; --bar-track:#dcdfd6;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1218; --surface:#161a21;
+    --ink:#e7eae8; --muted:#929ba7; --faint:#6c757f;
+    --line:#262c36; --line-soft:#1e242c;
+    --brass:#d9ae51; --brass-wash:rgba(217,174,81,.12);
+    --up:#41cb8b; --down:#ef6d62;
+    --bar:#d9ae51; --bar-track:#242a33;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1218; --surface:#161a21;
+  --ink:#e7eae8; --muted:#929ba7; --faint:#6c757f;
+  --line:#262c36; --line-soft:#1e242c;
+  --brass:#d9ae51; --brass-wash:rgba(217,174,81,.12);
+  --up:#41cb8b; --down:#ef6d62;
+  --bar:#d9ae51; --bar-track:#242a33;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Archivo",system-ui,-apple-system,sans-serif;
+  font-size:15px; line-height:1.55;
+  padding-inline:16px; padding-block:0 56px;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1080px; margin:0 auto}
+.num{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-variant-numeric:tabular-nums}
+
+header{padding-block:44px 30px; border-bottom:2px solid var(--ink)}
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--brass); margin:0 0 18px;
+  display:flex; flex-wrap:wrap; gap:6px 14px; align-items:baseline;
+}
+.eyebrow .dot{color:var(--faint)}
+.closed{color:var(--down)} .open{color:var(--up)}
+h1{
+  font-family:"Bodoni Moda",Didot,Georgia,serif; font-weight:800;
+  font-size:clamp(38px,8.6vw,76px); line-height:.94; letter-spacing:-.015em;
+  margin:0 0 16px; text-wrap:balance;
+}
+h1 em{font-style:italic; font-weight:400; color:var(--brass)}
+.standfirst{font-size:clamp(15px,2.4vw,18px); color:var(--muted); max-width:62ch; margin:0; text-wrap:pretty}
+
+.stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); border-bottom:1px solid var(--line)}
+.stat{padding:22px 18px 20px 0}
+.stat + .stat{padding-left:18px; border-left:1px solid var(--line-soft)}
+.stat .k{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--faint); margin:0 0 7px}
+.stat .v{font-family:"Bodoni Moda",Didot,Georgia,serif; font-weight:600; font-size:clamp(27px,4.8vw,40px); line-height:1; font-variant-numeric:tabular-nums}
+.stat .v small{font-size:.48em; color:var(--muted); font-weight:400; margin-left:3px}
+
+section{padding-block:40px 8px}
+h2{font-family:"Bodoni Moda",Didot,Georgia,serif; font-weight:600; font-size:clamp(22px,4vw,30px); letter-spacing:-.01em; margin:0}
+.sec-note{font-size:13.5px; color:var(--muted); max-width:60ch; margin:8px 0 22px; text-wrap:pretty}
+
+.board{display:flex; flex-direction:column; border-top:1px solid var(--line)}
+.row{
+  display:grid;
+  grid-template-columns:minmax(104px,1.2fr) minmax(64px,.5fr) minmax(150px,2fr) minmax(88px,.8fr);
+  gap:10px; align-items:center; padding:13px 0; border-bottom:1px solid var(--line-soft);
+}
+.tick{display:flex; align-items:baseline; gap:8px; min-width:0}
+.tick b{font-family:"Bodoni Moda",Didot,Georgia,serif; font-weight:600; font-size:19px}
+.tick span{font-size:11.5px; color:var(--faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.badge{
+  font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.08em;
+  text-transform:uppercase; padding:2px 5px; border:1px solid var(--line); color:var(--faint); flex:none;
+}
+.badge.on{border-color:var(--brass); color:var(--brass)}
+.cnt{font-family:"IBM Plex Mono",monospace; font-size:13px; color:var(--muted); font-variant-numeric:tabular-nums}
+.cnt b{color:var(--ink); font-weight:600}
+.barwrap{display:flex; align-items:center; gap:10px; min-width:0}
+.track{flex:1; height:7px; background:var(--bar-track); position:relative; overflow:hidden; min-width:40px}
+.fill{position:absolute; inset:0 auto 0 0; background:var(--bar)}
+.lead{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:12ch}
+.vol{text-align:right; font-family:"IBM Plex Mono",monospace; font-size:13.5px; font-weight:500; font-variant-numeric:tabular-nums}
+
+.scroll{overflow-x:auto; border-top:1px solid var(--line)}
+table{width:100%; border-collapse:collapse; min-width:600px}
+th{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--faint); font-weight:500; text-align:right; padding:12px; border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left; padding-left:0}
+th:nth-child(2),td:nth-child(2){text-align:left}
+td{padding:12px; border-bottom:1px solid var(--line-soft); text-align:right; font-size:14px}
+td:last-child,th:last-child{padding-right:0}
+.coin{font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:13.5px; max-width:18ch; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline-block; vertical-align:bottom}
+.denom{font-family:"Bodoni Moda",Didot,Georgia,serif; font-size:16px; font-weight:600; color:var(--brass)}
+.rank{font-family:"IBM Plex Mono",monospace; color:var(--faint); font-size:12px; width:3ch; display:inline-block}
+.dex{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--muted)}
+tbody tr:hover{background:var(--surface)}
+
+.callout{border-left:3px solid var(--brass); background:var(--surface); padding:18px 20px; margin:26px 0 0; font-size:14.5px; color:var(--muted)}
+.callout b{color:var(--ink); font-weight:600}
+.chips{display:flex; flex-wrap:wrap; gap:7px}
+.chip{font-family:"IBM Plex Mono",monospace; font-size:12px; padding:5px 10px; border:1px solid var(--line); color:var(--muted)}
+.chip.on{border-color:var(--brass); color:var(--brass); background:var(--brass-wash)}
+
+footer{margin-top:48px; padding-top:20px; border-top:1px solid var(--line); font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--faint); display:flex; flex-wrap:wrap; gap:6px 18px; justify-content:space-between}
+a{color:var(--brass); text-decoration:none; border-bottom:1px solid var(--brass-wash)}
+a:hover{border-bottom-color:currentColor}
+:focus-visible{outline:2px solid var(--brass); outline-offset:2px}
+
+@media (max-width:640px){
+  .row{grid-template-columns:1fr auto; gap:4px 10px; padding:14px 0}
+  .tick{grid-column:1} .vol{grid-column:2; grid-row:1}
+  .barwrap{grid-column:1/-1; grid-row:2; margin-top:6px}
+  .cnt{grid-column:1/-1; grid-row:3; font-size:12px}
+  /* two columns at phone width: the divider belongs to the right-hand cell,
+     not to every DOM sibling, or the wrapped row ends up indented */
+  .stat{padding:18px 14px 16px 0}
+  .stat+.stat{padding-left:0; border-left:none}
+  .stat:nth-child(even){padding-left:14px; border-left:1px solid var(--line-soft)}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+
+/* ---------- card gallery ---------- */
+.cardgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:22px; border-top:1px solid var(--line); padding-top:22px}
+.cardcell{border:1px solid var(--line); border-bottom:none; text-decoration:none; display:block}
+.cardcell:hover{border-color:var(--brass)}
+.cardmeta{
+  display:flex; justify-content:space-between; gap:10px; padding:10px 12px;
+  border-top:1px solid var(--line); background:var(--surface);
+  font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted);
+}
+.cardmeta span:first-child{color:var(--brass); font-weight:600}
+code{font-family:"IBM Plex Mono",monospace; font-size:.92em; color:var(--brass)}
+
+/* Bodoni Moda is a variable Didone: its opsz axis thins hairlines as type grows,
+   which breaks up the display sizes. Pin it off and let macOS render at full weight. */
+body{-webkit-font-smoothing:auto}
+h1,h2,.stat .v,.tick b,.denom{font-optical-sizing:none}
+
+.tickname{border-bottom:none; color:var(--ink)}
+.tickname:hover{color:var(--brass)}
+
+/* ---------- ticker lookup ---------- */
+.lookup{border-bottom:1px solid var(--line); padding-block:26px 28px}
+.lookup-label{
+  display:block; font-family:"IBM Plex Mono",monospace; font-size:10.5px;
+  letter-spacing:.13em; text-transform:uppercase; color:var(--faint); margin-bottom:9px;
+}
+.lookup-input{
+  width:100%; max-width:440px; display:block;
+  font-family:"Bodoni Moda",Didot,Georgia,serif; font-optical-sizing:none;
+  font-size:clamp(24px,4vw,32px); font-weight:600;
+  background:transparent; color:var(--ink);
+  border:none; border-bottom:2px solid var(--ink); border-radius:0;
+  padding:4px 0 8px; outline:none; -webkit-appearance:none;
+}
+.lookup-input::placeholder{color:var(--faint); font-weight:400}
+.lookup-input:focus{border-bottom-color:var(--brass)}
+.lookup-hint{font-size:13px; color:var(--muted); margin:12px 0 0; max-width:56ch}
+.lookup-results{margin-top:18px; border-top:1px solid var(--line-soft)}
+.lookup-empty{font-size:14px; color:var(--down); margin:14px 0 0; max-width:60ch}
+.hit{
+  display:grid; grid-template-columns:26px minmax(64px,auto) 1fr auto auto;
+  gap:12px; align-items:center; padding:11px 0;
+  border-bottom:1px solid var(--line-soft); text-decoration:none; border-bottom-color:var(--line-soft);
+}
+.hit:hover{background:var(--surface)}
+.hit-icon{width:26px; height:26px; border-radius:50%; display:block}
+.hit-icon-blank{background:var(--bar-track); border-radius:50%}
+.hit-sym{font-family:"Bodoni Moda",Didot,Georgia,serif; font-optical-sizing:none; font-weight:600; font-size:18px; color:var(--ink)}
+.hit-name{font-size:13px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.hit-issuer,.hit-state{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--faint); white-space:nowrap}
+.hit-state{color:var(--brass)}
+
+/* ---------- safety checks ---------- */
+.checks{display:grid; grid-template-columns:repeat(auto-fit,minmax(270px,1fr)); gap:1px}
+.check{background:var(--bg); padding:15px 16px 16px; box-shadow:0 0 0 1px var(--line-soft)}
+.check-head{display:flex; align-items:center; gap:9px; margin-bottom:7px}
+.dotmark{width:9px; height:9px; border-radius:50%; flex:none}
+.check.good .dotmark{background:var(--up)}
+.check.warn .dotmark{background:var(--brass)}
+.check.bad .dotmark{background:var(--down)}
+.check-label{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--faint)}
+.check-value{margin-left:auto; font-family:"IBM Plex Mono",monospace; font-size:13.5px; font-weight:600; font-variant-numeric:tabular-nums}
+.check.good .check-value{color:var(--up)}
+.check.warn .check-value{color:var(--brass)}
+.check.bad .check-value{color:var(--down)}
+.check-detail{margin:0; font-size:13px; line-height:1.5; color:var(--muted)}
+.disclaimer{font-size:12px; color:var(--faint); margin:14px 0 0; max-width:62ch}
+
+/* ---------- issuer breakdown ---------- */
+.issuers{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1px}
+.issuer{background:var(--bg); padding:16px; box-shadow:0 0 0 1px var(--line-soft)}
+.issuer-name{font-family:"Bodoni Moda",Didot,Georgia,serif; font-optical-sizing:none; font-weight:600; font-size:22px; margin:0 0 3px}
+.issuer-sub{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--faint); margin:0 0 12px}
+.issuer-row{display:flex; justify-content:space-between; gap:10px; font-family:"IBM Plex Mono",monospace; font-size:12.5px; color:var(--muted); padding:3px 0}
+.issuer-row b{color:var(--ink); font-weight:600; font-variant-numeric:tabular-nums}
+
+/* ---------- board logos ---------- */
+.tick-icon{width:20px; height:20px; border-radius:50%; flex:none; align-self:center}
+.flag{
+  font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.06em;
+  text-transform:uppercase; padding:2px 5px; border:1px solid var(--brass);
+  color:var(--brass); white-space:nowrap; margin-left:7px;
+}
+
+/* ---------- pink sheets (hidden theme) ----------
+   Unlocked by typing "pink". Token swap plus a few face swaps, no layout
+   change, so nothing here can reach the Satori cards or the grid. The
+   reference is the salmon NQB quotation sheet: dense mono, oxblood
+   warnings, engraved green for the upside. */
+:root[data-theme="pink"]{
+  --bg:#f0d7d1; --surface:#e8c9c2;
+  --ink:#1b1410; --muted:#6b514a; --faint:#8a6b64;
+  --line:#c9a49c; --line-soft:#ddbdb5;
+  --brass:#8d2f27; --brass-wash:rgba(141,47,39,.10);
+  --up:#1f5443; --down:#8d2f27;
+  --bar:#8d2f27; --bar-track:#ddbdb5;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root[data-theme="pink"]{
+    --bg:#141110; --surface:#1e1917;
+    --ink:#efe4e0; --muted:#b09a94; --faint:#96827c;
+    --line:#43302c; --line-soft:#2e2320;
+    --brass:#e0736a; --brass-wash:rgba(224,115,106,.12);
+    --up:#4fb391; --down:#e0736a;
+    --bar:#e0736a; --bar-track:#2e2320;
+    color-scheme:dark;
+  }
+}
+/* The Didone display face is the modern half of the identity. On the sheet
+   it goes, and everything falls back to the quotation mono. */
+:root[data-theme="pink"] h1,
+:root[data-theme="pink"] h2,
+:root[data-theme="pink"] .stat .v,
+:root[data-theme="pink"] .tick b,
+:root[data-theme="pink"] .denom,
+:root[data-theme="pink"] .hit-sym,
+:root[data-theme="pink"] .issuer-name,
+:root[data-theme="pink"] .lookup-input{
+  font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  font-style:normal; font-weight:600; letter-spacing:-.02em;
+}
+/* mono is wider than the Didone at the same size, so the display sizes
+   come down or the headline wraps badly on a phone */
+:root[data-theme="pink"] h1{
+  font-size:clamp(26px,5.6vw,50px); line-height:1.02; text-transform:uppercase;
+}
+:root[data-theme="pink"] h1 em{font-style:normal; font-weight:400}
+:root[data-theme="pink"] h2{font-size:clamp(17px,3vw,23px); text-transform:uppercase; letter-spacing:.02em}
+:root[data-theme="pink"] .stat .v{font-size:clamp(22px,3.8vw,32px)}
+:root[data-theme="pink"] .lookup-input{font-size:clamp(20px,3.4vw,27px)}
+:root[data-theme="pink"] .tick b{font-size:16px}
+:root[data-theme="pink"] .denom{font-size:14px}
+:root[data-theme="pink"] .hit-sym{font-size:16px}
+:root[data-theme="pink"] .issuer-name{font-size:18px; text-transform:uppercase}
+
+.egg{
+  position:fixed; right:14px; bottom:14px; z-index:40;
+  display:flex; align-items:center; gap:8px;
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--brass);
+  background:var(--bg); border:1px solid var(--brass);
+  padding:7px 10px; cursor:pointer; line-height:1;
+}
+.egg:hover{background:var(--brass-wash)}
+.egg span{color:var(--faint)}
+@media (max-width:480px){.egg{right:10px; bottom:10px; font-size:9.5px; padding:6px 8px}}
+
+/* ---------- same company, two issuers ---------- */
+.dupes{display:flex; flex-direction:column; gap:1px; border-top:1px solid var(--line)}
+.dupe{background:var(--bg); box-shadow:0 0 0 1px var(--line-soft); padding:14px 16px 12px}
+.dupe-head{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin:0 0 9px}
+.dupe-name{font-family:"Bodoni Moda",Didot,Georgia,serif; font-optical-sizing:none; font-weight:600; font-size:19px; margin:0}
+.dupe-gap{
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.08em;
+  text-transform:uppercase; padding:2px 6px; border:1px solid var(--line); color:var(--faint); white-space:nowrap;
+}
+.dupe-gap.wide{border-color:var(--down); color:var(--down)}
+.dupe-gap.tight{border-color:var(--up); color:var(--up)}
+.dupe-row{
+  display:grid; grid-template-columns:minmax(84px,1fr) minmax(74px,.8fr) minmax(76px,.8fr) minmax(76px,.8fr) minmax(76px,.8fr) auto;
+  gap:8px 12px; align-items:baseline; padding:5px 0; font-family:"IBM Plex Mono",monospace; font-size:12.5px;
+  color:var(--muted); border-top:1px solid var(--line-soft);
+}
+.dupe-row.h{border-top:none; color:var(--faint); font-size:10px; letter-spacing:.11em; text-transform:uppercase}
+.dupe-row b{color:var(--ink); font-weight:600}
+.dupe-row .r{text-align:right; font-variant-numeric:tabular-nums}
+.dupe-note{font-size:13px; color:var(--muted); margin:10px 0 0; max-width:64ch; text-wrap:pretty}
+@media (max-width:640px){
+  .dupe-row{grid-template-columns:1fr auto auto; font-size:11.5px}
+  .dupe-row .hide-s{display:none}
+}
