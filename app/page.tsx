@@ -15,10 +15,14 @@ export async function generateMetadata(): Promise<Metadata> {
   // fix every image needed a URL their crawler had never seen.
   const v = `${Math.floor(Date.parse(idx.generatedAt) / 3_600_000)}r2`;
   const image = `${siteUrl}/api/card/board.png?v=${v}`;
-  const title = "Wall Street is the denominator now.";
+  /* The card sells the same thing the page now promises. The image below still
+     carries the board and its own line, because that is a caption on a chart
+     rather than a second pitch: the title asks the question, the picture is the
+     evidence that somebody has actually done the work. */
+  const title = "Is this tokenized stock real?";
   const description =
-    `${idx.totals.quotedCoins.toLocaleString()} coins on Solana are priced in tokenized ` +
-    `stocks, not SOL. Live index across xStocks, Sunrise, Ondo, PreStocks and Tessera.`;
+    `Paste a ticker or a contract address. Who issued it, whether it trades at all, ` +
+    `and what is priced against it. Every tokenized stock on Solana, across five issuers.`;
   return {
     openGraph: {
       title, description, type: "website", url: siteUrl,
