@@ -2,18 +2,22 @@ import type { Metadata } from "next";
 import { buildIndex } from "@/lib/pipeline";
 import { siteUrl } from "@/lib/site";
 import { Lookup } from "@/components/Lookup";
+import { Live } from "@/components/Live";
 import { PLATFORM_TOKENS } from "@/lib/checks";
 
 export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
   const idx = await buildIndex();
-  const v = Math.floor(Date.parse(idx.generatedAt) / 3_600_000); // hourly bucket: keeps the URL warm
+  // Hourly bucket keeps the URL warm. The suffix is a manual cache break:
+  // X caches a refused fetch against the exact URL, so after the robots.txt
+  // fix every image needed a URL their crawler had never seen.
+  const v = `${Math.floor(Date.parse(idx.generatedAt) / 3_600_000)}r2`;
   const image = `${siteUrl}/api/card/board.png?v=${v}`;
   const title = "Wall Street is the denominator now.";
   const description =
     `${idx.totals.quotedCoins.toLocaleString()} coins on Solana are priced in tokenized ` +
-    `stocks, not SOL. Live index across xStocks, Backpack and Ondo.`;
+    `stocks, not SOL. Live index across xStocks, Sunrise, Ondo, PreStocks and Tessera.`;
   return {
     openGraph: {
       title, description, type: "website", url: siteUrl,
@@ -28,6 +32,9 @@ const usd = (v: number) =>
   : v >= 1e6 ? `$${(v / 1e6).toFixed(v / 1e6 >= 10 ? 1 : 2)}M`
   : v >= 1e3 ? `$${Math.round(v / 1e3)}k`
   : `$${Math.round(v)}`;
+
+const holders = (v: number) =>
+  v >= 1e6 ? `${(v / 1e6).toFixed(2)}M` : `${Math.round(v / 1e3)}k`;
 
 const when = (ts?: number) =>
   ts ? new Date(ts * 1000).toUTCString().slice(0, 22) + " UTC" : "";
@@ -60,6 +67,20 @@ export default async function Page() {
     })
     .sort((a, b) => b.gap - a.gap);
   const anyWide = dupes.some((d) => d.gap > 0.1);
+
+  // One plain sentence per section. A glance should leave you with a fact,
+  // not a description of what the table beneath is ranked by.
+  const lead = board[0];
+  const widest = dupes[0];
+  const deadest = (["xStocks", "Backpack", "Ondo", "PreStocks", "Tessera"] as const)
+    .map((iss) => ({
+      iss,
+      listed: T.byIssuer[iss] ?? 0,
+      trade: stocks.filter((x) => x.issuer === iss).length,
+    }))
+    .filter((r) => r.listed > 20)
+    .sort((a, b) => b.listed - b.trade - (a.listed - a.trade))[0];
+  const topCoin = coins[0];
   const stamp = idx.generatedAt.slice(0, 16).replace("T", " ") + " UTC";
 
   return (
@@ -76,45 +97,72 @@ export default async function Page() {
             </span>
           )}
           <span className="dot">/</span>
-          <span>{stamp}</span>
+          <Live generatedAt={idx.generatedAt} />
         </p>
         <h1>
           Wall Street is <em>the denominator</em> now.
         </h1>
         <p className="standfirst">
-          Memecoins on Solana are no longer priced in SOL. They are priced in GameStop,
-          in Gold, in Lockheed Martin. This is every coin currently quoted against a
-          tokenized stock, across all three issuers, and how much of it is real.
+          Memecoins on Solana are no longer priced in SOL. Right now they are priced in{" "}
+          {board.slice(0, 3).map((r) => r.name.replace(/ (xStock|- Backpack Securities|\(Ondo Tokenized\))/g, "").trim()).join(", ")}.
+          This is every coin currently quoted against a tokenized stock, across all five
+          issuers, and how much of it is real.
         </p>
       </header>
 
-      <Lookup items={idx.lookup} />
+      <nav className="jump" aria-label="Sections">
+        <div className="jump-row">
+          <a href="#check">Check a ticker</a>
+          <a href="#issuers">Issuers</a>
+          <a href="#board">Board</a>
+          <a href="#coins">Coins</a>
+          {dupes.length > 0 && <a href="#prices">Two prices</a>}
+          <a href="#oracle">Oracle gap</a>
+        </div>
+      </nav>
+
+      <div id="check">
+        <Lookup items={idx.lookup} />
+      </div>
 
       <div className="stats">
         <Stat k="Coins quoted in stocks" v={T.quotedCoins.toLocaleString()} />
         <Stat k="Their 24h volume" v={usd(T.quotedVolume24h)} />
-        <Stat k="Stock tokens listed" v={T.universe.toLocaleString()} sub={`/ ${T.tradeable} traded`} />
-        <Stat k="Holders of tokenized stock" v={(T.universeHolders / 1000).toFixed(0) + "k"} />
+        <Stat k="Tokenized stocks listed" v={T.universe.toLocaleString()} sub={`/ ${T.tradeable} traded`} />
+        <Stat k="Holders of tokenized stock" v={holders(T.universeHolders)} />
       </div>
 
-      <section>
-        <h2>Three issuers, very different shapes</h2>
-        <p className="sec-note">
-          Every tokenized stock on Solana comes from one of three issuers, and they are not
-          alike. Backpack has the fewest tokens and the most action.
+      <section id="issuers">
+        <h2>Five issuers, very different shapes</h2>
+        {deadest && (
+          <p className="finding">
+            <span className="nowtag">right now</span>
+            {deadest.iss} lists <b>{deadest.listed.toLocaleString()}</b> tokenized stocks.{" "}
+            <b>{deadest.trade}</b> of them trade.
+          </p>
+        )}
+        <p className="lookfor">
+          <span className="k">What to look for</span>
+          The gap between listed and actually trades. A wide gap means most of that issuer&apos;s
+          catalogue has no pool behind it, so you can buy it and then find there is nobody to
+          sell it to. Used as denominators is the stricter test again: it means other people
+          have built markets on top of that token.
         </p>
         <div className="issuers">
           {(["xStocks", "Backpack", "Ondo", "PreStocks", "Tessera"] as const).map((iss) => {
+            // Sunrise is the brand the market knows; Backpack Securities is the
+            // entity that actually issues, and what the token metadata says.
+            const shown = iss === "Backpack" ? "Sunrise" : iss;
             const listed = T.byIssuer[iss] ?? 0;
             const rows = stocks.filter((s) => s.issuer === iss);
             const vol = rows.reduce((a, r) => a + r.quotedVolume24h, 0);
             const denoms = rows.filter((r) => r.quotedCount > 0).length;
             return (
               <div className="issuer" key={iss}>
-                <p className="issuer-name">{iss}</p>
+                <p className="issuer-name">{shown}</p>
                 <p className="issuer-sub">
-                  {iss === "Backpack" ? "issues the Sunrise range"
-                    : iss === "xStocks" ? "issued by Backed"
+                  {iss === "Backpack" ? "issued by Backpack Securities"
+                    : iss === "xStocks" ? "issues the xStocks range"
                     : iss === "PreStocks" ? "pre-IPO equity"
                     : iss === "Tessera" ? "pre-IPO, tesseralab.co"
                     : "Ondo Finance"}
@@ -129,12 +177,22 @@ export default async function Page() {
         </div>
       </section>
 
-      <section>
+      <section id="board">
         <h2>The denominator board</h2>
-        <p className="sec-note">
-          Ranked by the 24-hour volume of coins quoted against each stock. The name beside the
-          bar is the largest coin using that stock as its unit of account. <b>24/7</b> marks a
-          stock with an always-on Pyth reference price.
+        {lead && (
+          <p className="finding">
+            <span className="nowtag">right now</span>
+            The most-used stock on Solana is <b>{lead.underlying}</b>, with{" "}
+            <b>{lead.quotedCount}</b> coins settling in it.
+          </p>
+        )}
+        <p className="lookfor">
+          <span className="k">What to look for</span>
+          High volume against a low coin count means one pair is carrying the whole stock, so
+          that volume disappears if the pair does. Many coins against low volume is a crowded,
+          thin lane. If you are picking a denominator to launch against, the interesting rows
+          are the ones near the bottom and the tickers that do not appear here at all.
+          <b> 24/7</b> marks a stock with an always-on Pyth reference price.
         </p>
         <div className="board">
           {board.map((r) => (
@@ -158,7 +216,7 @@ export default async function Page() {
                     style={{ width: `${Math.max((r.quotedVolume24h / max) * 100, 1.5)}%` }}
                   />
                 </div>
-                <span className="lead">{r.topCoin ?? "—"}</span>
+                <span className="lead"><span className="lead-k">top</span>{r.topCoin ?? "—"}</span>
               </div>
               <div className="vol">{usd(r.quotedVolume24h)}</div>
             </div>
@@ -166,13 +224,23 @@ export default async function Page() {
         </div>
       </section>
 
-      <section>
+      <section id="coins">
         <h2>Priced in equity</h2>
-        <p className="sec-note">
-          The forty largest coins by 24-hour volume, each with the stock it settles in.
-          Anything marked <b>platform</b> is a launchpad or treasury token rather than an
-          independent coin, so its volume reflects that platform, not demand for a memecoin.
+        {topCoin && (
+          <p className="finding">
+            <span className="nowtag">right now</span>
+            The biggest coin denominated in equity is <b>{topCoin.coin}</b>, settling in{" "}
+            <b>{topCoin.underlying}</b>.
+          </p>
+        )}
+        <p className="lookfor">
+          <span className="k">What to look for</span>
+          Compare liquidity against 24h volume. Volume many times larger than the pool is
+          churn rather than depth, and it usually means a handful of wallets trading with each
+          other. Anything marked <b>platform</b> is a launchpad or treasury token, so its
+          volume reflects that platform rather than demand for a coin.
         </p>
+        <p className="scroll-hint">Swipe the table sideways for liquidity and volume</p>
         <div className="scroll">
           <table>
             <thead>
@@ -215,12 +283,23 @@ export default async function Page() {
       </section>
 
       {dupes.length > 0 && (
-        <section>
+        <section id="prices">
           <h2>The same company, two prices</h2>
-          <p className="sec-note">
-            Some companies are tokenized by more than one issuer. Where the company is public,
-            the issuers agree almost exactly: there is a Pyth feed and a real market to
-            arbitrage against. Where it is private, there is neither, and the prices come apart.
+          {widest && (
+            <p className="finding">
+              <span className="nowtag">right now</span>
+              Two issuers price <b>{widest.rows[0].underlying}</b> at{" "}
+              <b>${widest.rows[0].price.toFixed(2)}</b> and{" "}
+              <b>${widest.rows[widest.rows.length - 1].price.toFixed(2)}</b>. It is private, so
+              there is no published price to check either against.
+            </p>
+          )}
+          <p className="lookfor">
+            <span className="k">What to look for</span>
+            A green badge means the issuers agree, because a public share price exists and
+            anyone selling it wrong gets arbitraged. A red badge means nobody can tell you
+            which price is right, including the issuers. Some of a wide gap may be
+            denomination rather than overcharging, and that is the problem: you cannot check.
           </p>
           <div className="dupes">
             {dupes.map((d) => {
@@ -269,12 +348,18 @@ export default async function Page() {
         </section>
       )}
 
-      <section>
+      <section id="oracle">
         <h2>The oracle gap</h2>
-        <p className="sec-note">
-          Pyth publishes two feeds per ticker: a session feed that stops at 16:00 ET, and an
-          always-on <b>Equity.Index</b> feed. Only {T.with247Feed} of the {T.denominators} stocks
-          being used as denominators have the always-on one.
+        <p className="finding">
+          <span className="nowtag">right now</span>
+          <b>{T.denominators - T.with247Feed}</b> of the <b>{T.denominators}</b> stocks being
+          used as money have no price after the closing bell.
+        </p>
+        <p className="lookfor">
+          <span className="k">What to look for</span>
+          Pyth publishes a session feed that stops at 16:00 ET and an always-on{" "}
+          <b>Equity.Index</b> feed. If you hold a coin quoted in a stock without the always-on
+          one, its overnight and weekend moves are being priced against nothing.
         </p>
         <div className="chips">
           {board.map((r) => (
@@ -290,6 +375,18 @@ export default async function Page() {
           {ms && !ms.isOpen && ` The US market is shut right now. It reopens ${when(ms.nextOpen)}.`}
         </div>
       </section>
+
+      <p className="footnote">
+        <span className="live-dot" aria-hidden="true" />
+        Everything marked <b>right now</b> on this page is read from live pools and recomputed
+        at most every five minutes. This page refreshes itself while the tab is open, so you do
+        not have to. Last rebuild {stamp}.
+      </p>
+
+      <p className="cards-cta">
+        <b style={{ color: "var(--ink)" }}>Every stock here has its own page and its own live share card.</b>{" "}
+        Click a ticker on the board, or <a href="/cards">see all the cards</a>.
+      </p>
 
       <footer>
         <span>

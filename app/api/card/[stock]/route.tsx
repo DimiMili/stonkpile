@@ -125,7 +125,7 @@ export async function GET(
         </div>
       </div>,
       <Footer bits={[
-        `${T.universe.toLocaleString()} stock tokens listed`,
+        `${T.universe.toLocaleString()} tokenized stocks listed`,
         `${T.tradeable} actually trade`,
         `${T.with247Feed}/${T.denominators} have a 24/7 oracle`,
       ]} />,
@@ -151,7 +151,18 @@ export async function GET(
     );
   }
 
-  const top = s.quotedCoins.slice(0, 5);
+  // One row per coin. A coin with several pools was showing up three times,
+  // which reads as a rendering fault rather than as real liquidity spread.
+  const seen = new Set<string>();
+  const top = s.quotedCoins
+    .filter((c) => {
+      const k = c.coin.toUpperCase();
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    })
+    .slice(0, 5);
+  const issuerName = s.issuer === "Backpack" ? "Sunrise" : s.issuer;
   const max = Math.max(...top.map((c) => c.volume24h), 1);
 
   return shell(
@@ -160,7 +171,7 @@ export async function GET(
         <div style={col({ maxWidth: 560 })}>
           <div style={serif(96, 800, PAPER)}>{cut(s.symbol, 9)}</div>
           <div style={mono(21, 400, MUTED)}>
-            <span style={{ marginTop: 8 }}>{cut(clean(s.name), 30)} · {s.issuer}</span>
+            <span style={{ marginTop: 8 }}>{cut(clean(s.name), 30)} · {issuerName}</span>
           </div>
         </div>
         <div style={col({ alignItems: "flex-end", maxWidth: 420 })}>

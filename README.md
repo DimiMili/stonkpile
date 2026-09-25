@@ -211,4 +211,16 @@ GET /api/index?limit=25&slim=1    trim the payload
 
 ## License
 
-MIT.
+MIT. Fork it, run it, ship something better with it.
+
+## Built by
+
+[Takisoul](https://x.com/takisoul). Just a Solana power user here to build cool shit,
+even though I am not a developer.
+
+I decided what this should do and what it should not, found the things that were wrong
+with it, and Claude wrote the code. It took a few days.
+
+If you find a bug or a token the issuer check gets wrong, open an issue or hit me up on X.
+
+There is no token and there will not be one.

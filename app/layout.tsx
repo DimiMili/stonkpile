@@ -6,7 +6,7 @@ import { PinkSheets } from "@/components/PinkSheets";
 
 const TITLE = "Stonkpile";
 const DESC =
-  "Every memecoin on Solana quoted against a tokenized stock. Live index across xStocks, Backpack and Ondo.";
+  "Every memecoin on Solana quoted against a tokenized stock. Live index across xStocks, Sunrise, Ondo, PreStocks and Tessera.";
 const CARD = `${siteUrl}/api/card/board.png`;
 
 export const metadata: Metadata = {

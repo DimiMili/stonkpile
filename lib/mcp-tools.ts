@@ -58,7 +58,7 @@ export const TOOLS: Tool[] = [
     title: "Stocks used as quote assets",
     description:
       "Tokenized stocks that memecoins are being priced against on Solana, ranked by the " +
-      "24h volume of those coins. Covers xStocks, Backpack, Ondo, PreStocks and Tessera.",
+      "24h volume of those coins. Covers xStocks, Sunrise, Ondo, PreStocks and Tessera.",
     inputSchema: {
       type: "object",
       properties: {
@@ -203,7 +203,7 @@ export const TOOLS: Tool[] = [
       if (!hits.length) {
         return (
           `No verified tokenized stock matches "${a.ticker}".\n` +
-          `Nothing with that ticker is issued by xStocks, Backpack, Ondo, PreStocks or Tessera. ` +
+          `Nothing with that ticker is issued by xStocks, Sunrise, Ondo, PreStocks or Tessera. ` +
           `If you have seen a token using this name on Solana, it is not one of theirs.`
         );
       }

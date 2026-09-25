@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { buildIndex } from "@/lib/pipeline";
 import { siteUrl } from "@/lib/site";
 import { Checks } from "@/components/Checks";
+import { Share } from "@/components/Share";
 import { stockChecks, coinChecks, worst, PLATFORM_TOKENS } from "@/lib/checks";
 
 export const revalidate = 300;
@@ -45,7 +46,10 @@ export async function generateMetadata(
      image URL, so a fixed path means a single failed fetch is cached forever
      and a stale card is served after the data moves. This changes every
      refresh, which gives them a fresh URL to fetch. */
-  const v = Math.floor(Date.parse(idx.generatedAt) / 3_600_000); // hourly bucket: keeps the URL warm
+  // Hourly bucket keeps the URL warm. The suffix is a manual cache break:
+  // X caches a refused fetch against the exact URL, so after the robots.txt
+  // fix every image needed a URL their crawler had never seen.
+  const v = `${Math.floor(Date.parse(idx.generatedAt) / 3_600_000)}r2`;
   const image = `${siteUrl}/api/card/${stock.symbol}.png?v=${v}`;
 
   return {
@@ -119,7 +123,7 @@ export default async function SharePage(
       <Checks
         title={`Is ${stock.symbol} what it says it is?`}
         checks={stockChecks(stock)}
-        note="Five arithmetic checks on the stock token itself, before you look at anything quoted against it."
+        note="Five arithmetic checks on the tokenized stock itself, before you look at anything quoted against it."
       />
 
       <section>
@@ -171,9 +175,15 @@ export default async function SharePage(
         />
       )}
 
+      <Share
+        url={`${siteUrl}/s/${stock.symbol}`}
+        card={`/api/card/${stock.symbol}.png`}
+        text={`${stock.quotedCount} coin${stock.quotedCount === 1 ? "" : "s"} on Solana are priced in ${stock.name.replace(/\s*(xStock|-\s*Backpack Securities|\(Ondo Tokenized\))\s*/gi, "").trim()} stock, not SOL.`}
+      />
+
       <footer>
         <span>
-          <a href="/">The full board</a> · <a href={`/api/card/${stock.symbol}.png`}>Share card</a> ·{" "}
+          <a href="/">The full board</a> · <a href="/cards">All cards</a> ·{" "}
           <a href={`/api/index?stock=${stock.symbol}`}>JSON</a>
         </span>
         <span>Updated {idx.generatedAt.slice(0, 16).replace("T", " ")} UTC</span>

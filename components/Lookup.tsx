@@ -58,7 +58,7 @@ export function Lookup({ items }: { items: LookupItem[] }) {
           {hits.length === 0 ? (
             <p className="lookup-empty">
               No verified tokenized stock matches “{q}”. If you have found a token using that
-              name on-chain, it is not issued by xStocks, Backpack or Ondo.
+              name on-chain, it is not issued by xStocks, Sunrise, Ondo, PreStocks or Tessera.
             </p>
           ) : (
             hits.map((i) => (
@@ -71,7 +71,7 @@ export function Lookup({ items }: { items: LookupItem[] }) {
                 )}
                 <span className="hit-sym">{i.symbol}</span>
                 <span className="hit-name">{i.name}</span>
-                <span className="hit-issuer">{i.issuer}</span>
+                <span className="hit-issuer">{i.issuer === "Backpack" ? "Sunrise" : i.issuer}</span>
                 <span className="hit-state">
                   {!i.tradeable
                     ? "listed, not traded"

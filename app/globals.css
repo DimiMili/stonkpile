@@ -164,7 +164,7 @@ h1,h2,.stat .v,.tick b,.denom{font-optical-sizing:none}
 .lookup-results{margin-top:18px; border-top:1px solid var(--line-soft)}
 .lookup-empty{font-size:14px; color:var(--down); margin:14px 0 0; max-width:60ch}
 .hit{
-  display:grid; grid-template-columns:26px minmax(64px,auto) 1fr auto auto;
+  display:grid; grid-template-columns:26px minmax(56px,auto) minmax(0,1fr) auto auto;
   gap:12px; align-items:center; padding:11px 0;
   border-bottom:1px solid var(--line-soft); text-decoration:none; border-bottom-color:var(--line-soft);
 }
@@ -295,4 +295,129 @@ h1,h2,.stat .v,.tick b,.denom{font-optical-sizing:none}
 @media (max-width:640px){
   .dupe-row{grid-template-columns:1fr auto auto; font-size:11.5px}
   .dupe-row .hide-s{display:none}
+}
+
+
+/* ---------- the one-line finding above each section ---------- */
+.finding{
+  font-family:"Bodoni Moda",Didot,Georgia,serif; font-optical-sizing:none;
+  font-weight:600; font-size:clamp(17px,2.6vw,22px); line-height:1.35;
+  margin:10px 0 4px; max-width:56ch; text-wrap:pretty;
+}
+.finding b{color:var(--brass); font-weight:600}
+:root[data-theme="pink"] .finding{
+  font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  font-size:clamp(14px,2vw,17px); letter-spacing:-.01em;
+}
+.lead-k{color:var(--faint); font-size:10px; letter-spacing:.1em; text-transform:uppercase; margin-right:5px}
+
+
+/* ---------- live reading vs standing guidance ----------
+   The finding recalculates every five minutes, so it is labelled as a reading
+   rather than a claim. The guidance underneath never changes, and is what
+   teaches someone how to read the section on their second visit. */
+.nowtag{
+  display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:10px;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--brass);
+  border:1px solid var(--brass); padding:2px 6px; margin-right:9px;
+  vertical-align:middle; position:relative; top:-2px; white-space:nowrap;
+}
+.lookfor{
+  font-size:13.5px; color:var(--muted); max-width:62ch; margin:10px 0 22px; text-wrap:pretty;
+}
+.lookfor .k{
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--faint); display:block; margin-bottom:4px;
+}
+
+
+/* ---------- live indicator ---------- */
+.live{display:inline-flex; align-items:center; gap:7px; color:var(--up)}
+.live-dot{
+  width:7px; height:7px; border-radius:50%; background:var(--up); flex:none;
+  box-shadow:0 0 0 0 var(--up); animation:pulse 2.4s ease-out infinite;
+}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 color-mix(in srgb, var(--up) 55%, transparent)}
+  70%{box-shadow:0 0 0 7px transparent}
+  100%{box-shadow:0 0 0 0 transparent}
+}
+@media (prefers-reduced-motion:reduce){ .live-dot{animation:none} }
+.live-age{color:var(--faint)}
+.footnote{
+  font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--faint);
+  margin:26px 0 0; max-width:70ch; line-height:1.6;
+}
+.footnote .live-dot{display:inline-block; vertical-align:middle; margin-right:5px}
+
+/* ---------- mobile polish ----------
+   Found by auditing at 390px: the coin table scrolls sideways with nothing
+   telling you so, and several tap targets sat under the 32px minimum. */
+.scroll-hint{
+  display:none; font-family:"IBM Plex Mono",monospace; font-size:10.5px;
+  letter-spacing:.11em; text-transform:uppercase; color:var(--faint);
+  margin:0 0 8px;
+}
+@media (max-width:720px){
+  .scroll-hint{display:block}
+
+  /* bigger hit areas without moving anything: padding out, margin back in */
+  .tickname{padding:7px 0; margin:-7px 0}
+  .hit{padding:14px 0}
+  footer a{padding:6px 0; display:inline-block}
+  .egg{padding:10px 12px; font-size:10px}
+
+  /* the guidance block is long on a phone; tighten it so it reads as a note */
+  .lookfor{font-size:13px; line-height:1.55; margin-bottom:18px}
+}
+
+
+/* ---------- section jump bar ----------
+   The homepage runs to about 11,000px on a phone. This sticks under the thumb
+   so nobody has to scroll past four sections to reach the one they want.
+   Phone only: on desktop the scrollbar already tells you where you are. */
+.jump{display:none}
+@media (max-width:720px){
+  .jump{
+    display:block; position:sticky; top:0; z-index:30;
+    margin:0 -16px; padding:9px 16px;
+    background:color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter:saturate(180%) blur(12px);
+    -webkit-backdrop-filter:saturate(180%) blur(12px);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .jump-row{
+    display:flex; gap:7px; overflow-x:auto; scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+  .jump-row::-webkit-scrollbar{display:none}
+  .jump a{
+    flex:none; font-family:"IBM Plex Mono",monospace; font-size:11px;
+    letter-spacing:.06em; text-transform:uppercase; white-space:nowrap;
+    padding:8px 11px; border:1px solid var(--line); color:var(--muted);
+    text-decoration:none; border-radius:0;
+  }
+  .jump a:active{border-color:var(--brass); color:var(--brass)}
+  /* anchors must clear the sticky bar */
+  section[id], div[id]{scroll-margin-top:56px}
+}
+
+/* ---------- share block ---------- */
+.sharecard{width:100%;height:auto;display:block;border:1px solid var(--line)}
+.shareactions{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}
+.btn{
+  font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.06em;
+  padding:11px 16px;border:1px solid var(--line);color:var(--ink);
+  background:transparent;cursor:pointer;text-decoration:none;line-height:1;
+}
+.btn:hover{border-color:var(--brass);color:var(--brass)}
+.btn.primary{border-color:var(--ink);background:var(--ink);color:var(--bg)}
+.btn.primary:hover{background:var(--brass);border-color:var(--brass);color:var(--bg)}
+a.btn{border-bottom:1px solid var(--line)}
+a.btn.primary{border-bottom-color:var(--ink)}
+a.btn:hover{border-bottom-color:var(--brass)}
+.cards-cta{
+  display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;
+  border-top:1px solid var(--line);margin-top:26px;padding-top:16px;
+  font-size:13.5px;color:var(--muted);
 }
