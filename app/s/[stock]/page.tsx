@@ -47,10 +47,13 @@ export async function generateMetadata(
      image URL, so a fixed path means a single failed fetch is cached forever
      and a stale card is served after the data moves. This changes every
      refresh, which gives them a fresh URL to fetch. */
-  // Hourly bucket keeps the URL warm. The suffix is a manual cache break:
-  // X caches a refused fetch against the exact URL, so after the robots.txt
-  // fix every image needed a URL their crawler had never seen.
-  const v = `${Math.floor(Date.parse(idx.generatedAt) / 3_600_000)}r2`;
+  // Daily bucket, not hourly. Every rollover makes a URL nobody has rendered
+  // yet, and that first render takes about three seconds, which is long enough
+  // for a social crawler to give up and cache the miss against it. Hourly meant
+  // 24 chances a day to burn a card; daily means one, and it can be warmed by
+  // hand after a deploy. The suffix is the manual break for when we need a URL
+  // their crawler has never seen at all.
+  const v = `${Math.floor(Date.parse(idx.generatedAt) / 86_400_000)}r3`;
   const image = `${siteUrl}/api/card/${stock.symbol}.png?v=${v}`;
 
   return {
