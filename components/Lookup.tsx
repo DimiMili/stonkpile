@@ -103,6 +103,14 @@ export function Lookup() {
       <label className="lookup-label" htmlFor="ticker">
         Check a ticker or a contract address
       </label>
+      {/* The box gets a visible frame and an icon. As an underlined serif line it
+          read as a headline rather than something you type into, which is the
+          single thing first readers said they missed. */}
+      <div className="lookup-box">
+        <svg className="lookup-mag" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="10.5" cy="10.5" r="6.5" />
+          <line x1="15.5" y1="15.5" x2="21" y2="21" />
+        </svg>
       <input
         id="ticker"
         className="lookup-input"
@@ -111,7 +119,7 @@ export function Lookup() {
         autoCapitalize="off"
         autoCorrect="off"
         spellCheck={false}
-        placeholder="AAPL, NVDA, GME, or paste a mint…"
+        placeholder="AAPL, NVDA, or paste a mint"
         value={q}
         onFocus={warm}
         onPointerEnter={warm}
@@ -120,10 +128,9 @@ export function Lookup() {
           setQ(e.target.value);
         }}
       />
+      </div>
       <p className="lookup-hint">
-        Which tokenized versions are genuinely issued, which actually trade, and what is
-        priced against them. Paste an address to find out what you are holding, or copy the
-        right one off the result.
+        Real or fake, trades or not, and what is priced against it.
       </p>
 
       {raw.length > 0 && (

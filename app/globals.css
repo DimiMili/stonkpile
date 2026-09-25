@@ -150,16 +150,26 @@ h1,h2,.stat .v,.tick b,.denom{font-optical-sizing:none}
   display:block; font-family:"IBM Plex Mono",monospace; font-size:10.5px;
   letter-spacing:.13em; text-transform:uppercase; color:var(--faint); margin-bottom:9px;
 }
+.lookup-box{
+  display:flex; align-items:center; gap:12px; max-width:520px;
+  border:2px solid var(--ink); padding:10px 16px; background:var(--surface);
+}
+.lookup-box:focus-within{border-color:var(--brass)}
+.lookup-mag{
+  width:22px; height:22px; flex:none; fill:none; stroke:var(--faint);
+  stroke-width:2.1; stroke-linecap:round;
+}
+.lookup-box:focus-within .lookup-mag{stroke:var(--brass)}
 .lookup-input{
-  width:100%; max-width:440px; display:block;
+  width:100%; display:block;
   font-family:"Bodoni Moda",Didot,Georgia,serif; font-optical-sizing:none;
-  font-size:clamp(24px,4vw,32px); font-weight:600;
+  font-size:clamp(19px,3.3vw,28px); font-weight:600;
   background:transparent; color:var(--ink);
-  border:none; border-bottom:2px solid var(--ink); border-radius:0;
-  padding:4px 0 8px; outline:none; -webkit-appearance:none;
+  border:none; border-radius:0;
+  padding:2px 0; outline:none; -webkit-appearance:none;
 }
 .lookup-input::placeholder{color:var(--faint); font-weight:400}
-.lookup-input:focus{border-bottom-color:var(--brass)}
+
 .lookup-hint{font-size:13px; color:var(--muted); margin:12px 0 0; max-width:56ch}
 .lookup-results{margin-top:18px; border-top:1px solid var(--line-soft)}
 .lookup-empty{font-size:14px; color:var(--down); margin:14px 0 0; max-width:60ch}

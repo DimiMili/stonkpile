@@ -100,20 +100,27 @@ export default async function Page() {
           <span className="dot">/</span>
           <Live generatedAt={idx.generatedAt} />
         </p>
+        {/* The headline is the question people arrive with, not the argument the
+            page goes on to make. First reader feedback was "I am not sure what I
+            am supposed to do", and the fix is to answer that before anything
+            else: ask their question, then hand them the box that answers it.
+            The thesis moved down to the board, where the reading starts. */}
         <h1>
-          Wall Street is <em>the denominator</em> now.
+          Is this tokenized stock <em>real</em>?
         </h1>
         <p className="standfirst">
-          Memecoins on Solana are no longer priced in SOL. Right now they are priced in{" "}
-          {board.slice(0, 3).map((r) => r.name.replace(/ (xStock|- Backpack Securities|\(Ondo Tokenized\))/g, "").trim()).join(", ")}.
-          This is every coin currently quoted against a tokenized stock, across all five
-          issuers, and how much of it is real.
+          Paste a ticker or a contract address. You get the issuer, whether it trades at
+          all, and what is priced against it. Everything below is the whole market, if you
+          want to read rather than look something up.
         </p>
       </header>
 
+      <div id="check">
+        <Lookup />
+      </div>
+
       <nav className="jump" aria-label="Sections">
         <div className="jump-row">
-          <a href="#check">Check a ticker</a>
           <a href="#issuers">Issuers</a>
           <a href="#board">Board</a>
           <a href="#coins">Coins</a>
@@ -121,10 +128,6 @@ export default async function Page() {
           <a href="#oracle">Oracle gap</a>
         </div>
       </nav>
-
-      <div id="check">
-        <Lookup />
-      </div>
 
       <div className="stats">
         <Stat k="Coins quoted in stocks" v={T.quotedCoins.toLocaleString()} />
@@ -179,7 +182,7 @@ export default async function Page() {
       </section>
 
       <section id="board">
-        <h2>The denominator board</h2>
+        <h2>Wall Street is the denominator now</h2>
         {lead && (
           <p className="finding">
             <span className="nowtag">right now</span>
