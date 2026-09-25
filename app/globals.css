@@ -45,6 +45,11 @@ header{padding-block:44px 30px; border-bottom:2px solid var(--ink)}
   display:flex; flex-wrap:wrap; gap:6px 14px; align-items:baseline;
 }
 .eyebrow .dot{color:var(--faint)}
+/* The wordmark, which is also the way home. It keeps the site's own underline
+   rather than hiding it: the one thing it must not do is look less clickable
+   than every other link on the page. Padding out and margin back in gives it a
+   thumb-sized target without moving the eyebrow. */
+.brand{font-weight:600; padding:4px 0; margin:-4px 0}
 .closed{color:var(--down)} .open{color:var(--up)}
 h1{
   font-family:"Bodoni Moda",Didot,Georgia,serif; font-weight:800;

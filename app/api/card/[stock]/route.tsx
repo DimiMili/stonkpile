@@ -102,13 +102,20 @@ export async function GET(
 
     return shell(
       <div style={col({ flex: 1, justifyContent: "center", paddingTop: 4 })}>
-        <div style={{ ...serif(64, 800, PAPER), lineHeight: 1 }}>Wall Street is the</div>
-        <div style={{ ...serif(64, 800, BRASS), lineHeight: 1, marginTop: 4 }}>
-          denominator now.
+        {/* The card asks what the page asks. It used to carry its own slogan,
+            which meant a shared link showed two different pitches stacked on
+            each other: a question in the title and a manifesto in the picture.
+            The board underneath is the evidence, not a second argument. */}
+        <div style={{ ...serif(64, 800, PAPER), lineHeight: 1 }}>Is this tokenized</div>
+        <div style={{ ...serif(64, 800, PAPER), lineHeight: 1, marginTop: 4 }}>
+          {/* Satori drops whitespace between a text node and a span, so the gap
+              is set explicitly rather than typed as a space. */}
+          stock<span style={{ color: BRASS, marginLeft: 17 }}>real</span>?
         </div>
         <div style={mono(21, 400, MUTED)}>
           <span style={{ marginTop: 16 }}>
-            {T.quotedCoins.toLocaleString()} coins on Solana are priced in tokenized stocks, not SOL.
+            Check any ticker or contract address. These are the stocks that{" "}
+            {T.quotedCoins.toLocaleString()} coins are actually priced in.
           </span>
         </div>
         <div style={col({ marginTop: 22 })}>

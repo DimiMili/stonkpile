@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
   // 24 chances a day to burn a card; daily means one, and it can be warmed by
   // hand after a deploy. The suffix is the manual break for when we need a URL
   // their crawler has never seen at all.
-  const v = `${Math.floor(Date.parse(idx.generatedAt) / 86_400_000)}r3`;
+  const v = `${Math.floor(Date.parse(idx.generatedAt) / 86_400_000)}r4`;
   const image = `${siteUrl}/api/card/board.png?v=${v}`;
   /* The card sells the same thing the page now promises. The image below still
      carries the board and its own line, because that is a caption on a chart
@@ -420,7 +420,23 @@ export default async function Page() {
         Click a ticker on the board, or <a href="/cards">see all the cards</a>.
       </p>
 
+      {/* The only thing on the site that lets a visitor be reached again. Sixteen
+          people used this on launch day and there was no way to find any of them
+          afterwards, which is a worse problem than the sixteen. No Solana logo
+          here on purpose: there is no official "powered by" lockup to use, the
+          gradient fights this palette, and a mark in a footer reads as an
+          endorsement nobody has given. The words say it without claiming it. */}
       <footer>
+        <span>
+          Built on Solana by{" "}
+          <a href="https://x.com/takisoul" target="_blank" rel="noopener noreferrer">
+            @takisoul
+          </a>
+          . Open source, MIT, and there is no token.{" "}
+          <a href="https://github.com/DimiMili/stonkpile" target="_blank" rel="noopener noreferrer">
+            GitHub
+          </a>
+        </span>
         <span>
           Sources: <a href="https://dev.jup.ag">Jupiter</a> ·{" "}
           <a href="https://docs.dexscreener.com/api/reference">DexScreener</a> ·{" "}

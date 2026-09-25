@@ -53,7 +53,7 @@ export async function generateMetadata(
   // 24 chances a day to burn a card; daily means one, and it can be warmed by
   // hand after a deploy. The suffix is the manual break for when we need a URL
   // their crawler has never seen at all.
-  const v = `${Math.floor(Date.parse(idx.generatedAt) / 86_400_000)}r3`;
+  const v = `${Math.floor(Date.parse(idx.generatedAt) / 86_400_000)}r4`;
   const image = `${siteUrl}/api/card/${stock.symbol}.png?v=${v}`;
 
   return {
@@ -79,7 +79,7 @@ export default async function SharePage(
     return (
       <div className="wrap">
         <header>
-          <p className="eyebrow"><span>Stonkpile</span></p>
+          <p className="eyebrow"><a className="brand" href="/">Stonkpile</a></p>
           <h1>Nothing is priced in <em>{raw.toUpperCase()}</em>.</h1>
           <p className="standfirst">
             {idx.totals.denominators} tokenized stocks are currently being used as quote
@@ -113,7 +113,9 @@ export default async function SharePage(
     <div className="wrap">
       <header>
         <p className="eyebrow">
-          <span>Stonkpile</span>
+          {/* The wordmark is the only thing on a ticker page that looks like a
+              way back, so it had better be one. */}
+          <a className="brand" href="/">Stonkpile</a>
           <span className="dot">/</span>
           <span>{stock.issuer}</span>
           {!stock.has247Feed && (
