@@ -3,6 +3,7 @@ import { buildIndex } from "@/lib/pipeline";
 import { siteUrl } from "@/lib/site";
 import { Checks } from "@/components/Checks";
 import { Share } from "@/components/Share";
+import { Copy } from "@/components/Copy";
 import { stockChecks, coinChecks, worst, PLATFORM_TOKENS } from "@/lib/checks";
 
 export const revalidate = 300;
@@ -95,6 +96,15 @@ export default async function SharePage(
   }
 
   const top = stock.quotedCoins.slice(0, 10);
+  // One coin can hold several pools against the same stock, so dedupe by mint
+  // or the note repeats itself once per pool.
+  const platforms = [
+    ...new Map(
+      top
+        .filter((c) => c.coinMint && PLATFORM_TOKENS[c.coinMint])
+        .map((c) => [c.coinMint!, { coin: c.coin, label: PLATFORM_TOKENS[c.coinMint!] }]),
+    ).values(),
+  ];
 
   return (
     <div className="wrap">
@@ -118,6 +128,20 @@ export default async function SharePage(
           asset, across {usd(stock.quotedLiquidity)} of liquidity. These are the coins using
           it as their unit of account.
         </p>
+        {/* The address, on the page that says why this is the right one. The
+            explorer link is the point: copying from us means trusting us, and
+            one tap to check beats asking anybody to take our word. */}
+        <p className="ca-line">
+          <span className="k">{stock.symbol} contract</span>
+          <Copy value={stock.mint} label="copy address" />
+          <a
+            href={`https://solscan.io/token/${stock.mint}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            check it on Solscan
+          </a>
+        </p>
       </header>
 
       <Checks
@@ -130,20 +154,52 @@ export default async function SharePage(
         <h2>What is priced in it</h2>
         <p className="sec-note">
           Turnover is 24-hour volume divided by the liquidity behind it. Anything far above
-          about 5x is churning faster than real demand usually does.
+          about 5x is churning faster than real demand usually does. Each row carries the
+          coin&rsquo;s contract address so you can copy the right one. It identifies the coin
+          and says nothing about whether it is any good.
         </p>
+        {/* Named outright rather than left to a tooltip. On some stocks a launchpad's
+            own token is the largest thing quoted against them, which makes the headline
+            volume read as demand for a coin when it is the platform trading itself. */}
+        {platforms.length > 0 && (
+          <p className="sec-note platform-note">
+            {platforms.map((p, i) => (
+              <span key={p.coin}>
+                {i > 0 && " "}
+                <b>{p.coin}</b> is the {p.label}, not an independent memecoin.
+              </span>
+            ))}{" "}
+            The volume is real, it just belongs to a platform rather than to a coin anyone is
+            buying. It is counted in the {usd(stock.quotedVolume24h)} above; read that number
+            with this in mind.
+          </p>
+        )}
         <div className="scroll">
           <table>
             <thead>
               <tr><th>Coin</th><th>Venue</th><th>Liquidity</th><th>24h volume</th><th>Turnover</th><th>24h</th></tr>
             </thead>
             <tbody>
-              {top.map((c, i) => (
+              {top.map((c, i) => {
+                // A row is a pool, not a coin. Some coins hold several against the
+                // same stock, and the same name appearing twice looks like a bug
+                // unless the table says which it is.
+                const nth = top.slice(0, i).filter((p) => p.coinMint === c.coinMint).length;
+                return (
                 <tr key={(c.coinMint ?? "") + i}>
                   <td>
                     <span className="rank">{i + 1}</span> <span className="coin">{c.coin}</span>
                     {c.coinMint && PLATFORM_TOKENS[c.coinMint] && (
-                      <span className="flag" title={PLATFORM_TOKENS[c.coinMint]}>platform</span>
+                      <span className="flag">platform</span>
+                    )}
+                    {nth > 0 && <span className="flag flag-quiet">pool {nth + 1}</span>}
+                    {c.coinMint && PLATFORM_TOKENS[c.coinMint] && (
+                      <span className="coin-sub">{PLATFORM_TOKENS[c.coinMint]}</span>
+                    )}
+                    {c.coinMint && nth === 0 && (
+                      <span className="ca-cell">
+                        <Copy value={c.coinMint} />
+                      </span>
                     )}
                   </td>
                   <td className="dex">{c.dex}</td>
@@ -161,7 +217,8 @@ export default async function SharePage(
                       : "—"}
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

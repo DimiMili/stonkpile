@@ -37,6 +37,14 @@ const NOT_MEME = new Set([
 
 const LIQ_FLOOR = 5_000;
 
+/** Platform and treasury tokens: real volume, but not organic demand for a coin.
+ *  Keyed by mint so a ticker collision can't produce a false label. Lives here
+ *  rather than in lib/checks so the index itself can label them, and so the
+ *  lookup can say what a token is without importing the whole checks layer. */
+export const PLATFORM_TOKENS: Record<string, string> = {
+  "6GmAFSYs4gk3FDao5FzzySQpPZaWsa4rUJHacpMpUNgx": "StonkFun launchpad token",
+};
+
 export type Issuer = "xStocks" | "Backpack" | "Ondo" | "PreStocks" | "Tessera";
 
 export interface QuotedCoin {
@@ -76,13 +84,29 @@ export interface StockRow {
 }
 
 export interface LookupEntry {
+  /** Stocks are the issued tokenized equities. Coins are everything quoted
+   *  against one. Both are searchable, because somebody holding a coin ticker
+   *  or a pasted mint address has no idea which of the two they are looking at. */
+  kind: "stock" | "coin";
   symbol: string;
+  /** The on-chain mint. This is what makes a contract-address search possible,
+   *  and a CA is the only identifier a lookalike cannot fake. */
+  mint: string;
   underlying: string;
   name: string;
-  issuer: Issuer;
+  issuer?: Issuer;
   icon?: string;
+  /** stock: coins priced in it. coin: how many stocks it is priced against. */
   quotedCount: number;
   tradeable: boolean;
+  /** coin only: the stock it does most of its volume against, and that volume. */
+  stock?: string;
+  volume24h?: number;
+  /** coin only: set when the mint is a launchpad or treasury token. */
+  platform?: string;
+  /** coin only: it has taken the exact token symbol of a real tokenized stock
+   *  without being that token. Nobody names a coin "AAPLx" by accident. */
+  lookalike?: string;
 }
 
 export interface Index {
@@ -95,7 +119,9 @@ export interface Index {
     universeVolume24h: number;
     universeHolders: number;
     denominators: number;
+    /** Distinct coins. quotedPools is the row count behind it. */
     quotedCoins: number;
+    quotedPools: number;
     quotedVolume24h: number;
     quotedLiquidity: number;
     with247Feed: number;
@@ -104,7 +130,8 @@ export interface Index {
   coins: QuotedCoin[];
   /** Every verified tokenized stock, including the ones that do not trade, so a
    *  lookup can answer "that token is real but nothing trades it" rather than
-   *  falling silent. Trimmed hard because this ships to the browser. */
+   *  falling silent, plus every coin quoted against one. Trimmed hard because
+   *  this ships to the browser. */
   lookup: LookupEntry[];
 }
 
@@ -278,7 +305,10 @@ export async function buildIndex(): Promise<Index> {
           has247Feed: !!feed.always_on,
           pythFeedId: feed.always_on || feed.session,
           quotedCoins: quoted,
-          quotedCount: quoted.length,
+          // Distinct coins, not pools. One coin can hold several pools against
+          // the same stock (STONK has three against SPYx), and counting rows
+          // made the headline "13 coins are priced in SPY" when it was 11.
+          quotedCount: new Set(quoted.map((c) => c.coinMint ?? c.coin)).size,
           quotedLiquidity: Math.round(quoted.reduce((s, c) => s + c.liquidityUsd, 0)),
           quotedVolume24h: Math.round(quoted.reduce((s, c) => s + c.volume24h, 0)),
           topCoin: quoted[0]?.coin,
@@ -295,12 +325,16 @@ export async function buildIndex(): Promise<Index> {
   const byMint = new Map(rows.map((r) => [r.mint, r]));
   const lookup: LookupEntry[] = uni.map((t) => {
     const row = byMint.get(t.mint);
+    const name = t.name
+      .replace(/\s*(xStock|-\s*Backpack Securities|\(Ondo Tokenized\))\s*/gi, "")
+      .trim();
     return {
+      kind: "stock" as const,
       symbol: t.symbol,
+      mint: t.mint,
       underlying: t.underlying,
-      name: t.name
-        .replace(/\s*(xStock|-\s*Backpack Securities|\(Ondo Tokenized\))\s*/gi, "")
-        .trim(),
+      // the name is only worth its bytes when it says something the symbol does not
+      name: name.toUpperCase() === t.symbol.toUpperCase() ? "" : name,
       issuer: t.issuer,
       // icons are long URLs; only ship them for tokens that actually trade
       ...(row ? { icon: t.icon } : {}),
@@ -308,6 +342,64 @@ export async function buildIndex(): Promise<Index> {
       tradeable: !!row,
     };
   });
+
+  /* Coins go in the same lookup. A coin can be quoted against several stocks, so
+     collapse by mint: one entry, the stock it does most of its volume against,
+     and a count of how many stocks price it. Without this, the 1,000-odd coins on
+     the board are invisible to search and a pasted coin address returns nothing. */
+  const coinAgg = new Map<
+    string,
+    { symbol: string; name: string; vol: number; stocks: Set<string>; topStock: string; topVol: number }
+  >();
+  for (const c of coins) {
+    if (!c.coinMint) continue;
+    const e = coinAgg.get(c.coinMint) ?? {
+      symbol: c.coin,
+      name: c.coinName ?? "",
+      vol: 0,
+      stocks: new Set<string>(),
+      topStock: c.stock,
+      topVol: -1,
+    };
+    e.vol += c.volume24h;
+    e.stocks.add(c.stock);
+    if (c.volume24h > e.topVol) {
+      e.topVol = c.volume24h;
+      e.topStock = c.stock;
+    }
+    coinAgg.set(c.coinMint, e);
+  }
+  /* Real issued token symbols, so a coin wearing one can be named as what it is.
+     Two deliberate narrowings, both to keep this from crying wolf:
+
+     Only symbols that carry an issuer's own mark (AAPLx, RIVNon, tSpaceX) count.
+     Sunrise names its tokens with the bare ticker, so AMD, IBM and WEN are all
+     real token symbols too, and flagging every memecoin called AMD would be
+     wrong: naming a coin after a company is ordinary, and there is no way to
+     tell an honest one from a fake by the ticker alone.
+
+     And the match is case sensitive, which drops SOON against Ondo's SOon. An
+     impersonator copies the casing, because looking right is the entire point. */
+  const realSymbols = new Map(
+    uni.filter((t) => t.symbol.toUpperCase() !== t.underlying).map((t) => [t.symbol, t.symbol]),
+  );
+
+  for (const [mint, e] of coinAgg) {
+    const impersonates = realSymbols.get(e.symbol);
+    lookup.push({
+      kind: "coin",
+      ...(impersonates ? { lookalike: impersonates } : {}),
+      symbol: e.symbol,
+      mint,
+      underlying: e.symbol.toUpperCase(),
+      name: e.name.toUpperCase() === e.symbol.toUpperCase() ? "" : e.name,
+      quotedCount: e.stocks.size,
+      tradeable: true,
+      stock: e.topStock,
+      volume24h: Math.round(e.vol),
+      ...(PLATFORM_TOKENS[mint] ? { platform: PLATFORM_TOKENS[mint] } : {}),
+    });
+  }
 
   return {
     generatedAt: new Date().toISOString(),
@@ -319,7 +411,10 @@ export async function buildIndex(): Promise<Index> {
       universeVolume24h: Math.round(uni.reduce((s, t) => s + t.volume24h, 0)),
       universeHolders: uni.reduce((s, t) => s + t.holders, 0),
       denominators: rows.filter((r) => r.quotedCount > 0).length,
-      quotedCoins: coins.length,
+      // Same correction at the top level: a coin quoted against two stocks, or
+      // through two pools, is one coin. The claim on the homepage is about coins.
+      quotedCoins: new Set(coins.map((c) => c.coinMint ?? c.coin)).size,
+      quotedPools: coins.length,
       quotedVolume24h: Math.round(coins.reduce((s, c) => s + c.volume24h, 0)),
       quotedLiquidity: Math.round(coins.reduce((s, c) => s + c.liquidityUsd, 0)),
       with247Feed: rows.filter((r) => r.has247Feed).length,

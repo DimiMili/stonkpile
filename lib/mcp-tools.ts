@@ -199,7 +199,9 @@ export const TOOLS: Tool[] = [
     },
     run: (a, d) => {
       const key = String(a.ticker ?? "").toUpperCase();
-      const hits = d.lookup.filter((l) => l.symbol.toUpperCase() === key || l.underlying === key);
+      const hits = d.lookup.filter(
+        (l) => l.kind === "stock" && (l.symbol.toUpperCase() === key || l.underlying === key),
+      );
       if (!hits.length) {
         return (
           `No verified tokenized stock matches "${a.ticker}".\n` +
@@ -210,14 +212,17 @@ export const TOOLS: Tool[] = [
       return hits
         .map((l) => {
           const row = d.stocks.find((s) => s.symbol === l.symbol);
+          const label = l.name ? `${l.symbol} (${l.name})` : l.symbol;
           if (!l.tradeable) {
             return (
-              `${l.symbol} (${l.name}) - genuinely issued by ${l.issuer}, but it does not trade. ` +
-              `No pool above the $5k liquidity floor, so there is no price to speak of.`
+              `${label} - genuinely issued by ${l.issuer}, but it does not trade. ` +
+              `No pool above the $5k liquidity floor, so there is no price to speak of.\n` +
+              `  mint: ${l.mint}`
             );
           }
           return (
-            `${l.symbol} (${l.name}) - issued by ${l.issuer}. Trades.\n` +
+            `${label} - issued by ${l.issuer}. Trades.\n` +
+            `  mint: ${l.mint}\n` +
             `  liquidity: ${usd(row?.liquidity ?? 0)}, 24h volume: ${usd(row?.volume24h ?? 0)}\n` +
             `  holders: ${(row?.holders ?? 0).toLocaleString()}\n` +
             `  venues: ${row?.venues.join(", ") || "none"}\n` +
@@ -226,6 +231,71 @@ export const TOOLS: Tool[] = [
           );
         })
         .join("\n\n");
+    },
+  },
+
+  {
+    name: "identify_mint",
+    title: "Identify a contract address",
+    description:
+      "What is this Solana mint address? Returns whether it is a genuinely issued tokenized " +
+      "stock, a coin quoted against one, or neither. A ticker can be copied exactly by a " +
+      "lookalike; a mint address cannot, so this is the only check that settles the question.",
+    inputSchema: {
+      type: "object",
+      properties: { mint: { type: "string", description: "Solana mint address (base58)" } },
+      required: ["mint"],
+    },
+    run: (a, d) => {
+      const mint = String(a.mint ?? "").trim();
+      if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(mint)) {
+        return `"${mint}" is not a valid Solana mint address. Base58, 32-44 characters, no 0/O/I/l.`;
+      }
+      const hit = d.lookup.find((l) => l.mint === mint);
+      if (!hit) {
+        return (
+          `${mint}\nNot in this index.\n\n` +
+          `It is not a tokenized stock issued by xStocks, Sunrise, Ondo, PreStocks or Tessera, ` +
+          `and it is not a coin quoted against one of them. If it presents itself as a ` +
+          `tokenized equity, it is not one. Issuers here are identified by token metadata ` +
+          `host, so a matching name proves nothing.`
+        );
+      }
+      if (hit.kind === "stock") {
+        const row = d.stocks.find((s) => s.mint === mint);
+        return (
+          `${mint}\n${hit.symbol}${hit.name ? ` (${hit.name})` : ""} - tokenized stock, ` +
+          `issued by ${hit.issuer}. Underlying: ${hit.underlying}.\n` +
+          (row
+            ? `  liquidity: ${usd(row.liquidity)}, 24h volume: ${usd(row.volume24h)}\n` +
+              `  holders: ${row.holders.toLocaleString()}\n` +
+              `  coins priced in it: ${row.quotedCount}\n` +
+              `  24/7 Pyth reference price: ${row.has247Feed ? "yes" : "no"}`
+            : `  Does not trade: no pool above the $5k liquidity floor.`)
+        );
+      }
+      const pairs = d.coins.filter((c) => c.coinMint === mint);
+      return (
+        `${mint}\n${hit.symbol}${hit.name ? ` (${hit.name})` : ""} - a coin quoted against ` +
+        `${hit.quotedCount} tokenized stock${hit.quotedCount === 1 ? "" : "s"}, ` +
+        `${usd(hit.volume24h ?? 0)} of 24h volume in those pairs.\n` +
+        (hit.lookalike
+          ? `  WARNING: this is not ${hit.lookalike}. It is a separate token using that exact ` +
+            `symbol, issued by nobody. The real ${hit.lookalike} has different metadata and a ` +
+            `different mint. Treat this as impersonation.\n`
+          : "") +
+        (hit.platform
+          ? `  NOTE: this is the ${hit.platform}, not an independent memecoin. Its volume is ` +
+            `real but it reflects a platform's own activity.\n`
+          : "") +
+        pairs
+          .slice(0, 10)
+          .map(
+            (c) =>
+              `  vs ${c.stock} - ${usd(c.volume24h)} 24h, ${usd(c.liquidityUsd)} liq, ${c.dex}`,
+          )
+          .join("\n")
+      );
     },
   },
 ];

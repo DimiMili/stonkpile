@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { buildIndex } from "@/lib/pipeline";
 import { siteUrl } from "@/lib/site";
 import { Lookup } from "@/components/Lookup";
+import { Copy } from "@/components/Copy";
 import { Live } from "@/components/Live";
 import { PLATFORM_TOKENS } from "@/lib/checks";
 
@@ -122,7 +123,7 @@ export default async function Page() {
       </nav>
 
       <div id="check">
-        <Lookup items={idx.lookup} />
+        <Lookup />
       </div>
 
       <div className="stats">
@@ -238,7 +239,10 @@ export default async function Page() {
           Compare liquidity against 24h volume. Volume many times larger than the pool is
           churn rather than depth, and it usually means a handful of wallets trading with each
           other. Anything marked <b>platform</b> is a launchpad or treasury token, so its
-          volume reflects that platform rather than demand for a coin.
+          volume reflects that platform rather than demand for a coin. Each row carries the
+          coin&rsquo;s contract address so you can copy the right one. It tells you which coin
+          this is, nothing more: the issuer check on this site covers the tokenized stocks, not
+          the coins quoted against them.
         </p>
         <p className="scroll-hint">Swipe the table sideways for liquidity and volume</p>
         <div className="scroll">
@@ -250,13 +254,30 @@ export default async function Page() {
               </tr>
             </thead>
             <tbody>
-              {top.map((c, i) => (
+              {top.map((c, i) => {
+                // Same coin, same denominator, second pool. Without the marker the
+                // row reads as a duplicate rather than as another venue.
+                const nth = top
+                  .slice(0, i)
+                  .filter((p) => p.coinMint === c.coinMint && p.stock === c.stock).length;
+                return (
                 <tr key={(c.coinMint ?? "") + c.stock + i}>
                   <td>
                     <span className="rank">{i + 1}</span>{" "}
                     <span className="coin">{c.coin}</span>
                     {c.coinMint && PLATFORM_TOKENS[c.coinMint] && (
-                      <span className="flag" title={PLATFORM_TOKENS[c.coinMint]}>platform</span>
+                      <span className="flag">platform</span>
+                    )}
+                    {nth > 0 && <span className="flag flag-quiet">pool {nth + 1}</span>}
+                    {c.coinMint && PLATFORM_TOKENS[c.coinMint] && (
+                      <span className="coin-sub">{PLATFORM_TOKENS[c.coinMint]}</span>
+                    )}
+                    {/* only on a coin's first row: the address does not change
+                        because it holds a second pool */}
+                    {c.coinMint && nth === 0 && (
+                      <span className="ca-cell">
+                        <Copy value={c.coinMint} />
+                      </span>
                     )}
                   </td>
                   <td><span className="denom">{c.stock}</span></td>
@@ -276,7 +297,8 @@ export default async function Page() {
                       : "—"}
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

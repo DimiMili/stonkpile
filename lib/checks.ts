@@ -7,6 +7,9 @@
  * themselves. None of this is advice, it is arithmetic with a sentence attached.
  */
 import type { StockRow, QuotedCoin } from "./pipeline";
+import { PLATFORM_TOKENS } from "./pipeline";
+
+export { PLATFORM_TOKENS };
 
 export type Level = "good" | "warn" | "bad";
 
@@ -17,12 +20,6 @@ export interface Check {
   value: string;
   detail: string;
 }
-
-/** Platform and treasury tokens: real volume, but not organic demand for a coin.
- *  Keyed by mint so a ticker collision can't produce a false label. */
-export const PLATFORM_TOKENS: Record<string, string> = {
-  "6GmAFSYs4gk3FDao5FzzySQpPZaWsa4rUJHacpMpUNgx": "StonkFun platform token",
-};
 
 const usd = (v: number) =>
   v >= 1e6 ? `$${(v / 1e6).toFixed(2)}M` : v >= 1e3 ? `$${Math.round(v / 1e3)}k` : `$${Math.round(v)}`;

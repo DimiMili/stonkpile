@@ -165,9 +165,18 @@ h1,h2,.stat .v,.tick b,.denom{font-optical-sizing:none}
 .lookup-empty{font-size:14px; color:var(--down); margin:14px 0 0; max-width:60ch}
 .hit{
   display:grid; grid-template-columns:26px minmax(56px,auto) minmax(0,1fr) auto auto;
-  gap:12px; align-items:center; padding:11px 0;
+  grid-template-areas:
+    "icon sym name issuer state"
+    "icon ca   ca   ca     ca";
+  column-gap:12px; row-gap:7px; align-items:center; padding:11px 0;
   border-bottom:1px solid var(--line-soft); text-decoration:none; border-bottom-color:var(--line-soft);
 }
+.hit-icon{grid-area:icon}
+.hit-sym{grid-area:sym}
+.hit-name{grid-area:name}
+.hit-issuer{grid-area:issuer}
+.hit-state{grid-area:state}
+.hit-ca{grid-area:ca}
 .hit:hover{background:var(--surface)}
 .hit-icon{width:26px; height:26px; border-radius:50%; display:block}
 .hit-icon-blank{background:var(--bar-track); border-radius:50%}
@@ -175,6 +184,19 @@ h1,h2,.stat .v,.tick b,.denom{font-optical-sizing:none}
 .hit-name{font-size:13px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 .hit-issuer,.hit-state{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--faint); white-space:nowrap}
 .hit-state{color:var(--brass)}
+
+/* Coins and stocks sit in the same result list, so they have to be
+   distinguishable at a glance: a stock gets the serif ticker the whole site
+   uses for equities, a coin gets mono. Same row, different kind of thing. */
+.hit-coin .hit-sym{
+  font-family:"IBM Plex Mono",monospace; font-size:14px; font-weight:500;
+  color:var(--muted);
+}
+.hit-coin .hit-state{color:var(--faint)}
+
+/* A coin wearing a real token's exact symbol. This is the case the whole
+   issuer check exists for, so it does not get to look like an ordinary row. */
+.hit-fake .hit-sym,.hit-fake .hit-name,.hit-fake .hit-issuer,.hit-fake .hit-state{color:var(--down)}
 
 /* ---------- safety checks ---------- */
 .checks{display:grid; grid-template-columns:repeat(auto-fit,minmax(270px,1fr)); gap:1px}
@@ -207,6 +229,51 @@ h1,h2,.stat .v,.tick b,.denom{font-optical-sizing:none}
   text-transform:uppercase; padding:2px 5px; border:1px solid var(--brass);
   color:var(--brass); white-space:nowrap; margin-left:7px;
 }
+
+/* What the flag used to hide in a title attribute, which a phone never shows.
+   A launchpad's own token can be the biggest thing on a stock's board, so it
+   has to say what it is on the row itself, not on hover. */
+.coin-sub{
+  display:block; font-family:"IBM Plex Mono",monospace; font-size:10.5px;
+  color:var(--muted); margin-top:3px; white-space:nowrap; padding-left:1.7em;
+}
+/* the same coin holding a second pool: says so without shouting like a warning */
+.flag-quiet{border-color:var(--line); color:var(--faint)}
+
+/* ---------- contract addresses ----------
+   The address is the end of the journey: everything else on the page exists to
+   tell you which of these is safe to paste. So it is a real control, sized to
+   be tapped, and it never shows one thing and copies another. */
+.ca{
+  display:inline-flex; align-items:center; gap:9px; max-width:100%;
+  font-family:"IBM Plex Mono",monospace; font-size:11px;
+  background:none; border:1px solid var(--line); color:var(--muted);
+  padding:5px 9px; cursor:pointer; text-align:left;
+}
+.ca:hover{border-color:var(--brass); color:var(--ink)}
+.ca-act{
+  font-size:9.5px; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--brass); white-space:nowrap;
+}
+.ca-bad{border-color:var(--down)}
+.ca-bad,.ca-bad .ca-act{color:var(--down)}
+/* clipboard refused: show the whole thing so it can still be taken by hand */
+.ca-manual{flex-wrap:wrap; cursor:text}
+.ca-full{word-break:break-all; user-select:all}
+
+/* the address line under a ticker headline, with somewhere to go and check it */
+.ca-line{
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  margin:18px 0 0; font-family:"IBM Plex Mono",monospace; font-size:11px;
+}
+.ca-line .k{
+  color:var(--faint); text-transform:uppercase; letter-spacing:.08em; font-size:10px;
+}
+.ca-line a{color:var(--muted); text-underline-offset:3px}
+.ca-line a:hover{color:var(--brass)}
+/* in a table cell the address is a second line, not a column */
+.ca-cell{display:block; margin-top:5px}
+.platform-note{border-left:2px solid var(--brass); padding-left:11px}
 
 /* ---------- pink sheets (hidden theme) ----------
    Unlocked by typing "pink". Token swap plus a few face swaps, no layout
@@ -363,7 +430,27 @@ h1,h2,.stat .v,.tick b,.denom{font-optical-sizing:none}
 
   /* bigger hit areas without moving anything: padding out, margin back in */
   .tickname{padding:7px 0; margin:-7px 0}
-  .hit{padding:14px 0}
+
+  /* Five columns never fitted a phone; they just clipped, and the result read
+     as a truncated sentence. Stack instead: ticker and issuer on one line,
+     then the name, then what it is. Nothing is cut off. */
+  .hit{
+    padding:14px 0;
+    grid-template-columns:26px minmax(0,1fr) auto;
+    grid-template-areas:
+      "icon sym    issuer"
+      "icon name   name"
+      "icon state  state"
+      "icon ca     ca";
+    column-gap:10px; row-gap:4px; align-items:start;
+  }
+  .hit-icon{grid-area:icon; align-self:center}
+  .hit-name{white-space:normal}
+  .hit-issuer{justify-self:end; align-self:center}
+  .hit-state{white-space:normal}
+  .hit-ca{margin-top:3px}
+  /* a thumb, not a cursor */
+  .ca{padding:8px 10px; font-size:11.5px}
   footer a{padding:6px 0; display:inline-block}
   .egg{padding:10px 12px; font-size:10px}
 
@@ -420,4 +507,9 @@ a.btn:hover{border-bottom-color:var(--brass)}
   display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;
   border-top:1px solid var(--line);margin-top:26px;padding-top:16px;
   font-size:13.5px;color:var(--muted);
+}
+
+.lookup-loading{
+  font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--faint);
+  margin:14px 0 0;
 }
