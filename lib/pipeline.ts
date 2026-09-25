@@ -153,7 +153,17 @@ async function jget<T>(url: string, revalidate = REVALIDATE): Promise<T | null> 
   }
 }
 
+/** Issuers do not agree on tickers for private companies. xStocks lists SpaceX
+ *  as SPCX while Tessera and PreStocks both use SPACEX, which quietly kept the
+ *  largest SpaceX token out of the cross-issuer comparison: the site was
+ *  showing two of the three prices, and missing the most liquid one. */
+const TICKER_ALIASES: Record<string, string> = { SPCX: "SPACEX" };
+
 function underlying(symbol: string, issuer: Issuer): string {
+  return TICKER_ALIASES[raw(symbol, issuer)] ?? raw(symbol, issuer);
+}
+
+function raw(symbol: string, issuer: Issuer): string {
   const s = (symbol || "").trim();
   if (issuer === "xStocks" && s.endsWith("x")) return s.slice(0, -1).toUpperCase();
   if (issuer === "Ondo" && s.toLowerCase().endsWith("on")) return s.slice(0, -2).toUpperCase();
