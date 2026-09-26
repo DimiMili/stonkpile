@@ -115,6 +115,18 @@ export interface Index {
   totals: {
     universe: number;
     byIssuer: Record<string, number>;
+    /** Per issuer, across their WHOLE catalogue rather than only the tokens that
+     *  clear the liquidity floor. Counting tokens flatters an issuer who lists
+     *  hundreds and funds none of them; the money behind the listings is the
+     *  number that says whether a market exists. */
+    byIssuerDepth: Record<string, {
+      listed: number;
+      withPool: number;
+      liquidity: number;
+      /** liquidity held by everything that does NOT clear the floor */
+      strandedLiquidity: number;
+      holders: number;
+    }>;
     tradeable: number;
     universeVolume24h: number;
     universeHolders: number;
@@ -298,6 +310,22 @@ export async function buildIndex(): Promise<Index> {
   const byIssuer: Record<string, number> = {};
   for (const t of uni) byIssuer[t.issuer] = (byIssuer[t.issuer] || 0) + 1;
 
+  const byIssuerDepth: Index["totals"]["byIssuerDepth"] = {};
+  for (const t of uni) {
+    const d = (byIssuerDepth[t.issuer] ||= {
+      listed: 0, withPool: 0, liquidity: 0, strandedLiquidity: 0, holders: 0,
+    });
+    d.listed++;
+    d.liquidity += t.liquidity;
+    d.holders += t.holders;
+    if (t.liquidity >= LIQ_FLOOR) d.withPool++;
+    else d.strandedLiquidity += t.liquidity;
+  }
+  for (const d of Object.values(byIssuerDepth)) {
+    d.liquidity = Math.round(d.liquidity);
+    d.strandedLiquidity = Math.round(d.strandedLiquidity);
+  }
+
   const liquid = uni.filter((t) => t.liquidity >= LIQ_FLOOR);
   const { byTicker, session } = await pythLayer(new Set(liquid.map((t) => t.underlying)));
 
@@ -417,6 +445,7 @@ export async function buildIndex(): Promise<Index> {
     totals: {
       universe: uni.length,
       byIssuer,
+      byIssuerDepth,
       tradeable: liquid.length,
       universeVolume24h: Math.round(uni.reduce((s, t) => s + t.volume24h, 0)),
       universeHolders: uni.reduce((s, t) => s + t.holders, 0),

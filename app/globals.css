@@ -255,6 +255,23 @@ h1,h2,.stat .v,.tick b,.denom{font-optical-sizing:none}
 /* the same coin holding a second pool: says so without shouting like a warning */
 .flag-quiet{border-color:var(--line); color:var(--faint)}
 
+/* ---------- what stands out ----------
+   The first thing a visitor with no ticker in mind can actually use. Three or
+   four live sentences beat five tables for someone deciding whether to stay. */
+.standout{border-bottom:1px solid var(--line); padding-block:22px 24px}
+.standout-k{
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--brass); margin:0 0 12px;
+}
+.standout ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px}
+.standout li{
+  font-size:clamp(14px,2.1vw,16.5px); line-height:1.45; color:var(--ink);
+  padding-left:16px; position:relative; max-width:64ch;
+}
+.standout li::before{content:"·"; position:absolute; left:2px; color:var(--brass); font-weight:700}
+.standout li b{font-weight:600}
+.standout-note{font-size:12px; color:var(--faint); margin:14px 0 0}
+
 /* ---------- contract addresses ----------
    The address is the end of the journey: everything else on the page exists to
    tell you which of these is safe to paste. So it is a real control, sized to

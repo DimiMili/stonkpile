@@ -235,6 +235,48 @@ export const TOOLS: Tool[] = [
   },
 
   {
+    name: "top_by_liquidity",
+    title: "Tokenized stocks ranked by liquidity",
+    description:
+      "Which tokenized stocks actually have money behind them, ranked by pool liquidity across " +
+      "all five issuers. This is the question most tools cannot answer, because they cover one " +
+      "issuer. Listing a token costs nothing, so a large catalogue says nothing on its own.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        limit: { type: "integer", minimum: 1, maximum: 100, default: 15 },
+        issuer: {
+          type: "string",
+          enum: ["xStocks", "Backpack", "Ondo", "PreStocks", "Tessera"],
+          description: "Filter to one issuer",
+        },
+      },
+    },
+    run: (a, d) => {
+      const depth = d.totals.byIssuerDepth ?? {};
+      const total = Object.values(depth).reduce((s2, x) => s2 + x.liquidity, 0);
+      let rows = [...d.stocks].sort((x, y) => y.liquidity - x.liquidity);
+      if (typeof a.issuer === "string") rows = rows.filter((r) => r.issuer === a.issuer);
+      const top10 = rows.slice(0, 10).reduce((s2, r) => s2 + r.liquidity, 0);
+      const head =
+        `${usd(total)} of liquidity across ${d.totals.universe.toLocaleString()} tokenized stocks.\n` +
+        `The ten largest hold ${total ? Math.round((top10 / total) * 100) : 0}% of it.\n\n`;
+      return (
+        head +
+        rows
+          .slice(0, num(a.limit, 15))
+          .map(
+            (r, i) =>
+              `${i + 1}. ${r.symbol} (${r.underlying}, ${r.issuer}) - ${usd(r.liquidity)} liquidity, ` +
+              `${usd(r.volume24h)} 24h, ${r.holders.toLocaleString()} holders` +
+              `${total ? `, ${((r.liquidity / total) * 100).toFixed(1)}% of the category` : ""}`,
+          )
+          .join("\n")
+      );
+    },
+  },
+
+  {
     name: "identify_mint",
     title: "Identify a contract address",
     description:

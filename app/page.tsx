@@ -41,6 +41,9 @@ const usd = (v: number) =>
   : v >= 1e3 ? `$${Math.round(v / 1e3)}k`
   : `$${Math.round(v)}`;
 
+const clean = (s: string) =>
+  s.replace(/\s*(xStock|-\s*Backpack Securities|\(Ondo Tokenized\)|PreStocks)\s*/gi, "").trim();
+
 const holders = (v: number) =>
   v >= 1e6 ? `${(v / 1e6).toFixed(2)}M` : `${Math.round(v / 1e3)}k`;
 
@@ -80,15 +83,39 @@ export default async function Page() {
   // not a description of what the table beneath is ranked by.
   const lead = board[0];
   const widest = dupes[0];
+  /* Ranked by money per listed token, not by the size of the gap in counts.
+     Counting picks the issuer with the biggest catalogue; what the reader wants
+     is the one whose catalogue is emptiest, and that is a liquidity question. */
   const deadest = (["xStocks", "Backpack", "Ondo", "PreStocks", "Tessera"] as const)
-    .map((iss) => ({
-      iss,
-      listed: T.byIssuer[iss] ?? 0,
-      trade: stocks.filter((x) => x.issuer === iss).length,
-    }))
+    .map((iss) => {
+      const d = T.byIssuerDepth[iss];
+      return {
+        iss,
+        shown: iss === "Backpack" ? "Sunrise" : iss,
+        listed: T.byIssuer[iss] ?? 0,
+        liquidity: d?.liquidity ?? 0,
+        withPool: d?.withPool ?? 0,
+        perToken: d && d.listed ? d.liquidity / d.listed : Infinity,
+      };
+    })
     .filter((r) => r.listed > 20)
-    .sort((a, b) => b.listed - b.trade - (a.listed - a.trade))[0];
+    .sort((a, b) => a.perToken - b.perToken)[0];
   const topCoin = coins[0];
+
+  /* The standouts. Everything on this page ranks coins quoted against a stock,
+     which meant the most basic fact about the category, where the money is,
+     could not be found on the site at all. These are computed fresh every
+     rebuild rather than written by hand, so they cannot go stale or flatter. */
+  const depth = T.byIssuerDepth;
+  const totalLiq = Object.values(depth).reduce((a, d) => a + d.liquidity, 0);
+  const byLiq = [...stocks].sort((a, b) => b.liquidity - a.liquidity);
+  const heaviest = byLiq[0];
+  const runnerUp = byLiq[1];
+  const top10 = byLiq.slice(0, 10).reduce((a, r) => a + r.liquidity, 0);
+  const top10Share = totalLiq > 0 ? Math.round((top10 / totalLiq) * 100) : 0;
+  const fresh48 = coins.filter(
+    (c) => c.createdAt && Date.now() - c.createdAt < 172_800_000,
+  ).length;
   const stamp = idx.generatedAt.slice(0, 16).replace("T", " ") + " UTC";
 
   return (
@@ -126,8 +153,41 @@ export default async function Page() {
         <Lookup />
       </div>
 
+      <section className="standout" aria-label="What stands out">
+        <p className="standout-k">What stands out right now</p>
+        <ul>
+          {heaviest && (
+            <li>
+              The most liquid tokenized stock on Solana is <b>{clean(heaviest.name)}</b>, with{" "}
+              <b>{usd(heaviest.liquidity)}</b> behind it
+              {runnerUp ? <>, ahead of {clean(runnerUp.name)} on {usd(runnerUp.liquidity)}</> : null}.
+            </li>
+          )}
+          <li>
+            <b>{top10Share}%</b> of all the liquidity in the category sits in ten tokens, out of{" "}
+            <b>{T.universe.toLocaleString()}</b> that exist.
+          </li>
+          {deadest && (
+            <li>
+              {deadest.shown} lists <b>{deadest.listed.toLocaleString()}</b> tokenized stocks.{" "}
+              <b>{deadest.withPool}</b> of them have a pool.
+            </li>
+          )}
+          {fresh48 > 0 && (
+            <li>
+              <b>{fresh48}</b> new pools opened against a tokenized stock in the last 48 hours.
+            </li>
+          )}
+        </ul>
+        <p className="standout-note">
+          Worked out from the index each time this page rebuilds, not written by hand.{" "}
+          <a href="#depth">The whole ranking</a>.
+        </p>
+      </section>
+
       <nav className="jump" aria-label="Sections">
         <div className="jump-row">
+          <a href="#depth">Where the money is</a>
           <a href="#issuers">Issuers</a>
           <a href="#board">Board</a>
           <a href="#coins">Coins</a>
@@ -143,21 +203,70 @@ export default async function Page() {
         <Stat k="Holders of tokenized stock" v={holders(T.universeHolders)} />
       </div>
 
+      {/* Where the money is. Every other table here ranks coins quoted against a
+          stock; this one ranks the stocks themselves by the money standing
+          behind them, which is the question a newcomer actually arrives with. */}
+      <section id="depth">
+        <h2>Where the money actually is</h2>
+        <p className="finding">
+          <span className="nowtag">right now</span>
+          The whole category holds <b>{usd(totalLiq)}</b> of liquidity across{" "}
+          <b>{T.universe.toLocaleString()}</b> tokenized stocks. <b>{top10Share}%</b> of it is in
+          the ten below.
+        </p>
+        <p className="lookfor">
+          <span className="k">What to look for</span>
+          Which companies people actually funded. A tokenized stock with no liquidity is a
+          listing, not a market, and most of this category is listings. The names here are the
+          ones with real money standing behind them.
+        </p>
+        <p className="scroll-hint">Swipe the table sideways for holders and volume</p>
+        <div className="scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Company</th><th>Token</th><th>Issuer</th>
+                <th>Liquidity</th><th>Share</th><th>Holders</th><th>24h volume</th>
+              </tr>
+            </thead>
+            <tbody>
+              {byLiq.slice(0, 15).map((r, i) => (
+                <tr key={r.mint}>
+                  <td>
+                    <span className="rank">{i + 1}</span>{" "}
+                    <span className="coin">{clean(r.name) || r.symbol}</span>
+                  </td>
+                  <td><span className="denom">{r.symbol}</span></td>
+                  <td className="dex">{r.issuer === "Backpack" ? "Sunrise" : r.issuer}</td>
+                  <td className="num">{usd(r.liquidity)}</td>
+                  <td className="num">
+                    {totalLiq > 0 ? `${((r.liquidity / totalLiq) * 100).toFixed(1)}%` : "—"}
+                  </td>
+                  <td className="num">{r.holders.toLocaleString()}</td>
+                  <td className="num">{usd(r.volume24h)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <section id="issuers">
         <h2>Five issuers, very different shapes</h2>
         {deadest && (
           <p className="finding">
             <span className="nowtag">right now</span>
-            {deadest.iss} lists <b>{deadest.listed.toLocaleString()}</b> tokenized stocks.{" "}
-            <b>{deadest.trade}</b> of them trade.
+            {deadest.shown} lists <b>{deadest.listed.toLocaleString()}</b> tokenized stocks.
+            All of them together hold <b>{usd(deadest.liquidity)}</b> of liquidity, and{" "}
+            <b>{deadest.withPool}</b> have a pool at all.
           </p>
         )}
         <p className="lookfor">
           <span className="k">What to look for</span>
-          The gap between listed and actually trades. A wide gap means most of that issuer&apos;s
-          catalogue has no pool behind it, so you can buy it and then find there is nobody to
-          sell it to. Used as denominators is the stricter test again: it means other people
-          have built markets on top of that token.
+          Liquidity, not the number of tokens. Listing a token costs an issuer nothing, so a
+          big catalogue proves nothing on its own. What matters is how much money sits in
+          pools behind it, and how much of that catalogue has no pool at all. Used as a quote
+          asset is the strictest test: it means other people built markets on top.
         </p>
         <div className="issuers">
           {(["xStocks", "Backpack", "Ondo", "PreStocks", "Tessera"] as const).map((iss) => {
@@ -166,6 +275,7 @@ export default async function Page() {
             const shown = iss === "Backpack" ? "Sunrise" : iss;
             const listed = T.byIssuer[iss] ?? 0;
             const rows = stocks.filter((s) => s.issuer === iss);
+            const depth = T.byIssuerDepth[iss];
             const vol = rows.reduce((a, r) => a + r.quotedVolume24h, 0);
             const denoms = rows.filter((r) => r.quotedCount > 0).length;
             return (
@@ -179,8 +289,13 @@ export default async function Page() {
                     : "Ondo Finance"}
                 </p>
                 <div className="issuer-row"><span>Tokens listed</span><b>{listed.toLocaleString()}</b></div>
-                <div className="issuer-row"><span>Actually trade</span><b>{rows.length}</b></div>
-                <div className="issuer-row"><span>Used as denominators</span><b>{denoms}</b></div>
+                <div className="issuer-row"><span>Have a pool</span><b>{depth?.withPool ?? rows.length}</b></div>
+                <div className="issuer-row"><span>Liquidity, all tokens</span><b>{usd(depth?.liquidity ?? 0)}</b></div>
+                <div className="issuer-row">
+                  <span>The rest hold</span>
+                  <b>{usd(depth?.strandedLiquidity ?? 0)}</b>
+                </div>
+                <div className="issuer-row"><span>Used as a quote asset</span><b>{denoms}</b></div>
                 <div className="issuer-row"><span>Quoted volume 24h</span><b>{usd(vol)}</b></div>
               </div>
             );
