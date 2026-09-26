@@ -3,6 +3,8 @@ import { buildIndex } from "@/lib/pipeline";
 import { siteUrl } from "@/lib/site";
 import { Lookup } from "@/components/Lookup";
 import { Copy } from "@/components/Copy";
+import { Spark } from "@/components/Spark";
+import { history, hasHistory, series, since } from "@/lib/history";
 import { Live } from "@/components/Live";
 import { PLATFORM_TOKENS } from "@/lib/checks";
 
@@ -153,8 +155,8 @@ export default async function Page() {
         <Lookup />
       </div>
 
-      <section className="standout" aria-label="What stands out">
-        <p className="standout-k">What stands out right now</p>
+      <section className="standout" aria-label="Findings">
+        <p className="standout-k">Findings</p>
         <ul>
           {heaviest && (
             <li>
@@ -187,6 +189,7 @@ export default async function Page() {
 
       <nav className="jump" aria-label="Sections">
         <div className="jump-row">
+          <a href="#history">Movement</a>
           <a href="#depth">Where the money is</a>
           <a href="#issuers">Issuers</a>
           <a href="#board">Board</a>
@@ -202,6 +205,41 @@ export default async function Page() {
         <Stat k="Tokenized stocks listed" v={T.universe.toLocaleString()} sub={`/ ${T.tradeable} traded`} />
         <Stat k="Holders of tokenized stock" v={holders(T.universeHolders)} />
       </div>
+
+      {/* The only part of this site that knows what yesterday looked like. A daily
+          job appends one record to the repo, so the history is public and sits in
+          git next to the code that produced it. Until a few days have accumulated
+          there is nothing honest to draw, and this says so rather than inventing a
+          trend from one measurement. */}
+      <section id="history">
+        <h2>How this is moving</h2>
+        {hasHistory ? (
+          <>
+            <p className="lookfor">
+              <span className="k">What to look for</span>
+              Direction, not the level. A category growing its liquidity is being funded;
+              one adding tokens while liquidity sits still is adding listings. One record a
+              day, taken after the US close.
+            </p>
+            <div className="sparks">
+              <Spark label="Liquidity, whole category" points={series((s) => s.liquidity)} format={usd} />
+              <Spark label="Tokenized stocks listed" points={series((s) => s.universe)} format={(v) => v.toLocaleString()} />
+              <Spark label="With a pool above $5k" points={series((s) => s.withPool)} format={(v) => String(v)} />
+              <Spark label="Coins priced in stocks" points={series((s) => s.quotedCoins)} format={(v) => v.toLocaleString()} />
+              <Spark label="Holders" points={series((s) => s.holders)} format={holders} />
+              <Spark label="Used as a quote asset" points={series((s) => s.denominators)} format={(v) => String(v)} />
+            </div>
+          </>
+        ) : (
+          <p className="collecting">
+            Collecting. One record a day lands in the repo after the US close, and these
+            charts fill in as it goes.{" "}
+            {since ? <>First reading {since}.</> : <>The first lands tonight.</>}{" "}
+            Nothing is drawn until there is something real to draw, because a trend line
+            through one measurement is a lie.
+          </p>
+        )}
+      </section>
 
       {/* Where the money is. Every other table here ranks coins quoted against a
           stock; this one ranks the stocks themselves by the money standing

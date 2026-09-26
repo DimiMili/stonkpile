@@ -1,0 +1,47 @@
+# One record a day, committed to the repo.
+#
+# This is the entire storage layer. No database, no keys, no service to pay for
+# or forget about, and the history lands in git next to the code that produced
+# it, so anybody can check what the site claimed on a given day. If this job
+# stops running, the site keeps working and simply stops gaining history.
+name: Daily snapshot
+
+on:
+  schedule:
+    # 21:10 UTC, about five hours after the US close, so the day's numbers have
+    # settled. Never on the hour: GitHub's scheduler is busiest then and delays
+    # cron runs by up to a quarter of an hour.
+    - cron: "10 21 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: snapshot
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch today's record
+        run: curl -sS --fail --retry 3 --retry-delay 10 --max-time 120 \
+             https://stonkpile.xyz/api/snapshot -o /tmp/today.json
+
+      - name: Append to history
+        run: node scripts/append-snapshot.mjs /tmp/today.json
+
+      - name: Commit if anything changed
+        run: |
+          if git diff --quiet -- data/history.json; then
+            echo "No change, nothing to commit."
+            exit 0
+          fi
+          git config user.name "stonkpile-bot"
+          git config user.email "noreply@stonkpile.xyz"
+          git add data/history.json
+          git commit -m "Snapshot $(date -u +%Y-%m-%d)"
+          git push
