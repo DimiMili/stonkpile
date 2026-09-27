@@ -27,12 +27,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Block scalar, not a folded one. A plain "run:" with a backslash
+      # continuation gets folded by YAML into a single line with the backslash
+      # still in it, which hands curl a malformed URL and exits 3.
       - name: Fetch today's record
-        run: curl -sS --fail --retry 3 --retry-delay 10 --max-time 120 \
-             https://stonkpile.xyz/api/snapshot -o /tmp/today.json
+        run: |
+          set -euo pipefail
+          curl -sS --fail --retry 3 --retry-delay 10 --max-time 120 \
+            "https://stonkpile.xyz/api/snapshot" -o /tmp/today.json
+          echo "Fetched $(wc -c < /tmp/today.json) bytes"
 
       - name: Append to history
-        run: node scripts/append-snapshot.mjs /tmp/today.json
+        run: |
+          set -euo pipefail
+          node scripts/append-snapshot.mjs /tmp/today.json
 
       - name: Commit if anything changed
         run: |
