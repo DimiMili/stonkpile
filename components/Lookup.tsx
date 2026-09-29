@@ -130,7 +130,7 @@ export function Lookup() {
       />
       </div>
       <p className="lookup-hint">
-        Real or fake, trades or not, and what is priced against it.
+        Real or fake, has a market or not, and what is priced against it.
       </p>
 
       {raw.length > 0 && (
@@ -199,10 +199,10 @@ function Hit({ i }: { i: LookupItem }) {
           ? `priced in ${i.stock}${i.quotedCount > 1 ? ` +${i.quotedCount - 1}` : ""}` +
             (i.volume24h ? ` · ${usd(i.volume24h)} 24h` : "")
           : !i.tradeable
-          ? "listed, not traded"
+          ? "listed, no market"
           : i.quotedCount > 0
           ? `${i.quotedCount} coins priced in it`
-          : "trades, nothing quoted in it"}
+          : "has a market, nothing quoted in it"}
       </span>
       {/* The address someone actually needs, on the row that earned it. On an
           impostor the button says so, because the danger here is not that the

@@ -26,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
      evidence that somebody has actually done the work. */
   const title = "Is this tokenized stock real?";
   const description =
-    `Paste a ticker or a contract address. Who issued it, whether it trades at all, ` +
+    `Paste a ticker or a contract address. Who issued it, whether it has a market, ` +
     `and what is priced against it. Every tokenized stock on Solana, across five issuers.`;
   return {
     openGraph: {
@@ -145,9 +145,9 @@ export default async function Page() {
           Is this tokenized stock <em>real</em>?
         </h1>
         <p className="standfirst">
-          Paste a ticker or a contract address. You get the issuer, whether it trades at
-          all, and what is priced against it. Everything below is the whole market, if you
-          want to read rather than look something up.
+          Paste a ticker or a contract address. You get the issuer, whether it has a
+          market at all, and what is priced against it. Everything below is the whole
+          market, if you want to read rather than look something up.
         </p>
       </header>
 
@@ -202,7 +202,7 @@ export default async function Page() {
       <div className="stats">
         <Stat k="Coins quoted in stocks" v={T.quotedCoins.toLocaleString()} />
         <Stat k="Their 24h volume" v={usd(T.quotedVolume24h)} />
-        <Stat k="Tokenized stocks listed" v={T.universe.toLocaleString()} sub={`/ ${T.tradeable} traded`} />
+        <Stat k="Tokenized stocks listed" v={T.universe.toLocaleString()} sub={`/ ${T.tradeable} with a market`} />
         <Stat k="Holders of tokenized stock" v={holders(T.universeHolders)} />
       </div>
 
