@@ -8,10 +8,16 @@ name: Daily snapshot
 
 on:
   schedule:
-    # 21:10 UTC, about five hours after the US close, so the day's numbers have
-    # settled. Never on the hour: GitHub's scheduler is busiest then and delays
-    # cron runs by up to a quarter of an hour.
+    # Three attempts, not one. GitHub's own docs say a scheduled workflow can be
+    # delayed during periods of high load and may be dropped entirely, which is
+    # exactly what happened on 28 Sep 2026: no run, no failure, no email, and a
+    # gap in the history that nothing noticed for two days. The record is keyed
+    # by UTC date and the append step refuses a date it already holds, so the
+    # second and third attempts cost one API call and then exit clean. All three
+    # sit inside the same UTC day so a late run still files under the right date.
     - cron: "10 21 * * *"
+    - cron: "40 22 * * *"
+    - cron: "50 23 * * *"
   workflow_dispatch: {}
 
 permissions:
@@ -27,23 +33,72 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Cheap guard so the later attempts are nearly free: if the file already
+      # carries today's UTC date, there is nothing left to do.
+      - name: Skip if today is already recorded
+        id: have
+        run: |
+          set -euo pipefail
+          today="$(date -u +%Y-%m-%d)"
+          if node -e "
+            const h = require('./data/history.json');
+            process.exit(h.some((r) => r.date === process.argv[1]) ? 0 : 1);
+          " "$today"; then
+            echo "done=yes" >> "$GITHUB_OUTPUT"
+            echo "$today is already in history.json."
+          else
+            echo "done=no" >> "$GITHUB_OUTPUT"
+            echo "$today is missing, fetching."
+          fi
+
       # Block scalar, not a folded one. A plain "run:" with a backslash
       # continuation gets folded by YAML into a single line with the backslash
       # still in it, which hands curl a malformed URL and exits 3.
+      #
+      # The cache-buster is not decoration. /api/snapshot sets
+      # stale-while-revalidate, so a plain request is served whatever is in the
+      # edge cache and only kicks off a rebuild in the background. On 29 Sep
+      # that handed this job a response generated at 00:57 UTC and filed nine
+      # hour old numbers as the day's record. ISR keys its cache on the full
+      # path including the query string, so a unique value forces a fresh
+      # render, and the assertion below refuses to record one anyway if the
+      # payload comes back older than half an hour.
       - name: Fetch today's record
+        if: steps.have.outputs.done == 'no'
         run: |
           set -euo pipefail
-          curl -sS --fail --retry 3 --retry-delay 10 --max-time 120 \
-            "https://stonkpile.xyz/api/snapshot" -o /tmp/today.json
+          curl -sS --fail --retry 4 --retry-delay 15 --retry-all-errors --max-time 180 \
+            "https://stonkpile.xyz/api/snapshot?fresh=$(date -u +%s)" -o /tmp/today.json
           echo "Fetched $(wc -c < /tmp/today.json) bytes"
 
+      - name: Refuse a stale payload
+        if: steps.have.outputs.done == 'no'
+        run: |
+          set -euo pipefail
+          node -e "
+            const r = require('/tmp/today.json');
+            const age = (Date.now() - Date.parse(r.at)) / 60000;
+            console.log('Record generated at ' + r.at + ', ' + age.toFixed(1) + ' minutes ago.');
+            if (!Number.isFinite(age) || age > 30) {
+              console.error('Stale or unreadable payload. Refusing to record it.');
+              process.exit(1);
+            }
+            if (!(r.liquidity > 0)) {
+              console.error('Liquidity is not positive. Refusing to record it.');
+              process.exit(1);
+            }
+          "
+
       - name: Append to history
+        if: steps.have.outputs.done == 'no'
         run: |
           set -euo pipefail
           node scripts/append-snapshot.mjs /tmp/today.json
 
       - name: Commit if anything changed
+        if: steps.have.outputs.done == 'no'
         run: |
+          set -euo pipefail
           if git diff --quiet -- data/history.json; then
             echo "No change, nothing to commit."
             exit 0
@@ -52,4 +107,8 @@ jobs:
           git config user.email "noreply@stonkpile.xyz"
           git add data/history.json
           git commit -m "Snapshot $(date -u +%Y-%m-%d)"
+          # A later attempt on the same day can race a human push. Rebase rather
+          # than fail, because a lost snapshot is the thing this job exists to
+          # prevent.
+          git pull --rebase --autostash
           git push
