@@ -411,16 +411,20 @@ h1,h2,.stat .v,.tick b,.denom{font-optical-sizing:none}
 .dupe-gap.wide{border-color:var(--down); color:var(--down)}
 .dupe-gap.tight{border-color:var(--up); color:var(--up)}
 .dupe-row{
-  display:grid; grid-template-columns:minmax(84px,1fr) minmax(74px,.8fr) minmax(76px,.8fr) minmax(76px,.8fr) minmax(76px,.8fr) auto;
+  display:grid; grid-template-columns:minmax(80px,1fr) minmax(70px,.8fr) minmax(74px,.8fr) minmax(72px,.7fr) minmax(72px,.7fr) auto auto;
   gap:8px 12px; align-items:baseline; padding:5px 0; font-family:"IBM Plex Mono",monospace; font-size:12.5px;
   color:var(--muted); border-top:1px solid var(--line-soft);
 }
 .dupe-row.h{border-top:none; color:var(--faint); font-size:10px; letter-spacing:.11em; text-transform:uppercase}
 .dupe-row b{color:var(--ink); font-weight:600}
 .dupe-row .r{text-align:right; font-variant-numeric:tabular-nums}
+/* A perp against the same company is the difference between an instrument you
+   can hedge and one you can only hold, so it gets the accent, not grey. */
+.dupe-row .perp{text-align:right; color:var(--brass); font-weight:600}
+.dupe-row .perp.no{color:var(--faint); font-weight:400}
 .dupe-note{font-size:13px; color:var(--muted); margin:10px 0 0; max-width:64ch; text-wrap:pretty}
 @media (max-width:640px){
-  .dupe-row{grid-template-columns:1fr auto auto; font-size:11.5px}
+  .dupe-row{grid-template-columns:1fr auto auto auto; font-size:11.5px}
   .dupe-row .hide-s{display:none}
 }
 

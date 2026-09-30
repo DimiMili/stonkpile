@@ -20,13 +20,17 @@ const ISSUERS: Record<string, Issuer> = {
   "backpack.exchange": "Backpack",
   "metadata.backpack.exchange": "Backpack",
   "cdn.ondo.finance": "Ondo",
-  // PreStocks issues pre-IPO equity: OpenAI, Anthropic, SpaceX, Neuralink.
-  // No public company means no Pyth feed, so these are permanently unpriceable
-  // against an independent reference. Worth surfacing, not hiding.
+  // PreStocks issues pre-IPO equity: OpenAI, Anthropic, Neuralink and the like.
+  // No public company means no Pyth feed, so those are unpriceable against an
+  // independent reference until the company lists. Worth surfacing, not hiding.
+  // Not a blanket rule: its SpaceX token stopped being pre-IPO in June 2026 and
+  // now has a Nasdaq price behind it, so do not assume this issuer means private.
   "www.prestocks.com": "PreStocks",
   "prestocks.com": "PreStocks",
-  // Tessera tokenizes the same private companies as PreStocks, at different
-  // prices, with no oracle to reconcile the two. That gap is worth showing.
+  // Tessera tokenizes many of the same companies as PreStocks, at different
+  // prices. Where the company is still private there is no oracle to reconcile
+  // the two, and where it has since listed there is, which makes the gap a
+  // harder question rather than an unanswerable one.
   "cdn.tesseralab.co": "Tessera",
 };
 
@@ -75,6 +79,10 @@ export interface StockRow {
   volume24h: number;
   has247Feed: boolean;
   pythFeedId?: string;
+  /** Perp venues listing this ticker, "Phoenix" and/or "Hyperliquid". Empty
+   *  means none found, which for a tokenized stock means buy and hold is the
+   *  only thing you can do with it. */
+  perpVenues: string[];
   quotedCount: number;
   quotedLiquidity: number;
   quotedVolume24h: number;
@@ -137,6 +145,8 @@ export interface Index {
     quotedVolume24h: number;
     quotedLiquidity: number;
     with247Feed: number;
+    /** Tickers with a perp market somewhere, so they can be hedged not just held. */
+    withPerp: number;
   };
   stocks: StockRow[];
   coins: QuotedCoin[];
@@ -165,11 +175,35 @@ async function jget<T>(url: string, revalidate = REVALIDATE): Promise<T | null> 
   }
 }
 
-/** Issuers do not agree on tickers for private companies. xStocks lists SpaceX
- *  as SPCX while Tessera and PreStocks both use SPACEX, which quietly kept the
- *  largest SpaceX token out of the cross-issuer comparison: the site was
- *  showing two of the three prices, and missing the most liquid one. */
-const TICKER_ALIASES: Record<string, string> = { SPCX: "SPACEX" };
+/** POST twin of jget. Hyperliquid's info API is one endpoint that takes a body,
+ *  so it cannot go through the GET helper, but it wants the same treatment:
+ *  cached, and a failure returns null rather than taking the page down. */
+async function jpost<T>(url: string, body: unknown, revalidate: number): Promise<T | null> {
+  try {
+    const r = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      next: { revalidate },
+    });
+    if (!r.ok) return null;
+    return (await r.json()) as T;
+  } catch {
+    return null;
+  }
+}
+
+/** Issuers do not agree on tickers, so these fold onto the ticker the reference
+ *  market actually uses.
+ *
+ *  SpaceX is the case that matters. It listed on Nasdaq as SPCX on 12 June 2026,
+ *  so it is an ordinary public company with an ordinary Pyth feed, and the three
+ *  tokenized versions can be checked against a real price like any other stock.
+ *  This used to alias the other way, SPCX onto SPACEX, which is the name the two
+ *  pre-IPO issuers minted under and which Pyth has never carried. The effect was
+ *  that every SpaceX token showed no feed and the widest cross-issuer gap on the
+ *  site sat there looking unverifiable when it was nothing of the sort. */
+const TICKER_ALIASES: Record<string, string> = { SPACEX: "SPCX" };
 
 function underlying(symbol: string, issuer: Issuer): string {
   return TICKER_ALIASES[raw(symbol, issuer)] ?? raw(symbol, issuer);
@@ -232,11 +266,15 @@ async function pythLayer(tickers: Set<string>) {
 
   const byTicker: Record<string, { always_on?: string; session?: string }> = {};
   for (const f of feeds) {
-    const parts = (f.attributes?.symbol || "").split(".");
-    if (parts.length < 3) continue;
-    const tk = parts[2].split("/")[0];
+    // Symbols look like Equity.US.AAPL/USD, but a ticker can itself contain a
+    // dot: Equity.US.HEI.A/USD and Equity.US.BRK.B/USD. Splitting the whole
+    // string on "." and taking index 2 silently truncates those to HEI and BRK,
+    // which binds a feed to the wrong company. Match the shape instead.
+    const m = (f.attributes?.symbol || "").match(/^[A-Za-z]+\.([A-Za-z]+)\.(.+?)\/[A-Z]+$/);
+    if (!m) continue;
+    const tk = m[2].toUpperCase();
     if (!tickers.has(tk)) continue;
-    const kind = parts[1] === "Index" ? "always_on" : "session";
+    const kind = m[1] === "Index" ? "always_on" : "session";
     (byTicker[tk] ||= {})[kind] = f.id;
   }
 
@@ -253,6 +291,75 @@ async function pythLayer(tickers: Set<string>) {
     }
   }
   return { byTicker, session };
+}
+
+/* ---------------- perps ---------------- */
+
+/**
+ * Which of these companies you can also take a perp position on.
+ *
+ * A tokenized stock with a perp against it is a different instrument to one
+ * without: you can hedge it, short it, and arbitrage the token against the
+ * funding rate. A stock with no perp anywhere can only be bought and held. That
+ * distinction is not visible anywhere else, because the perp venues and the
+ * token issuers do not know about each other.
+ *
+ * Source is Hyperliquid's builder-deployed perp dexes, which is where equity
+ * perps actually live: the main exchange carries 234 markets and not one of
+ * them is a stock. Keyless, like everything else here. If the call fails the
+ * whole thing degrades to "no perp known", never to an error.
+ */
+const HL_INFO = "https://api.hyperliquid.xyz/info";
+const PHOENIX_MARKETS = "https://perp-api.phoenix.trade/exchange/markets";
+
+/** Hyperliquid's builder dexes, where equity perps live. The main exchange
+ *  carries 234 markets and not one of them is a stock. */
+async function hyperliquidPerps(): Promise<Set<string>> {
+  const out = new Set<string>();
+  const dexes = (await jpost<({ name?: string } | null)[]>(HL_INFO, { type: "perpDexs" }, 3600)) || [];
+  const names = dexes.filter(Boolean).map((d) => d!.name).filter(Boolean) as string[];
+  if (!names.length) return out;
+  const metas = await Promise.all(
+    names.map((dex) => jpost<{ universe?: { name?: string }[] }>(HL_INFO, { type: "meta", dex }, 3600)),
+  );
+  for (const m of metas) {
+    for (const a of m?.universe || []) {
+      // Builder markets are namespaced, "xyz:AAPL". The ticker is what matters.
+      const tk = (a.name || "").replace(/^[a-z0-9]+:/i, "").toUpperCase();
+      if (tk) out.add(tk);
+    }
+  }
+  return out;
+}
+
+/** Phoenix Perpetuals, the Solana-native venue. Keyless read endpoint. */
+async function phoenixPerps(): Promise<Set<string>> {
+  const out = new Set<string>();
+  const markets =
+    (await jget<{ symbol?: string; marketStatus?: string }[]>(PHOENIX_MARKETS, 3600)) || [];
+  for (const m of markets) {
+    if (m.marketStatus !== "active") continue;
+    const tk = (m.symbol || "").toUpperCase();
+    if (tk) out.add(tk);
+  }
+  return out;
+}
+
+/**
+ * Both venues, because neither covers the other.
+ *
+ * Measured on 30 Sep 2026 against this board: Phoenix alone misses twenty of
+ * them including OpenAI and Anthropic; Hyperliquid alone misses only three, but
+ * one of those three is SPY, the single most liquid tokenized stock on Solana.
+ * Either source on its own tells a reader the largest thing on the board cannot
+ * be hedged, or that the two biggest pre-IPO names cannot. Both can.
+ */
+async function perpLayer(): Promise<Record<string, string[]>> {
+  const [hl, phx] = await Promise.all([hyperliquidPerps(), phoenixPerps()]);
+  const byTicker: Record<string, string[]> = {};
+  for (const tk of phx) (byTicker[tk] ||= []).push("Phoenix");
+  for (const tk of hl) (byTicker[tk] ||= []).push("Hyperliquid");
+  return byTicker;
 }
 
 /* ---------------- pairs ---------------- */
@@ -327,7 +434,10 @@ export async function buildIndex(): Promise<Index> {
   }
 
   const liquid = uni.filter((t) => t.liquidity >= LIQ_FLOOR);
-  const { byTicker, session } = await pythLayer(new Set(liquid.map((t) => t.underlying)));
+  const [{ byTicker, session }, perps] = await Promise.all([
+    pythLayer(new Set(liquid.map((t) => t.underlying))),
+    perpLayer(),
+  ]);
 
   // modest concurrency keeps us well inside DexScreener's rate limit
   const rows: StockRow[] = [];
@@ -342,6 +452,7 @@ export async function buildIndex(): Promise<Index> {
           ...t,
           has247Feed: !!feed.always_on,
           pythFeedId: feed.always_on || feed.session,
+          perpVenues: perps[t.underlying] || [],
           quotedCoins: quoted,
           // Distinct coins, not pools. One coin can hold several pools against
           // the same stock (STONK has three against SPYx), and counting rows
@@ -457,6 +568,9 @@ export async function buildIndex(): Promise<Index> {
       quotedVolume24h: Math.round(coins.reduce((s, c) => s + c.volume24h, 0)),
       quotedLiquidity: Math.round(coins.reduce((s, c) => s + c.liquidityUsd, 0)),
       with247Feed: rows.filter((r) => r.has247Feed).length,
+      // A tokenized stock you can also hedge is a different instrument to one
+      // you can only hold, so this is worth counting on its own.
+      withPerp: rows.filter((r) => r.perpVenues.length > 0).length,
     },
     stocks: rows,
     coins,

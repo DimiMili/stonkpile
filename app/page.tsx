@@ -475,8 +475,10 @@ export default async function Page() {
               <span className="nowtag">right now</span>
               Two issuers price <b>{widest.rows[0].underlying}</b> at{" "}
               <b>${widest.rows[0].price.toFixed(2)}</b> and{" "}
-              <b>${widest.rows[widest.rows.length - 1].price.toFixed(2)}</b>. It is private, so
-              there is no published price to check either against.
+              <b>${widest.rows[widest.rows.length - 1].price.toFixed(2)}</b>.{" "}
+              {widest.rows.some((r) => r.pythFeedId)
+                ? "There is an oracle price for this one, so one of them is wrong."
+                : "No oracle carries this company, so nothing here can check either price."}
             </p>
           )}
           <p className="lookfor">
@@ -504,6 +506,7 @@ export default async function Page() {
                     <span className="r hide-s">Liquidity</span>
                     <span className="r hide-s">24h volume</span>
                     <span className="r">Feed</span>
+                    <span className="r">Perp</span>
                   </div>
                   {d.rows.map((r) => (
                     <div className="dupe-row" key={r.mint}>
@@ -514,7 +517,19 @@ export default async function Page() {
                       </span>
                       <span className="r hide-s">{usd(r.liquidity)}</span>
                       <span className="r hide-s">{usd(r.volume24h)}</span>
-                      <span className="r">{r.has247Feed ? "24/7" : "none"}</span>
+                      {/* Three states, not two. A session feed is a real reference
+                          price that happens to stop at the closing bell, and calling
+                          that "none" is what made SpaceX look unverifiable. */}
+                      <span className="r">
+                        {r.has247Feed ? "24/7" : r.pythFeedId ? "hours" : "none"}
+                      </span>
+                      {/* Which venue matters: the two cover different halves of
+                          this board, so "yes" would hide where to actually go. */}
+                      <span className={`perp ${r.perpVenues.length ? "" : "no"}`}>
+                        {r.perpVenues.length
+                          ? r.perpVenues.map((v) => (v === "Phoenix" ? "PHX" : "HL")).join("+")
+                          : "no"}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -525,9 +540,12 @@ export default async function Page() {
             <div className="callout">
               <b>Part of a wide gap may be denomination rather than disagreement.</b>{" "}
               One issuer&apos;s token can represent a different slice of a share than
-              another&apos;s. That is the problem, not a caveat to it: for a private company
-              there is no reference price published anywhere, so a buyer cannot tell which of
-              the two they are looking at. For the public names on this list, they can.
+              another&apos;s. What decides whether you can check is the Feed column, not
+              whether the company is public: Pyth carries 24/7 prices for OpenAI and
+              Anthropic while both are still private, and carries nothing for several
+              listed names. Where it says none, nobody here can tell you which price is
+              right. Where it says 24/7 or hours, a reference exists and a gap this wide
+              is somebody being wrong rather than nobody being able to tell.
             </div>
           )}
         </section>
