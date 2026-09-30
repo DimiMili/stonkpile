@@ -1,6 +1,22 @@
 import { buildIndex } from "@/lib/pipeline";
 
-export const revalidate = 300;
+/**
+ * Never cached, unlike every other route here.
+ *
+ * This endpoint is read once a day by the snapshot job and by nothing else,
+ * which is exactly what made caching it dangerous. With ISR the first request
+ * after a quiet period is served the stale entry and only kicks off a rebuild
+ * behind it, so the job, always being the first caller of the day, reliably
+ * received yesterday's numbers. Measured on 29 Sep 2026: a request at 21:55 UTC
+ * returned a payload generated at 10:42, and the request right after it came
+ * back current. A cache-busting query string does not help, because the search
+ * string is not part of the cache key here.
+ *
+ * One uncached render a day costs nothing and is the only way this file is
+ * honest about when it was taken.
+ */
+export const revalidate = 0;
+export const dynamic = "force-dynamic";
 
 /**
  * GET /api/snapshot
@@ -61,7 +77,8 @@ export async function GET() {
   return Response.json(record, {
     headers: {
       "Access-Control-Allow-Origin": "*",
-      "Cache-Control": "public, s-maxage=300, stale-while-revalidate=900",
+      // The CDN must not hold this either, for the reason above.
+      "Cache-Control": "no-store, max-age=0",
     },
   });
 }

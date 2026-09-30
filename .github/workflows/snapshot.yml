@@ -51,24 +51,31 @@ jobs:
             echo "$today is missing, fetching."
           fi
 
+      # Two passes, not one, and the reason is worth writing down.
+      #
+      # /api/snapshot used to be cached with stale-while-revalidate, so the
+      # first request after a quiet period was served the old entry and only
+      # started a rebuild behind it. This job is always the first caller of the
+      # day, so it reliably got stale numbers. The route is now uncached, but
+      # the warm pass stays as insurance against that setting drifting back:
+      # its response is thrown away, and only the second one is recorded.
+      #
       # Block scalar, not a folded one. A plain "run:" with a backslash
       # continuation gets folded by YAML into a single line with the backslash
       # still in it, which hands curl a malformed URL and exits 3.
-      #
-      # The cache-buster is not decoration. /api/snapshot sets
-      # stale-while-revalidate, so a plain request is served whatever is in the
-      # edge cache and only kicks off a rebuild in the background. On 29 Sep
-      # that handed this job a response generated at 00:57 UTC and filed nine
-      # hour old numbers as the day's record. ISR keys its cache on the full
-      # path including the query string, so a unique value forces a fresh
-      # render, and the assertion below refuses to record one anyway if the
-      # payload comes back older than half an hour.
+      - name: Warm the endpoint, discard the result
+        if: steps.have.outputs.done == 'no'
+        run: |
+          set -euo pipefail
+          curl -sS --max-time 180 "https://stonkpile.xyz/api/snapshot" -o /dev/null || true
+          sleep 45
+
       - name: Fetch today's record
         if: steps.have.outputs.done == 'no'
         run: |
           set -euo pipefail
           curl -sS --fail --retry 4 --retry-delay 15 --retry-all-errors --max-time 180 \
-            "https://stonkpile.xyz/api/snapshot?fresh=$(date -u +%s)" -o /tmp/today.json
+            "https://stonkpile.xyz/api/snapshot" -o /tmp/today.json
           echo "Fetched $(wc -c < /tmp/today.json) bytes"
 
       - name: Refuse a stale payload
