@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { buildIndex } from "@/lib/pipeline";
 import { siteUrl } from "@/lib/site";
+import { Brand } from "@/components/Brand";
+import { ToTop } from "@/components/ToTop";
 import { Lookup } from "@/components/Lookup";
 import { Copy } from "@/components/Copy";
 import { Spark } from "@/components/Spark";
@@ -187,15 +189,23 @@ export default async function Page() {
         </p>
       </section>
 
-      <nav className="jump" aria-label="Sections">
-        <div className="jump-row">
-          <a href="#history">Movement</a>
-          <a href="#depth">Where the money is</a>
-          <a href="#issuers">Issuers</a>
-          <a href="#board">Board</a>
-          <a href="#coins">Coins</a>
-          {dupes.length > 0 && <a href="#prices">Two prices</a>}
-          <a href="#oracle">Oracle gap</a>
+      {/* What is on this page, said once, before 13,000 pixels of it. The first
+          user to give feedback scrolled to the bottom looking for the search
+          box; the second thing a stranger needs is to know the rest exists. */}
+      <ToTop />
+
+      <nav className="overview" aria-label="What is on this page">
+        <p className="overview-k">What is on this page</p>
+        <div className="overview-grid">
+          <a href="#history"><b>Movement</b><span>How the category has changed, one record a day</span></a>
+          <a href="#depth"><b>Where the money is</b><span>Every tokenized stock ranked by liquidity</span></a>
+          <a href="#issuers"><b>Issuers</b><span>Five of them, and how much of each catalogue is real</span></a>
+          <a href="#board"><b>The board</b><span>Which stocks are being used as money, and by what</span></a>
+          <a href="#coins"><b>Coins</b><span>Every memecoin priced in a stock instead of SOL</span></a>
+          {dupes.length > 0 && (
+            <a href="#prices"><b>Two prices</b><span>The same company, priced differently by two issuers</span></a>
+          )}
+          <a href="#oracle"><b>Oracle gap</b><span>What has a reference price after the closing bell</span></a>
         </div>
       </nav>
 
@@ -318,7 +328,10 @@ export default async function Page() {
             const denoms = rows.filter((r) => r.quotedCount > 0).length;
             return (
               <div className="issuer" key={iss}>
-                <p className="issuer-name">{shown}</p>
+                <p className="issuer-name">
+                  <Brand name={iss} size={22} />
+                  {shown}
+                </p>
                 <p className="issuer-sub">
                   {iss === "Backpack" ? "issued by Backpack Securities"
                     : iss === "xStocks" ? "issues the xStocks range"
@@ -523,11 +536,23 @@ export default async function Page() {
                       <span className="r">
                         {r.has247Feed ? "24/7" : r.pythFeedId ? "hours" : "none"}
                       </span>
-                      {/* Which venue matters: the two cover different halves of
-                          this board, so "yes" would hide where to actually go. */}
+                      {/* The venue, as its own mark, linked straight to it. Plain
+                          links, no referral codes: this column is a recommendation
+                          surface, and being paid on it would make "where can you
+                          hedge this" a thing we are paid to say rather than a fact. */}
                       <span className={`perp ${r.perpVenues.length ? "" : "no"}`}>
                         {r.perpVenues.length
-                          ? r.perpVenues.map((v) => (v === "Phoenix" ? "PHX" : "HL")).join("+")
+                          ? r.perpVenues.map((v) => (
+                              <a
+                                key={v}
+                                href={v === "Phoenix" ? "https://phoenix.trade" : "https://app.hyperliquid.xyz"}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title={`${r.underlying} has a perp on ${v}`}
+                              >
+                                <Brand name={v} size={18} />
+                              </a>
+                            ))
                           : "no"}
                       </span>
                     </div>

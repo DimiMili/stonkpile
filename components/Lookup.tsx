@@ -43,6 +43,8 @@ export function Lookup() {
   const raw = q.trim();
   const query = raw.toUpperCase();
   const isCA = CA.test(raw);
+  /* Typing the project's own name is a trust question, not a search. */
+  const selfQuery = /^\s*\$?stonk\s*pile\s*$|^\s*\$?stonkpile/i.test(raw);
 
   /* The table is fetched, not serialised into the page. Warm it the instant the
      input is touched, which on every input method happens before the first
@@ -119,7 +121,7 @@ export function Lookup() {
         autoCapitalize="off"
         autoCorrect="off"
         spellCheck={false}
-        placeholder="AAPL, NVDA, or paste a mint"
+        placeholder="AAPL, NVDA, or paste a CA"
         value={q}
         onFocus={warm}
         onPointerEnter={warm}
@@ -141,6 +143,18 @@ export function Lookup() {
             <p className="lookup-empty">
               Could not load the index just now. Reload the page, or use{" "}
               <a href="/api/index?slim=1">the JSON</a>.
+            </p>
+          ) : selfQuery ? (
+            /* On 29 Sep 2026, twenty tokens named STONKPILE were minted inside five
+               minutes off the back of a repost. This site has no token, and the one
+               place someone will check that is the box at the top of this page, so
+               it has to answer for itself rather than shrug. */
+            <p className="lookup-empty">
+              <b>Stonkpile has no token.</b> There is no STONKPILE coin, no presale and
+              no airdrop, and there never will be. Anything on-chain using this name was
+              not minted by this project and is not affiliated with it. This index covers
+              tokenized stocks and the coins priced against them, so a token like that
+              does not appear in the results above either way.
             </p>
           ) : hits.length === 0 ? (
             <p className="lookup-empty">
