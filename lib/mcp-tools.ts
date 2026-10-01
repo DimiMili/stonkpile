@@ -8,6 +8,7 @@
  */
 
 import { buildIndex, type Index } from "@/lib/pipeline";
+import { verdictFor } from "@/lib/verdict";
 
 const usd = (v: number) =>
   v >= 1e6 ? `$${(v / 1e6).toFixed(2)}M`
@@ -32,6 +33,23 @@ const num = (v: unknown, fallback: number) => {
 };
 
 export const TOOLS: Tool[] = [
+  {
+    name: "verify_mint",
+    title: "Verdict on a mint, before you spend",
+    description:
+      "The check to run immediately before buying. Takes one Solana mint address and returns " +
+      "a decision rather than a description: verdict is one of issued, quoted_coin, impostor " +
+      "or unknown, clear is true only for issued, and reasons are stable codes you can branch " +
+      "on. Use this when acting autonomously; use check_stock or identify_mint when you are " +
+      "explaining something to a person. It answers one question only, whether the mint is " +
+      "the tokenized stock it appears to be. It does not tell you whether the price is fair.",
+    inputSchema: {
+      type: "object",
+      properties: { mint: { type: "string", description: "Solana mint address (base58)" } },
+      required: ["mint"],
+    },
+    run: (a, d) => JSON.stringify(verdictFor(String(a.mint ?? ""), d), null, 2),
+  },
   {
     name: "market_session",
     title: "US market session",
@@ -58,7 +76,7 @@ export const TOOLS: Tool[] = [
     title: "Stocks used as quote assets",
     description:
       "Tokenized stocks that memecoins are being priced against on Solana, ranked by the " +
-      "24h volume of those coins. Covers xStocks, Sunrise, Ondo, PreStocks and Tessera.",
+      "24h volume of those coins. Covers xStocks, Sunrise (enum Backpack), Ondo, PreStocks and Tessera.",
     inputSchema: {
       type: "object",
       properties: {
