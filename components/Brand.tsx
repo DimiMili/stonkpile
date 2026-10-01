@@ -4,9 +4,9 @@
  * Every file under /public/brand was downloaded from that company's own domain.
  * None of them are drawn here and none are approximations: a logo that is nearly
  * right is worse than no logo, because the whole point of this site is telling
- * people what is genuine. Tessera publishes no mark anywhere on tesseralab.co,
- * so it gets a lettered tile and is honestly the odd one out rather than a
- * guess at what their logo might look like.
+ * people what is genuine. Tessera publishes nothing on tesseralab.co, so theirs
+ * comes from their own X profile image instead. Anything not listed here still
+ * falls back to a lettered tile rather than a guess at what a logo looks like.
  */
 const MARKS: Record<string, { src: string; label: string }> = {
   Phoenix: { src: "/brand/phoenix.png", label: "Phoenix" },
@@ -15,6 +15,7 @@ const MARKS: Record<string, { src: string; label: string }> = {
   Backpack: { src: "/brand/backpack.png", label: "Sunrise" },
   Ondo: { src: "/brand/ondo.svg", label: "Ondo" },
   PreStocks: { src: "/brand/prestocks.png", label: "PreStocks" },
+  Tessera: { src: "/brand/tessera.png", label: "Tessera" },
 };
 
 export function Brand({
