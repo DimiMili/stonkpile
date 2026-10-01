@@ -282,10 +282,14 @@ export default async function Page() {
                 <tr key={r.mint}>
                   <td>
                     <span className="rank">{i + 1}</span>{" "}
+                    {r.icon && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img className="tick-icon" src={r.icon} alt="" width={18} height={18} loading="lazy" />
+                    )}
                     <span className="coin">{clean(r.name) || r.symbol}</span>
                   </td>
                   <td><span className="denom">{r.symbol}</span></td>
-                  <td className="dex">{r.issuer === "Backpack" ? "Sunrise" : r.issuer}</td>
+                  <td className="dex"><Brand name={r.issuer} size={16} label /></td>
                   <td className="num">{usd(r.liquidity)}</td>
                   <td className="num">
                     {totalLiq > 0 ? `${((r.liquidity / totalLiq) * 100).toFixed(1)}%` : "—"}
@@ -457,7 +461,7 @@ export default async function Page() {
                     )}
                   </td>
                   <td><span className="denom">{c.stock}</span></td>
-                  <td className="dex">{c.issuer}</td>
+                  <td className="dex"><Brand name={c.issuer} size={16} label /></td>
                   <td className="dex">{c.dex}</td>
                   <td className="num">{c.liquidityUsd ? usd(c.liquidityUsd) : "—"}</td>
                   <td className="num">{usd(c.volume24h)}</td>
@@ -524,7 +528,7 @@ export default async function Page() {
                   {d.rows.map((r) => (
                     <div className="dupe-row" key={r.mint}>
                       <b>{r.symbol}</b>
-                      <span>{r.issuer}</span>
+                      <span><Brand name={r.issuer} size={16} label /></span>
                       <span className="r">
                         <b>${r.price < 1 ? r.price.toFixed(4) : r.price.toFixed(2)}</b>
                       </span>

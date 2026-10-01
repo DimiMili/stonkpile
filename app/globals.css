@@ -636,3 +636,11 @@ section[id]{scroll-margin-top:18px}
 
 /* issuer heading carries its mark */
 .issuer-name{display:flex; align-items:center; gap:9px}
+
+/* A mark inside a dense table cell: smaller gap, and the name must not wrap
+   away from its logo, otherwise the row reads as two separate things. */
+td.dex .brand,.dupe-row .brand{gap:6px; white-space:nowrap}
+td.dex .brand-mark,.dupe-row .brand-mark{border-radius:4px}
+/* The ranked table already had an icon class; keep it aligned with the text
+   baseline rather than letting it sit on the line box. */
+.tick-icon{vertical-align:-4px; border-radius:4px; margin-right:7px}
