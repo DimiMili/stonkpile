@@ -142,7 +142,9 @@ export function verdictFor(mint: string, d: Index): MintVerdict {
     hasMarket: !!row && row.liquidity > 0,
     liquidity: row ? Math.round(row.liquidity) : 0,
     feed: row?.has247Feed ? "247" : row?.pythFeedId ? "hours" : "none",
-    perpVenues: row?.perpVenues ?? [],
+    // names only here: the agent-facing shape stays stable even though the
+    // page now carries a URL per venue as well.
+    perpVenues: (row?.perpVenues ?? []).map((p) => p.name),
     reasons,
     summary:
       `${hit.symbol}${hit.name ? ` (${hit.name})` : ""}, a tokenized stock issued by ` +

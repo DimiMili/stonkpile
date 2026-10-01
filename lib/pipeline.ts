@@ -79,10 +79,10 @@ export interface StockRow {
   volume24h: number;
   has247Feed: boolean;
   pythFeedId?: string;
-  /** Perp venues listing this ticker, "Phoenix" and/or "Hyperliquid". Empty
-   *  means none found, which for a tokenized stock means buy and hold is the
-   *  only thing you can do with it. */
-  perpVenues: string[];
+  /** Perp venues listing this ticker, with a link straight to that market.
+   *  Empty means none found, which for a tokenized stock means buy and hold is
+   *  the only thing you can do with it. */
+  perpVenues: PerpVenue[];
   quotedCount: number;
   quotedLiquidity: number;
   quotedVolume24h: number;
@@ -295,6 +295,12 @@ async function pythLayer(tickers: Set<string>) {
 
 /* ---------------- perps ---------------- */
 
+export interface PerpVenue {
+  name: "Phoenix" | "Hyperliquid";
+  /** Straight to that market, not the venue's front page. */
+  url: string;
+}
+
 /**
  * Which of these companies you can also take a perp position on.
  *
@@ -314,19 +320,25 @@ const PHOENIX_MARKETS = "https://perp-api.phoenix.trade/exchange/markets";
 
 /** Hyperliquid's builder dexes, where equity perps live. The main exchange
  *  carries 234 markets and not one of them is a stock. */
-async function hyperliquidPerps(): Promise<Set<string>> {
-  const out = new Set<string>();
+async function hyperliquidPerps(): Promise<Map<string, string>> {
+  // ticker -> the builder dex carrying it, which the market URL needs
+  const out = new Map<string, string>();
   const dexes = (await jpost<({ name?: string } | null)[]>(HL_INFO, { type: "perpDexs" }, 3600)) || [];
   const names = dexes.filter(Boolean).map((d) => d!.name).filter(Boolean) as string[];
   if (!names.length) return out;
   const metas = await Promise.all(
-    names.map((dex) => jpost<{ universe?: { name?: string }[] }>(HL_INFO, { type: "meta", dex }, 3600)),
+    names.map((dex) =>
+      jpost<{ universe?: { name?: string }[] }>(HL_INFO, { type: "meta", dex }, 3600).then(
+        (m) => [dex, m?.universe || []] as const,
+      ),
+    ),
   );
-  for (const m of metas) {
-    for (const a of m?.universe || []) {
-      // Builder markets are namespaced, "xyz:AAPL". The ticker is what matters.
+  for (const [dex, universe] of metas) {
+    for (const a of universe) {
+      // Builder markets are namespaced, "xyz:AAPL": the prefix is the dex and
+      // the market URL needs both halves, so keep it rather than stripping it.
       const tk = (a.name || "").replace(/^[a-z0-9]+:/i, "").toUpperCase();
-      if (tk) out.add(tk);
+      if (tk && !out.has(tk)) out.set(tk, dex);
     }
   }
   return out;
@@ -354,11 +366,23 @@ async function phoenixPerps(): Promise<Set<string>> {
  * Either source on its own tells a reader the largest thing on the board cannot
  * be hedged, or that the two biggest pre-IPO names cannot. Both can.
  */
-async function perpLayer(): Promise<Record<string, string[]>> {
+async function perpLayer(): Promise<Record<string, PerpVenue[]>> {
   const [hl, phx] = await Promise.all([hyperliquidPerps(), phoenixPerps()]);
-  const byTicker: Record<string, string[]> = {};
-  for (const tk of phx) (byTicker[tk] ||= []).push("Phoenix");
-  for (const tk of hl) (byTicker[tk] ||= []).push("Hyperliquid");
+  const byTicker: Record<string, PerpVenue[]> = {};
+  // Both URL shapes were verified against the live apps rather than guessed.
+  // Phoenix puts the market at the root and 404s an unknown ticker, which is
+  // the good failure. Hyperliquid needs the dex prefix and quietly falls back
+  // to its default market if the pair is wrong, which is the bad one, so the
+  // dex is carried through from the meta call rather than assumed.
+  for (const tk of phx) {
+    (byTicker[tk] ||= []).push({ name: "Phoenix", url: `https://www.phoenix.trade/${tk}` });
+  }
+  for (const [tk, dex] of hl) {
+    (byTicker[tk] ||= []).push({
+      name: "Hyperliquid",
+      url: `https://app.hyperliquid.xyz/trade/${dex}:${tk}`,
+    });
+  }
   return byTicker;
 }
 

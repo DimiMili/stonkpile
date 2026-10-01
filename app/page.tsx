@@ -544,13 +544,13 @@ export default async function Page() {
                         {r.perpVenues.length
                           ? r.perpVenues.map((v) => (
                               <a
-                                key={v}
-                                href={v === "Phoenix" ? "https://phoenix.trade" : "https://app.hyperliquid.xyz"}
+                                key={v.name}
+                                href={v.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                title={`${r.underlying} has a perp on ${v}`}
+                                title={`Open the ${r.underlying} perp on ${v.name}`}
                               >
-                                <Brand name={v} size={18} />
+                                <Brand name={v.name} size={18} />
                               </a>
                             ))
                           : "no"}
