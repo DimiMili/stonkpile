@@ -3,6 +3,7 @@ import { buildIndex } from "@/lib/pipeline";
 import { siteUrl } from "@/lib/site";
 import { Brand } from "@/components/Brand";
 import { ToTop } from "@/components/ToTop";
+import { SectionNav } from "@/components/SectionNav";
 import { Lookup } from "@/components/Lookup";
 import { Copy } from "@/components/Copy";
 import { Spark } from "@/components/Spark";
@@ -189,25 +190,7 @@ export default async function Page() {
         </p>
       </section>
 
-      {/* What is on this page, said once, before 13,000 pixels of it. The first
-          user to give feedback scrolled to the bottom looking for the search
-          box; the second thing a stranger needs is to know the rest exists. */}
-      <ToTop />
-
-      <nav className="overview" aria-label="What is on this page">
-        <p className="overview-k">What is on this page</p>
-        <div className="overview-grid">
-          <a href="#history"><b>Movement</b><span>How the category has changed, one record a day</span></a>
-          <a href="#depth"><b>Where the money is</b><span>Every tokenized stock ranked by liquidity</span></a>
-          <a href="#issuers"><b>Issuers</b><span>Five of them, and how much of each catalogue is real</span></a>
-          <a href="#board"><b>The board</b><span>Which stocks are being used as money, and by what</span></a>
-          <a href="#coins"><b>Coins</b><span>Every memecoin priced in a stock instead of SOL</span></a>
-          {dupes.length > 0 && (
-            <a href="#prices"><b>Two prices</b><span>The same company, priced differently by two issuers</span></a>
-          )}
-          <a href="#oracle"><b>Oracle gap</b><span>What has a reference price after the closing bell</span></a>
-        </div>
-      </nav>
+      <SectionNav />
 
       <div className="stats">
         <Stat k="Coins quoted in stocks" v={T.quotedCoins.toLocaleString()} />
