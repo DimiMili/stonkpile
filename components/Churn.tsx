@@ -94,13 +94,29 @@ export function Churn({ points }: { points: ChurnPoint[] }) {
   return (
     <div className="viz">
       <div className="viz-head">
+        {/* The legend explains the colours, so it goes away with them. */}
         <div className="viz-legend">
-          <span className="lg-item"><i className="lg-dot s-stock" /> Tokenized stock</span>
-          <span className="lg-item"><i className="lg-dot s-coin" /> Coin priced in a stock</span>
+          {!table && (
+            <>
+              <span className="lg-item"><i className="lg-dot s-stock" /> Tokenized stock</span>
+              <span className="lg-item"><i className="lg-dot s-coin" /> Coin priced in a stock</span>
+            </>
+          )}
         </div>
-        <button type="button" className="viz-toggle" onClick={() => setTable((t) => !t)}>
-          {table ? "Show chart" : "Show table"}
-        </button>
+        {/* A two-sided switch rather than a single button. One button that says
+            "Show table" makes the reader work out what they are looking at now
+            from what the button offers next; a switch shows both states and
+            marks the one they are in. */}
+        <div className="viz-switch" role="group" aria-label="View as">
+          <button type="button" className={!table ? "on" : undefined}
+                  aria-pressed={!table} onClick={() => setTable(false)}>
+            Chart
+          </button>
+          <button type="button" className={table ? "on" : undefined}
+                  aria-pressed={table} onClick={() => setTable(true)}>
+            Table
+          </button>
+        </div>
       </div>
 
       {table ? (

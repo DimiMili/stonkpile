@@ -698,12 +698,22 @@ td.dex .brand-mark,.dupe-row .brand-mark{border-radius:4px}
 .lg-dot{ width:10px; height:10px; border-radius:50%; display:inline-block }
 .lg-dot.s-stock{ background:#2a78d6 }
 .lg-dot.s-coin{ background:#eb6834 }
-.viz-toggle{
-  font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:600;
-  padding:6px 12px; border-radius:999px; cursor:pointer;
-  background:var(--surface); color:var(--ink); border:1px solid var(--line);
+/* Segmented switch. The track carries the border so the two halves read as one
+   control, and the selected half is filled the same way the section shortcuts
+   mark the section you are in. */
+.viz-switch{
+  display:inline-flex; padding:2px; border-radius:999px;
+  background:var(--surface); border:1px solid var(--line);
 }
-.viz-toggle:hover{ background:var(--bg); border-color:var(--ink) }
+.viz-switch button{
+  font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:600;
+  padding:6px 15px; border-radius:999px; cursor:pointer;
+  background:transparent; color:var(--muted); border:0; line-height:1;
+  transition:background .12s ease, color .12s ease;
+}
+.viz-switch button:hover{ color:var(--ink) }
+.viz-switch button.on{ background:var(--ink); color:var(--bg) }
+.viz-switch button:focus-visible{ outline:2px solid var(--brass); outline-offset:2px }
 .viz-wrap{ position:relative }
 .viz-svg{ width:100%; height:auto; display:block; overflow:visible }
 

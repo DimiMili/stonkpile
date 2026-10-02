@@ -341,19 +341,22 @@ export default async function Page() {
         {churnLead && (
           <p className="finding">
             <span className="nowtag">right now</span>
-            <b>{churnLead.label}</b> holds <b>{usd(churnLead.liquidity)}</b> and reports{" "}
-            <b>{usd(churnLead.volume)}</b> of volume in 24 hours. That is{" "}
-            <b>{Math.round(churnLead.volume / churnLead.liquidity)} times</b> its own contents,
-            in a day.
+            {churnLead.label} has {usd(churnLead.liquidity)} in its pool and claims{" "}
+            {usd(churnLead.volume)} of trading in a day.{" "}
+            <b>
+              That is the same money going round{" "}
+              {Math.round(churnLead.volume / churnLead.liquidity)} times.
+            </b>
           </p>
         )}
         <p className="lookfor">
           <span className="k">What to look for</span>
-          Distance above the diagonal. Putting real money into a pool costs real money, and
-          pushing volume through one costs almost nothing, so volume on its own ranks whoever
-          is most willing to run a bot. Everything on the solid line turned its contents once
-          today, which is what an active market looks like. The marks sitting ten and a
-          hundred times above it are not busier, they are emptier.
+          The liquidity pool is the pot of money you buy from and sell into. Filling it costs
+          someone real money. Pushing trades through it costs almost nothing, so anyone can
+          make a token look popular by sending the same funds back and forth all day. The
+          solid line is what one ordinary day of buying and selling looks like. On the chart
+          below, the higher above it a dot sits, the more of its trading is the same money
+          going in circles instead of new buyers turning up.
         </p>
         <Churn points={churnPoints} />
       </section>
