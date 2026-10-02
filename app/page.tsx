@@ -7,6 +7,7 @@ import { SectionNav } from "@/components/SectionNav";
 import { Lookup } from "@/components/Lookup";
 import { Copy } from "@/components/Copy";
 import { Spark } from "@/components/Spark";
+import { Churn, type ChurnPoint } from "@/components/Churn";
 import { history, hasHistory, series, since } from "@/lib/history";
 import { Live } from "@/components/Live";
 import { PLATFORM_TOKENS } from "@/lib/checks";
@@ -54,6 +55,29 @@ const holders = (v: number) =>
 
 const when = (ts?: number) =>
   ts ? new Date(ts * 1000).toUTCString().slice(0, 22) + " UTC" : "";
+
+/**
+ * How many times a pool traded its own contents in a day.
+ *
+ * Volume is the cheapest number on this site to fake and depth is the most
+ * expensive, so ranking by volume alone hands the top of the table to whoever
+ * is willing to run a bot. This puts the ratio next to it. Across the board
+ * the median is a little over one turn a day, so ten is already strange and
+ * the bar is scaled against that rather than against the worst offender, which
+ * would flatten everything honest into nothing.
+ */
+const HOT = 10;
+function turnCell(volume: number, liquidity: number) {
+  if (!(liquidity > 0) || !(volume > 0)) return <span className="turn">—</span>;
+  const t = volume / liquidity;
+  const pct = Math.min(100, (Math.log10(Math.max(t, 0.1)) + 1) * 33);
+  return (
+    <span className={`turn${t >= HOT ? " hot" : ""}`}>
+      <span className="turn-n">{t >= 10 ? Math.round(t) : t.toFixed(1)}x</span>
+      <span className="turn-bar" aria-hidden="true"><i style={{ width: `${pct}%` }} /></span>
+    </span>
+  );
+}
 
 export default async function Page() {
   const idx = await buildIndex();
@@ -114,6 +138,28 @@ export default async function Page() {
   const depth = T.byIssuerDepth;
   const totalLiq = Object.values(depth).reduce((a, d) => a + d.liquidity, 0);
   const byLiq = [...stocks].sort((a, b) => b.liquidity - a.liquidity);
+
+  /* Every pool with both numbers, stocks and the coins quoted against them in
+     one cloud. A $1k floor keeps dust out: a pool with eleven dollars in it can
+     post an absurd ratio on a single trade, and that is noise rather than a
+     finding. */
+  const churnPoints: ChurnPoint[] = [
+    ...stocks
+      .filter((s) => s.liquidity >= 1000 && s.volume24h >= 1000)
+      .map((s) => ({
+        label: s.symbol, sub: s.issuer, liquidity: s.liquidity,
+        volume: s.volume24h, kind: "stock" as const,
+      })),
+    ...coins
+      .filter((c) => c.liquidityUsd >= 1000 && c.volume24h >= 1000)
+      .map((c) => ({
+        label: c.coin, sub: `in ${c.stock}`, liquidity: c.liquidityUsd,
+        volume: c.volume24h, kind: "coin" as const,
+      })),
+  ];
+  const churnLead = [...churnPoints].sort(
+    (a, b) => b.volume / b.liquidity - a.volume / a.liquidity,
+  )[0];
   const heaviest = byLiq[0];
   const runnerUp = byLiq[1];
   const top10 = byLiq.slice(0, 10).reduce((a, r) => a + r.liquidity, 0);
@@ -257,7 +303,7 @@ export default async function Page() {
             <thead>
               <tr>
                 <th>Company</th><th>Token</th><th>Issuer</th>
-                <th>Liquidity</th><th>Share</th><th>Holders</th><th>24h volume</th>
+                <th>Liquidity</th><th>Share</th><th>Holders</th><th>24h volume</th><th>Turnover</th>
               </tr>
             </thead>
             <tbody>
@@ -279,11 +325,37 @@ export default async function Page() {
                   </td>
                   <td className="num">{r.holders.toLocaleString()}</td>
                   <td className="num">{usd(r.volume24h)}</td>
+                  <td className="num">{turnCell(r.volume24h, r.liquidity)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+      </section>
+
+      {/* Volume against depth. This sits straight after the ranked table on
+          purpose: the table has just shown a volume column, and this is the
+          argument for why that column should not be trusted on its own. */}
+      <section id="churn">
+        <h2>Volume you can buy, depth you cannot</h2>
+        {churnLead && (
+          <p className="finding">
+            <span className="nowtag">right now</span>
+            <b>{churnLead.label}</b> holds <b>{usd(churnLead.liquidity)}</b> and reports{" "}
+            <b>{usd(churnLead.volume)}</b> of volume in 24 hours. That is{" "}
+            <b>{Math.round(churnLead.volume / churnLead.liquidity)} times</b> its own contents,
+            in a day.
+          </p>
+        )}
+        <p className="lookfor">
+          <span className="k">What to look for</span>
+          Distance above the diagonal. Putting real money into a pool costs real money, and
+          pushing volume through one costs almost nothing, so volume on its own ranks whoever
+          is most willing to run a bot. Everything on the solid line turned its contents once
+          today, which is what an active market looks like. The marks sitting ten and a
+          hundred times above it are not busier, they are emptier.
+        </p>
+        <Churn points={churnPoints} />
       </section>
 
       <section id="issuers">

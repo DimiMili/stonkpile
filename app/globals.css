@@ -685,3 +685,68 @@ td.dex .brand-mark,.dupe-row .brand-mark{border-radius:4px}
 /* The ranked table already had an icon class; keep it aligned with the text
    baseline rather than letting it sit on the line box. */
 .tick-icon{vertical-align:-4px; border-radius:4px; margin-right:7px}
+
+/* ---- churn chart ---------------------------------------------------------
+   Two series, so a legend is always on screen and the five worst points are
+   labelled on the plot itself. Orange sits below 3:1 on this cream surface,
+   which is a documented warning rather than a failure: the relief for it is
+   exactly those visible labels plus the table view, both of which ship. */
+.viz{ margin-top:14px }
+.viz-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:10px }
+.viz-legend{ display:flex; gap:16px; flex-wrap:wrap }
+.lg-item{ display:inline-flex; align-items:center; gap:7px; font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted) }
+.lg-dot{ width:10px; height:10px; border-radius:50%; display:inline-block }
+.lg-dot.s-stock{ background:#2a78d6 }
+.lg-dot.s-coin{ background:#eb6834 }
+.viz-toggle{
+  font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:600;
+  padding:6px 12px; border-radius:999px; cursor:pointer;
+  background:var(--surface); color:var(--ink); border:1px solid var(--line);
+}
+.viz-toggle:hover{ background:var(--bg); border-color:var(--ink) }
+.viz-wrap{ position:relative }
+.viz-svg{ width:100%; height:auto; display:block; overflow:visible }
+
+.viz .g-line{ stroke:var(--line-soft); stroke-width:1 }
+.viz .ax{ stroke:var(--line); stroke-width:1 }
+.viz .r-line{ stroke:var(--muted); stroke-width:1.5; stroke-dasharray:5 4; opacity:.45 }
+.viz .r-line.r-base{ stroke:var(--ink); stroke-dasharray:none; opacity:.3 }
+/* A surface-coloured halo under the guide and point labels: these sit over a
+   dense cloud of marks, and text without relief disappears into it. */
+.viz .r-tag{ font-family:"IBM Plex Mono",monospace; font-size:10px; fill:var(--muted); letter-spacing:.02em;
+  paint-order:stroke fill; stroke:var(--bg); stroke-width:3.5px; stroke-linejoin:round }
+.viz .tk{ font-family:"IBM Plex Mono",monospace; font-size:10px; fill:var(--faint) }
+.viz .axt{ font-family:"IBM Plex Mono",monospace; font-size:11px; fill:var(--muted); letter-spacing:.04em }
+.viz .pl{ font-family:"IBM Plex Mono",monospace; font-size:11px; font-weight:600; fill:var(--ink);
+  paint-order:stroke fill; stroke:var(--bg); stroke-width:3.5px; stroke-linejoin:round }
+
+/* A 2px surface ring keeps overlapping marks readable where the cloud is dense. */
+.viz .pt{ stroke:var(--bg); stroke-width:2; cursor:pointer; transition:r .1s ease }
+.viz .pt.s-stock{ fill:#2a78d6 }
+.viz .pt.s-coin{ fill:#eb6834 }
+.viz .pt.on{ stroke:var(--ink); stroke-width:2 }
+
+.viz-tip{
+  position:absolute; transform:translate(-50%,-120%); pointer-events:none;
+  background:var(--ink); color:var(--bg); padding:8px 11px; border-radius:8px;
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; line-height:1.5;
+  display:flex; flex-direction:column; white-space:nowrap; z-index:5;
+  box-shadow:0 4px 14px rgba(22,26,33,.22);
+}
+.viz-tip .denom{ color:#b9bfc8 }
+.viz-tip .tip-hi{ color:#e8b64a; font-weight:600; margin-top:2px }
+
+/* Turnover cell in the ranked table: a number plus a bar, because the number
+   alone makes the reader hold a threshold in their head. */
+.turn{ display:inline-flex; align-items:center; gap:8px; justify-content:flex-end }
+.turn-n{ font-variant-numeric:tabular-nums }
+.turn-bar{ width:44px; height:5px; border-radius:3px; background:var(--line-soft); position:relative; overflow:hidden }
+.turn-bar i{ position:absolute; left:0; top:0; bottom:0; border-radius:3px; background:var(--muted) }
+.turn.hot .turn-bar i{ background:var(--alert) }
+.turn.hot .turn-n{ color:var(--alert); font-weight:600 }
+
+@media (max-width:640px){
+  .viz .tk, .viz .r-tag{ font-size:9px }
+  .viz .pl{ font-size:10px }
+  .turn-bar{ width:30px }
+}

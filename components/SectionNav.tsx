@@ -20,6 +20,7 @@ const SECTIONS = [
   { id: "check", label: "Check a ticker" },
   { id: "history", label: "Movement" },
   { id: "depth", label: "Where the money is" },
+  { id: "churn", label: "Real volume" },
   { id: "issuers", label: "Issuers" },
   { id: "board", label: "Board" },
   { id: "coins", label: "Coins" },
