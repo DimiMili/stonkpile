@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Share } from "@/components/Share";
 
 /**
  * Volume against depth, on log axes.
@@ -107,6 +108,13 @@ export function Churn({ points }: { points: ChurnPoint[] }) {
             "Show table" makes the reader work out what they are looking at now
             from what the button offers next; a switch shows both states and
             marks the one they are in. */}
+        <div className="viz-actions">
+        <Share
+          image="/api/chart/churn.png"
+          title="Volume you can buy, depth you cannot"
+          text="Every pool's liquidity against its 24h volume. The ones far above the line are not busier, they are emptier."
+          anchor="churn"
+        />
         <div className="viz-switch" role="group" aria-label="View as">
           <button type="button" className={!table ? "on" : undefined}
                   aria-pressed={!table} onClick={() => setTable(false)}>
@@ -116,6 +124,7 @@ export function Churn({ points }: { points: ChurnPoint[] }) {
                   aria-pressed={table} onClick={() => setTable(true)}>
             Table
           </button>
+        </div>
         </div>
       </div>
 

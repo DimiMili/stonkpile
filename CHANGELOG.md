@@ -11,6 +11,13 @@ Dates are Athens time.
 
 ## 2 October 2026
 
+- Share buttons wear the platform's own glyph: the tray and arrow on Apple
+  devices, three connected nodes on Android and the web. Detected after mount,
+  so the server and the browser never disagree about which to draw.
+- Shareable charts. Each chart now renders as a branded 1200x630 card at
+  /api/chart/<name>.png, with a Share button that hands the phone the image
+  itself rather than a link, falls back to a link share, and falls back again
+  to copying. A PNG link beside it for desktop.
 - Active versus seeded coins. A pool existing and a pool being used are
   different claims, and launchpads now mint these by the hundred daily. 959
   coins are priced in a tokenized stock; 268 of them traded in the last 24

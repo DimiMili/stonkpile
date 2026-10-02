@@ -1,84 +1,143 @@
 "use client";
 
 import { useState } from "react";
+import { ShareIcon, usePlatform } from "@/components/ShareIcon";
 
 /**
- * The share block. Every ticker page renders a live card, and until now nothing
- * told anyone it existed: the only pointer was a footer link reading "Share
- * card" next to "JSON". Cards are the distribution mechanic, so they need to be
- * visible and one click from posted.
+ * Share what you are looking at.
  *
- * Why this goes through the native share sheet rather than straight to an X
- * intent URL: on a phone the intent URL opens in the browser, and most people
- * who use X are signed in to the app, not to x.com in Safari. They get a
- * sign-in wall where the composer should be, with no way to click past it. The
- * same applies to anyone who opens a link from inside another app's web view.
- * navigator.share hands off to the installed app instead, session and all. The
- * intent URL stays as the fallback for browsers with no share API, which is
- * mostly desktop, where being signed in to the website is the normal case.
+ * Two shapes, because two places need it. A stock page wants the whole block:
+ * the card shown full width with buttons under it, since the card is the thing
+ * being offered. A chart wants one quiet button beside its own controls, since
+ * the chart is already on screen and the button is an afterthought.
+ *
+ * Both run the same three-step fallback, because support is uneven and a share
+ * button that fails silently is worse than none. What travels on a timeline is
+ * a picture rather than a link, so the first thing tried is handing the
+ * operating system the rendered PNG: phones take it and open the share sheet
+ * with the image attached, which is one tap from looking to posting. Failing
+ * that it shares the link, and failing that, which is most desktops, it copies
+ * the link and says so.
+ *
+ * A share the person cancels is not an error. AbortError is swallowed on
+ * purpose, otherwise backing out of the sheet flashes a failure at them.
  */
-export function Share({
-  url,
-  card,
-  text,
-}: {
-  url: string;
-  card: string;
-  text: string;
-}) {
-  const [copied, setCopied] = useState(false);
 
-  const post = `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+type Common = { text: string; title?: string };
+/** The full block: card image, then actions. Used on a stock page. */
+type BlockProps = Common & { url: string; card: string };
+/** One button, for a chart that is already on screen. */
+type InlineProps = Common & { image: string; anchor: string };
 
-  /* Decided inside the handler, not at render: reading navigator during render
-     would disagree with the server pass and break hydration. */
-  const share = async () => {
-    if (typeof navigator !== "undefined" && navigator.share) {
+function isInline(p: BlockProps | InlineProps): p is InlineProps {
+  return "image" in p;
+}
+
+async function shareIt(
+  { img, url, title, text }: { img: string; url: string; title: string; text: string },
+  say: (m: string) => void,
+) {
+  try {
+    const nav = navigator as Navigator & {
+      canShare?: (d: ShareData) => boolean;
+      share?: (d: ShareData) => Promise<void>;
+    };
+
+    if (nav.share && nav.canShare) {
       try {
-        await navigator.share({ text, url });
-        return;
-      } catch (err) {
-        // The sheet was dismissed on purpose. Opening X afterwards would be
-        // the opposite of what they just asked for.
-        if ((err as Error)?.name === "AbortError") return;
+        const res = await fetch(img);
+        if (res.ok) {
+          const blob = await res.blob();
+          const file = new File([blob], "stonkpile.png", { type: "image/png" });
+          if (nav.canShare({ files: [file] })) {
+            await nav.share({ files: [file], title, text, url });
+            return;
+          }
+        }
+      } catch (e) {
+        if ((e as Error)?.name === "AbortError") return;
+        // fall through to a link share rather than giving up
       }
     }
-    window.open(post, "_blank", "noopener,noreferrer");
+
+    if (nav.share) {
+      await nav.share({ title, text, url });
+      return;
+    }
+
+    await navigator.clipboard.writeText(`${text}\n\n${url}`);
+    say("Copied");
+  } catch (e) {
+    if ((e as Error)?.name === "AbortError") return;
+    say("Could not share");
+  }
+}
+
+export function Share(props: BlockProps | InlineProps) {
+  const [note, setNote] = useState<string | null>(null);
+  const platform = usePlatform();
+  const say = (m: string) => {
+    setNote(m);
+    setTimeout(() => setNote(null), 2200);
   };
 
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // clipboard blocked; the link is visible below anyway
-    }
-  };
+  if (isInline(props)) {
+    const { image, anchor, text, title } = props;
+    const go = () =>
+      shareIt(
+        {
+          img: image,
+          url:
+            typeof window !== "undefined"
+              ? `${window.location.origin}/#${anchor}`
+              : `https://stonkpile.xyz/#${anchor}`,
+          title: title ?? "Stonkpile",
+          text,
+        },
+        say,
+      );
+
+    return (
+      <span className="share">
+        <button type="button" className="share-btn" onClick={go}>
+          <ShareIcon platform={platform} /> Share
+        </button>
+        <a
+          className="share-png"
+          href={image}
+          download="stonkpile.png"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          PNG
+        </a>
+        {note && <span className="share-note">{note}</span>}
+      </span>
+    );
+  }
+
+  const { url, card, text, title } = props;
+  const go = () => shareIt({ img: card, url, title: title ?? "Stonkpile", text }, say);
+  const tweet =
+    `https://x.com/intent/tweet?text=${encodeURIComponent(text)}` +
+    `&url=${encodeURIComponent(url)}`;
 
   return (
-    <section id="share">
-      <h2>Share this</h2>
-      <p className="lookfor">
-        <span className="k">What people will see</span>
-        Post the link anywhere and this card unfurls with it. It renders live, so the
-        numbers are correct at the moment somebody opens it, not the moment you posted.
-      </p>
-
+    <div className="sharewrap">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="sharecard" src={card} alt="" width={1200} height={630} />
-
+      <img className="sharecard" src={card} alt="" />
       <div className="shareactions">
-        <button className="btn primary" onClick={share} type="button">
-          Share
+        <button type="button" className="btn primary" onClick={go}>
+          <ShareIcon platform={platform} size={14} /> Share
         </button>
-        <button className="btn" onClick={copy} type="button">
-          {copied ? "Link copied" : "Copy link"}
-        </button>
-        <a className="btn" href={card} download>
-          Download card
+        <a className="btn" href={tweet} target="_blank" rel="noopener noreferrer">
+          Post on X
         </a>
+        <a className="btn" href={card} download="stonkpile.png" target="_blank" rel="noopener noreferrer">
+          Download PNG
+        </a>
+        {note && <span className="share-note">{note}</span>}
       </div>
-    </section>
+    </div>
   );
 }
