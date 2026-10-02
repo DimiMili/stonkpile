@@ -112,6 +112,14 @@ tbody tr:hover{background:var(--surface)}
 .chip.on{border-color:var(--brass); color:var(--brass); background:var(--brass-wash)}
 
 footer{margin-top:48px; padding-top:20px; border-top:1px solid var(--line); font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--faint); display:flex; flex-wrap:wrap; gap:6px 18px; justify-content:space-between}
+
+/* Full width on its own line, below the credits. Readable rather than buried:
+   a disclaimer nobody can read is not a disclaimer. */
+footer .disclaim{
+  flex:1 0 100%; margin-top:14px; padding-top:14px;
+  border-top:1px solid var(--line-soft);
+  font-size:11px; line-height:1.65; color:var(--faint); max-width:80ch;
+}
 a{color:var(--brass); text-decoration:none; border-bottom:1px solid var(--brass-wash)}
 a:hover{border-bottom-color:currentColor}
 :focus-visible{outline:2px solid var(--brass); outline-offset:2px}

@@ -627,6 +627,22 @@ export default async function Page() {
           <a href="/api/index">JSON API</a>
         </span>
         <span>Updated {stamp}</span>
+
+        {/* A securities-adjacent site run by one person needs this in writing,
+            and it costs nothing to be exact instead of shouting NFA. It says
+            what the numbers are, what they are not, and who is responsible for
+            the decision, which is the visitor. */}
+        <span className="disclaim">
+          Nothing here is financial, investment, legal or tax advice, and nothing
+          here is an offer or a recommendation to buy or sell anything. Stonkpile
+          reports what public onchain sources say at the moment they are read.
+          Prices, liquidity and issuer data move constantly, can be wrong, stale
+          or manipulated, and a token passing every check on this page can still
+          lose all its value. Tokenized stocks are generally not shares: most are
+          a claim on an issuer, and your rights depend entirely on that issuer.
+          Verify everything yourself before you send a transaction. Do your own
+          research. You are responsible for what you do with this.
+        </span>
       </footer>
     </div>
   );
