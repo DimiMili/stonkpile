@@ -610,17 +610,43 @@ a.btn:hover{border-bottom-color:var(--brass)}
   border-bottom:1px solid var(--line-soft);
 }
 .snav-row{
-  display:flex; gap:6px; overflow-x:auto; padding:7px 0;
+  display:flex; gap:8px; overflow-x:auto; padding:11px 0;
   scrollbar-width:none; -webkit-overflow-scrolling:touch;
 }
 .snav-row::-webkit-scrollbar{display:none}
+
+/* These have to read as buttons while sitting still, not only under a cursor.
+   A borderless tinted word is indistinguishable from body text at a glance,
+   which is how a nav bar ends up getting scrolled past. So every pill carries
+   its own surface, its own edge and a seated shadow from the first frame. */
 .snav-row a{
-  flex:none; padding:5px 11px; border-radius:999px; text-decoration:none;
-  font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.02em;
-  color:var(--muted); white-space:nowrap; border:1px solid transparent;
+  flex:none; padding:8px 15px; border-radius:999px; text-decoration:none;
+  font-family:"IBM Plex Mono",monospace; font-size:14px; font-weight:600;
+  letter-spacing:.01em; white-space:nowrap;
+  color:var(--ink); background:var(--surface);
+  border:1px solid var(--line);
+  box-shadow:0 1px 0 rgba(22,26,33,.06);
+  transition:background .12s ease, color .12s ease, border-color .12s ease,
+             box-shadow .12s ease, transform .12s ease;
 }
-.snav-row a:hover{background:var(--surface); color:var(--ink)}
-.snav-row a.on{background:var(--ink); color:var(--bg)}
+.snav-row a:hover{
+  background:var(--bg); border-color:var(--ink); color:var(--ink);
+  box-shadow:0 2px 0 rgba(22,26,33,.14); transform:translateY(-1px);
+}
+.snav-row a:active{ transform:translateY(0); box-shadow:0 1px 0 rgba(22,26,33,.1) }
+.snav-row a:focus-visible{ outline:2px solid var(--brass); outline-offset:2px }
+
+/* Where you are: filled, so the row doubles as a position indicator. */
+.snav-row a.on{
+  background:var(--ink); color:var(--bg); border-color:var(--ink);
+  box-shadow:0 1px 0 rgba(22,26,33,.2);
+}
+.snav-row a.on:hover{ background:var(--ink); color:var(--bg) }
+
+@media (max-width:640px){
+  .snav-row{ gap:7px; padding:9px 0 }
+  .snav-row a{ font-size:13px; padding:7px 13px }
+}
 
 /* Anchor links should glide, and land clear of anything sticky. */
 html{scroll-behavior:smooth}
