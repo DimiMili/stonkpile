@@ -398,7 +398,7 @@ export default async function Page() {
                   {iss === "Backpack" ? "issued by Backpack Securities"
                     : iss === "xStocks" ? "issues the xStocks range"
                     : iss === "PreStocks" ? "pre-IPO equity"
-                    : iss === "Tessera" ? "pre-IPO, tesseralab.co"
+                    : iss === "Tessera" ? "pre-IPO, tessera.pe"
                     : "Ondo Finance"}
                 </p>
                 <div className="issuer-row"><span>Tokens listed</span><b>{listed.toLocaleString()}</b></div>
@@ -465,18 +465,26 @@ export default async function Page() {
 
       <section id="coins">
         <h2>Priced in equity</h2>
-        {topCoin && (
-          <p className="finding">
-            <span className="nowtag">right now</span>
-            The biggest coin denominated in equity is <b>{topCoin.coin}</b>, settling in{" "}
-            <b>{topCoin.underlying}</b>.
-          </p>
-        )}
+        <p className="finding">
+          <span className="nowtag">right now</span>
+          <b>{T.quotedCoins.toLocaleString()}</b> coins are priced in a tokenized stock rather
+          than in SOL.{" "}
+          <b>
+            {T.activeCoins.toLocaleString()} of them were actually traded in the last 24 hours.
+          </b>{" "}
+          {topCoin && (
+            <>The biggest is {topCoin.coin}, settling in {topCoin.underlying}.</>
+          )}
+        </p>
         <p className="lookfor">
           <span className="k">What to look for</span>
-          Compare liquidity against 24h volume. Volume many times larger than the pool is
-          churn rather than depth, and it usually means a handful of wallets trading with each
-          other. Anything marked <b>platform</b> is a launchpad or treasury token, so its
+          Whether anyone is on the other side. A pool existing and a pool being used are
+          different claims, and launchpads now mint these by the hundred every day, so a
+          count of pools flatters the category. A coin is marked <b>seeded</b> here when it
+          has fewer than 25 trades in 24 hours: the money is in the pool and nobody is
+          trading it. Beyond that, compare liquidity against 24h volume. Volume many times
+          larger than the pool is churn rather than depth, and it usually means a handful of
+          wallets trading with each other. Anything marked <b>platform</b> is a launchpad or treasury token, so its
           volume reflects that platform rather than demand for a coin. Each row carries the
           coin&rsquo;s contract address so you can copy the right one. It tells you which coin
           this is, nothing more: the issuer check on this site covers the tokenized stocks, not
@@ -488,7 +496,7 @@ export default async function Page() {
             <thead>
               <tr>
                 <th>Coin</th><th>Denominated in</th><th>Issuer</th>
-                <th>Venue</th><th>Liquidity</th><th>24h volume</th><th>24h</th>
+                <th>Venue</th><th>Liquidity</th><th>24h volume</th><th>Trades 24h</th><th>24h</th>
               </tr>
             </thead>
             <tbody>
@@ -507,6 +515,7 @@ export default async function Page() {
                       <span className="flag">platform</span>
                     )}
                     {nth > 0 && <span className="flag flag-quiet">pool {nth + 1}</span>}
+                    {!c.active && <span className="flag flag-quiet">seeded</span>}
                     {c.coinMint && PLATFORM_TOKENS[c.coinMint] && (
                       <span className="coin-sub">{PLATFORM_TOKENS[c.coinMint]}</span>
                     )}
@@ -523,6 +532,7 @@ export default async function Page() {
                   <td className="dex">{c.dex}</td>
                   <td className="num">{c.liquidityUsd ? usd(c.liquidityUsd) : "—"}</td>
                   <td className="num">{usd(c.volume24h)}</td>
+                  <td className="num">{c.txns24h.toLocaleString()}</td>
                   <td
                     className="num"
                     style={{

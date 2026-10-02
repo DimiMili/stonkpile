@@ -4,9 +4,10 @@
  * Every file under /public/brand was downloaded from that company's own domain.
  * None of them are drawn here and none are approximations: a logo that is nearly
  * right is worse than no logo, because the whole point of this site is telling
- * people what is genuine. Tessera publishes nothing on tesseralab.co, so theirs
- * comes from their own X profile image instead. Anything not listed here still
- * falls back to a lettered tile rather than a guess at what a logo looks like.
+ * people what is genuine. Tessera's brand site is tessera.pe; tesseralab.co is
+ * only the host serving their token metadata, which is why the earlier lookup
+ * there came back empty. Anything not listed here still falls back to a lettered
+ * tile rather than a guess at what a logo looks like.
  */
 const MARKS: Record<string, { src: string; label: string }> = {
   Phoenix: { src: "/brand/phoenix.png", label: "Phoenix" },

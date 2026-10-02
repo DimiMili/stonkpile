@@ -60,6 +60,10 @@ export interface QuotedCoin {
   liquidityUsd: number;
   volume24h: number;
   priceChange24h: number;
+  /** Buys plus sells in the last 24 hours. The honest activity signal. */
+  txns24h: number;
+  /** At or above ACTIVE_TXNS trades in 24h. Below it the pool is seeded, not used. */
+  active: boolean;
   createdAt?: number;
   stock: string;
   underlying: string;
@@ -84,6 +88,8 @@ export interface StockRow {
    *  the only thing you can do with it. */
   perpVenues: PerpVenue[];
   quotedCount: number;
+  /** Of those, the ones with real trading rather than a seeded pool. */
+  activeCount: number;
   quotedLiquidity: number;
   quotedVolume24h: number;
   topCoin?: string;
@@ -141,6 +147,8 @@ export interface Index {
     denominators: number;
     /** Distinct coins. quotedPools is the row count behind it. */
     quotedCoins: number;
+    /** Of those, the ones actually being traded rather than merely listed. */
+    activeCoins: number;
     quotedPools: number;
     quotedVolume24h: number;
     quotedLiquidity: number;
@@ -395,7 +403,26 @@ interface DexPair {
   liquidity?: { usd?: number };
   volume?: { h24?: number };
   priceChange?: { h24?: number };
+  txns?: { h24?: { buys?: number; sells?: number } };
 }
+
+/**
+ * A pool exists is not the same claim as a pool is used.
+ *
+ * Nothing in this pipeline sets a liquidity or volume floor on a quoted coin:
+ * the only filter is that DexScreener returned the pair at all, which quietly
+ * means the bar is theirs rather than ours. That held up while the long tail
+ * stayed unindexed, and stops holding up now that launchpads mint these by the
+ * hundred every day. So count the trades instead of the pool.
+ *
+ * Twenty-five is drawn from the real distribution rather than picked to be
+ * round: measured across the coins quoted in tOpenAI, the ones people are
+ * actually trading sat between 133 and 777 trades a day and everything else
+ * sat between 1 and 69, with nothing in between. The gap is wide enough that
+ * the exact number does not matter much, which is the only kind of threshold
+ * worth hard-coding.
+ */
+const ACTIVE_TXNS = 25;
 
 async function scanPairs(
   stock: Awaited<ReturnType<typeof buildUniverse>>[number],
@@ -411,6 +438,7 @@ async function scanPairs(
       const sym = b.symbol || "?";
       const isMeme = !NOT_MEME.has(sym.toUpperCase()) && !stockMints.has(b.address || "");
       if (!isMeme) continue;
+      const txns = n(p.txns?.h24?.buys) + n(p.txns?.h24?.sells);
       quoted.push({
         coin: sym,
         coinMint: b.address,
@@ -420,6 +448,8 @@ async function scanPairs(
         liquidityUsd: n(p.liquidity?.usd),
         volume24h: n(p.volume?.h24),
         priceChange24h: n(p.priceChange?.h24),
+        txns24h: txns,
+        active: txns >= ACTIVE_TXNS,
         createdAt: p.pairCreatedAt,
         stock: stock.symbol,
         underlying: stock.underlying,
@@ -482,6 +512,9 @@ export async function buildIndex(): Promise<Index> {
           // the same stock (STONK has three against SPYx), and counting rows
           // made the headline "13 coins are priced in SPY" when it was 11.
           quotedCount: new Set(quoted.map((c) => c.coinMint ?? c.coin)).size,
+          activeCount: new Set(
+            quoted.filter((c) => c.active).map((c) => c.coinMint ?? c.coin),
+          ).size,
           quotedLiquidity: Math.round(quoted.reduce((s, c) => s + c.liquidityUsd, 0)),
           quotedVolume24h: Math.round(quoted.reduce((s, c) => s + c.volume24h, 0)),
           topCoin: quoted[0]?.coin,
@@ -588,6 +621,9 @@ export async function buildIndex(): Promise<Index> {
       // Same correction at the top level: a coin quoted against two stocks, or
       // through two pools, is one coin. The claim on the homepage is about coins.
       quotedCoins: new Set(coins.map((c) => c.coinMint ?? c.coin)).size,
+      activeCoins: new Set(
+        coins.filter((c) => c.active).map((c) => c.coinMint ?? c.coin),
+      ).size,
       quotedPools: coins.length,
       quotedVolume24h: Math.round(coins.reduce((s, c) => s + c.volume24h, 0)),
       quotedLiquidity: Math.round(coins.reduce((s, c) => s + c.liquidityUsd, 0)),

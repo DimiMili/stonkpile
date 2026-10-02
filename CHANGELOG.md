@@ -11,6 +11,13 @@ Dates are Athens time.
 
 ## 2 October 2026
 
+- Active versus seeded coins. A pool existing and a pool being used are
+  different claims, and launchpads now mint these by the hundred daily. 959
+  coins are priced in a tokenized stock; 268 of them traded in the last 24
+  hours. Anything under 25 trades a day is now marked seeded, and the table
+  carries a trade count.
+- Tessera's mark taken from their own site, and their issuer card corrected to
+  tessera.pe (tesseralab.co is only the metadata host).
 - Volume against depth: a new section with a log-log chart of every pool's
   liquidity against its 24h volume, plus a Turnover column on the ranked table.
   Makes wash trading visible instead of letting it top the rankings.
