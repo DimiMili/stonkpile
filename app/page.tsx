@@ -296,7 +296,7 @@ export default async function Page() {
           trend from one measurement. */}
       <section id="history">
         <h2>How this is moving</h2>
-        <Reveal label="Show the charts" count={`${history.length} daily records`}>
+        <Reveal label="Show the charts" count={`${history.length} daily records`} peek={280}>
         {hasHistory ? (
           <>
             <p className="lookfor">
@@ -406,7 +406,7 @@ export default async function Page() {
           below, the higher above it a dot sits, the more of its trading is the same money
           going in circles instead of new buyers turning up.
         </p>
-      <Reveal label="Show the chart" count={`${churnPoints.length.toLocaleString()} pools`}>
+      <Reveal label="Show the chart" count={`${churnPoints.length.toLocaleString()} pools`} peek={300}>
         <Churn points={churnPoints} />
       </Reveal>
       </section>
@@ -428,7 +428,7 @@ export default async function Page() {
           pools behind it, and how much of that catalogue has no pool at all. Used as a quote
           asset is the strictest test: it means other people built markets on top.
         </p>
-      <Reveal label="Compare the five issuers" count={`${T.universe.toLocaleString()} listings`}>
+      <Reveal label="Compare the five issuers" count={`${T.universe.toLocaleString()} listings`} peek={260}>
         <div className="issuers">
           {(["xStocks", "Backpack", "Ondo", "PreStocks", "Tessera"] as const).map((iss) => {
             // Sunrise is the brand the market knows; Backpack Securities is the
@@ -817,7 +817,7 @@ export default async function Page() {
           <b>Equity.Index</b> feed. If you hold a coin quoted in a stock without the always-on
           one, its overnight and weekend moves are being priced against nothing.
         </p>
-        <Reveal label="Show which have a feed" count={`${T.with247Feed} with 24/7`}>
+        <Reveal label="Show which have a feed" count={`${T.with247Feed} with 24/7`} peek={190}>
         <div className="chips">
           {board.map((r) => (
             <span className={`chip${r.has247Feed ? " on" : ""}`} key={r.mint + "c"}>

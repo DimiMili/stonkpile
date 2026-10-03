@@ -11,6 +11,12 @@ Dates are Athens time.
 
 ## 3 October 2026
 
+- Collapsed sections now peek instead of hiding. Each closed section shows the
+  top of its chart or its first rows and fades out, so you can see there is
+  something worth opening rather than reading a column of headlines. Applied to
+  ::details-content, because a closed <details> is not rendered at all and
+  clipping the element inside it did nothing.
+
 - New hero. Three questions instead of one: is it real, is anyone actually
   buying it, does it have perps. The standfirst now says what the site holds
   (1,800 listings, 112 with liquidity, five issuers, and the memecoins paired

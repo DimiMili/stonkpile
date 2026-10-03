@@ -24,6 +24,7 @@ export function Reveal({
   label,
   count,
   open = false,
+  peek,
   children,
 }: {
   /** What is inside, as a noun the reader recognises: "the ranked table". */
@@ -31,10 +32,16 @@ export function Reveal({
   /** How much is inside. A number is a stronger invitation than a chevron. */
   count?: string;
   open?: boolean;
+  /** How much of the body shows while closed. Taller for charts than tables. */
+  peek?: number;
   children: React.ReactNode;
 }) {
   return (
-    <details className="reveal" open={open}>
+    <details
+      className="reveal"
+      open={open}
+      style={peek ? ({ ["--peek" as string]: `${peek}px` }) : undefined}
+    >
       <summary className="reveal-sum">
         <span className="reveal-open">{label}</span>
         {count && <span className="reveal-count">{count}</span>}

@@ -890,16 +890,52 @@ header + .snav{ border-top:none; margin-top:0 }
    summary. Both are recent; where they are missing the section still opens,
    it just snaps. Declared in @supports so nothing is inherited by browsers
    that would mis-handle the keyword. */
-@supports (interpolate-size: allow-keywords){
-  :root{ interpolate-size: allow-keywords }
+/* Closed means peeking, not hidden.
+   The first version hid the body outright, which cut the page in half and took
+   the colour with it: a column of headlines tells you nothing about whether a
+   chart is worth opening. So a closed section now shows its top strip and fades
+   out, which is enough to see that there IS a chart, what colour it is and
+   roughly what shape, while still costing a fraction of the full height.
+
+   This cannot use ::details-content, because that box is not rendered while the
+   details is closed and there would be nothing to peek at. Clipping the body
+   ourselves keeps it rendered and keeps <details> for the semantics. */
+/* The peek has to be applied to ::details-content, not to the div inside it.
+   A closed <details> hides everything after the summary at the browser's own
+   level, so clipping the inner element achieved nothing: the box it sits in was
+   already not being rendered. ::details-content is that box, and making it
+   visible with a fixed height is what produces a preview rather than a gap.
+
+   Browsers without ::details-content keep the old behaviour, which is a closed
+   section with no peek. That is a worse version of this, not a broken one. */
+@supports selector(::details-content){
+  @supports (interpolate-size: allow-keywords){ :root{ interpolate-size: allow-keywords } }
+
   .reveal::details-content{
-    height:0; overflow:hidden; opacity:0;
-    transition:height .28s cubic-bezier(.2,.8,.3,1), opacity .2s ease, content-visibility .28s allow-discrete;
-    content-visibility:hidden;
+    content-visibility:visible;
+    block-size:var(--peek,210px);
+    overflow:hidden;
+    -webkit-mask-image:linear-gradient(to bottom, #000 55%, transparent 100%);
+    mask-image:linear-gradient(to bottom, #000 55%, transparent 100%);
+    transition:block-size .32s cubic-bezier(.2,.8,.3,1), mask-image .2s linear;
   }
-  .reveal[open]::details-content{ height:auto; opacity:1; content-visibility:visible }
+  .reveal[open]::details-content{
+    block-size:auto; overflow:visible;
+    -webkit-mask-image:none; mask-image:none;
+  }
+  /* A preview must not offer a sideways scroll it cannot finish. */
+  .reveal:not([open]) .scroll{ overflow:hidden }
+}
+@media (prefers-reduced-motion:reduce){
+  .reveal::details-content{ transition:none }
 }
 
+/* No flex reordering here.
+   Putting the body above the summary with order looked right on paper and laid
+   out wrong in the browser: a <summary> is not an ordinary flex item, and the
+   two ended up painted on top of each other. The control stays where the markup
+   puts it, with the preview underneath, which is the conventional accordion
+   anyway and costs nothing. */
 .reveal{ margin-top:16px }
 .reveal-sum{
   display:flex; align-items:center; gap:12px; cursor:pointer; list-style:none;
@@ -928,7 +964,7 @@ header + .snav{ border-top:none; margin-top:0 }
 .reveal[open] .reveal-sum .reveal-count{ color:#e8b64a }
 .reveal[open] .reveal-mark{ border-color:var(--bg) }
 
-.reveal-body{ padding-top:18px }
+.reveal-body{ padding-top:18px; padding-bottom:4px }
 
 /* Open it to reach a find-in-page match inside it. */
 .reveal-body:has(:target), .reveal-body :target{ scroll-margin-top:72px }
