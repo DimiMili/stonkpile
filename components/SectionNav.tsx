@@ -23,6 +23,7 @@ const SECTIONS = [
   { id: "churn", label: "Real volume" },
   { id: "issuers", label: "Issuers" },
   { id: "board", label: "Board" },
+  { id: "accrual", label: "Quiet growth" },
   { id: "coins", label: "Coins" },
   { id: "prices", label: "Two prices" },
   { id: "oracle", label: "Oracle gap" },

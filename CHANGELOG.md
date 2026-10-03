@@ -11,6 +11,35 @@ Dates are Athens time.
 
 ## 2 October 2026
 
+- Sections collapse. Nine of them now open on a tap, keeping their headline,
+  their "right now" finding and the explainer visible, with the table behind a
+  pill that says what is inside and how much. The page went from 13,172px to
+  5,597px on desktop and 6,720px on a phone, with every number one tap away.
+  Built on <details>, so it works before React hydrates, the keyboard and
+  screen-reader behaviour is the browser's own, and find-in-page opens a closed
+  section to reach a match.
+- Starter chips under the search box: NVDA, SPCX, STONKPILE. An empty box asks
+  you to already know what you are looking for, which is what "I have no idea
+  how to use it" meant.
+- Sunrise's own mark, from sunrise.xyz. The card said Sunrise and showed the
+  Backpack logo, which was simply the wrong logo.
+- "The tokens that quietly grew": a section for balances that carry a
+  ScaledUiAmount accrual. 19 tokenized stocks are larger than the tokens
+  bought, from Strategy PP Variable at 9.18% down to NVIDIA at 0.17%, with the
+  per-$1,000 value and the date it last moved. Read from the mint.
+- Corporate actions read from the chain. Every mint is checked for Token-2022's
+  ScaledUiAmount extension, so a split an issuer encodes on-chain is a number
+  the site reads rather than one somebody types in. Cross-issuer prices are now
+  compared per underlying share: SpaceX went from "399% apart" to 41%, because
+  Tessera's token is five post-split shares and the old number was a unit
+  mismatch wearing the costume of an accusation.
+- Phone legibility pass. Audited every element rendering under 13px on a
+  440px viewport and raised them: body 15 to 16.5, table cells 14 to 15,
+  headers 10.5 to 12, "what to look for" 13 to 15, and about twenty labels and
+  badges that were sitting at 9.5 to 11px. Desktop is unchanged.
+- Section shortcuts moved above the search box, so somebody landing on the page
+  meets them before scrolling past the two things they help you skip.
+- Long company names now wrap beside their logo instead of underneath it.
 - Share buttons wear the platform's own glyph: the tray and arrow on Apple
   devices, three connected nodes on Android and the web. Detected after mount,
   so the server and the browser never disagree about which to draw.

@@ -135,6 +135,34 @@ export function Lookup() {
         Real or fake, has a market or not, and what is priced against it.
       </p>
 
+      {/* Somewhere to start.
+          A reader told us he opened the page and had no idea how to use it, and
+          an empty box with a placeholder is the reason: it asks you to already
+          know what you are looking for. These are one tap each, and they are
+          chosen to teach rather than to demo. NVDA is the case everybody
+          expects, SPCX is the one where three issuers disagree, and STONKPILE
+          is a token with twenty impostors wearing its name. */}
+      {q.length === 0 && (
+        <div className="lookup-eg">
+          <span className="lookup-eg-k">Try</span>
+          {["NVDA", "SPCX", "STONKPILE"].map((t) => (
+            <button
+              key={t}
+              type="button"
+              className="lookup-chip"
+              onClick={() => {
+                warm();
+                setQ(t);
+                document.getElementById("ticker")?.focus();
+              }}
+            >
+              {t}
+            </button>
+          ))}
+          <span className="lookup-eg-or">or paste any contract address</span>
+        </div>
+      )}
+
       {raw.length > 0 && (
         <div className="lookup-results">
           {loading ? (

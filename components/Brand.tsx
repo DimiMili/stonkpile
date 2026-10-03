@@ -13,7 +13,11 @@ const MARKS: Record<string, { src: string; label: string }> = {
   Phoenix: { src: "/brand/phoenix.png", label: "Phoenix" },
   Hyperliquid: { src: "/brand/hyperliquid.png", label: "Hyperliquid" },
   xStocks: { src: "/brand/xstocks.png", label: "xStocks" },
-  Backpack: { src: "/brand/backpack.png", label: "Sunrise" },
+  // The card says Sunrise, so the mark has to be Sunrise's. Backpack Securities
+  // is the entity that issues and custodies; Sunrise is the brand the market
+  // sees and the name on the listing, and showing the backpack next to the word
+  // "Sunrise" was simply the wrong logo. Taken from sunrise.xyz's own icon.
+  Backpack: { src: "/brand/sunrise.svg", label: "Sunrise" },
   Ondo: { src: "/brand/ondo.svg", label: "Ondo" },
   PreStocks: { src: "/brand/prestocks.png", label: "PreStocks" },
   Tessera: { src: "/brand/tessera.png", label: "Tessera" },

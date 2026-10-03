@@ -5,6 +5,8 @@
  * Pyth (reference feeds + US market hours). All keyless.
  */
 
+import { corporateActions, type CorporateAction } from "@/lib/chain";
+
 export const REVALIDATE = 300; // seconds
 
 const JUP_VERIFIED = "https://lite-api.jup.ag/tokens/v2/tag?query=verified";
@@ -90,6 +92,10 @@ export interface StockRow {
   quotedCount: number;
   /** Of those, the ones with real trading rather than a seeded pool. */
   activeCount: number;
+  /** A split or similar, where one is known. Absent means none found. */
+  action?: CorporateAction;
+  /** Underlying shares one token represents. 1 unless an issuer says otherwise. */
+  sharesPerToken: number;
   quotedLiquidity: number;
   quotedVolume24h: number;
   topCoin?: string;
@@ -468,6 +474,13 @@ async function scanPairs(
 export async function buildIndex(): Promise<Index> {
   const uni = await buildUniverse();
   const stockMints = new Set(uni.map((t) => t.mint));
+
+  /* Corporate actions, read from the mint where the issuer encodes them. This
+     is best-effort by design: a public RPC refusing the call costs us the split
+     data and nothing else. */
+  const actions = await corporateActions(
+    uni.map((t) => ({ mint: t.mint, symbol: t.symbol })),
+  ).catch(() => ({} as Record<string, CorporateAction>));
   const byIssuer: Record<string, number> = {};
   for (const t of uni) byIssuer[t.issuer] = (byIssuer[t.issuer] || 0) + 1;
 
@@ -515,6 +528,16 @@ export async function buildIndex(): Promise<Index> {
           activeCount: new Set(
             quoted.filter((c) => c.active).map((c) => c.coinMint ?? c.coin),
           ).size,
+          action: actions[t.mint],
+          /* The multiplier says a split happened. Whether the price we receive
+             already reflects it is a separate question, and the answer differs
+             by issuer: PreStocks encode the action on chain AND the price that
+             reaches us is already scaled, so dividing again would be wrong,
+             while Tessera encode nothing and their price is still quoted per
+             five shares. So only a figure the issuer stated is applied to the
+             price; an on-chain action is reported, not arithmetic. */
+          sharesPerToken:
+            actions[t.mint]?.source === "issuer" ? actions[t.mint]!.multiplier : 1,
           quotedLiquidity: Math.round(quoted.reduce((s, c) => s + c.liquidityUsd, 0)),
           quotedVolume24h: Math.round(quoted.reduce((s, c) => s + c.volume24h, 0)),
           topCoin: quoted[0]?.coin,

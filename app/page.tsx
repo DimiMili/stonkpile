@@ -7,6 +7,7 @@ import { SectionNav } from "@/components/SectionNav";
 import { Lookup } from "@/components/Lookup";
 import { Copy } from "@/components/Copy";
 import { Spark } from "@/components/Spark";
+import { Reveal } from "@/components/Reveal";
 import { Churn, type ChurnPoint } from "@/components/Churn";
 import { history, hasHistory, series, since } from "@/lib/history";
 import { Live } from "@/components/Live";
@@ -97,13 +98,29 @@ export default async function Page() {
     arr.push(st);
     byUnderlying.set(st.underlying, arr);
   }
+  /* Compare price per underlying share, not price per token.
+     One token is not always one share. SpaceX ran a 5-for-1 before listing and
+     Tessera did not re-mint, so their token is still five shares; comparing the
+     sticker prices made a denomination look like a 258% disagreement and put
+     the loudest wrong number on the site. Dividing by shares-per-token first
+     turns that into what it actually is: two pre-IPO issuers landing within 1%
+     of each other and both sitting well under the listed price. */
+  const perShare = (r: (typeof stocks)[number]) =>
+    r.price / (r.sharesPerToken > 0 ? r.sharesPerToken : 1);
+
   const dupes = [...byUnderlying.values()]
     .filter((rows) => new Set(rows.map((r) => r.issuer)).size > 1)
     .map((rows) => {
       const sorted = [...rows].sort((a, b) => b.volume24h - a.volume24h);
-      const prices = sorted.map((r) => r.price);
+      const prices = sorted.map(perShare);
       const lo = Math.min(...prices), hi = Math.max(...prices);
-      return { rows: sorted, gap: lo > 0 ? (hi - lo) / lo : 0 };
+      return {
+        rows: sorted,
+        gap: lo > 0 ? (hi - lo) / lo : 0,
+        /* Worth saying out loud when it applies, because a reader who knows the
+           sticker prices will otherwise think the number is wrong. */
+        normalised: sorted.some((r) => r.sharesPerToken !== 1),
+      };
     })
     .sort((a, b) => b.gap - a.gap);
   const anyWide = dupes.some((d) => d.gap > 0.1);
@@ -157,6 +174,20 @@ export default async function Page() {
         volume: c.volume24h, kind: "coin" as const,
       })),
   ];
+  /* Tokens whose balance has grown.
+     A ScaledUiAmount multiplier above 1 means a holder's balance is larger than
+     the number of tokens they bought. Two different things produce that and they
+     should not share a table: a split is a big clean ratio and changes nothing
+     about what you own, while a small accrual is the issuer passing something
+     through, and for the dividend-paying names here it tracks their yield almost
+     exactly. The cut at 1.25 separates them without having to guess which is
+     which from the name. */
+  const accrual = stocks
+    .filter((r) => r.action && r.action.multiplier > 1.00005 && r.action.multiplier < 1.25)
+    .sort((a, b) => b.action!.multiplier - a.action!.multiplier);
+  const splits = stocks.filter((r) => r.action && r.action.multiplier >= 1.25);
+  const topAccrual = accrual[0];
+
   const churnLead = [...churnPoints].sort(
     (a, b) => b.volume / b.liquidity - a.volume / a.liquidity,
   )[0];
@@ -200,6 +231,12 @@ export default async function Page() {
         </p>
       </header>
 
+      {/* Above the search box, not below it. The shortcuts exist so somebody
+          landing here can see the page has parts and jump to one; sitting them
+          under the box and the findings meant you only met them after scrolling
+          past the two things they were meant to help you skip. */}
+      <SectionNav />
+
       <div id="check">
         <Lookup />
       </div>
@@ -236,7 +273,6 @@ export default async function Page() {
         </p>
       </section>
 
-      <SectionNav />
 
       <div className="stats">
         <Stat k="Coins quoted in stocks" v={T.quotedCoins.toLocaleString()} />
@@ -252,6 +288,7 @@ export default async function Page() {
           trend from one measurement. */}
       <section id="history">
         <h2>How this is moving</h2>
+        <Reveal label="Show the charts" count={`${history.length} daily records`}>
         {hasHistory ? (
           <>
             <p className="lookfor">
@@ -278,6 +315,7 @@ export default async function Page() {
             through one measurement is a lie.
           </p>
         )}
+        </Reveal>
       </section>
 
       {/* Where the money is. Every other table here ranks coins quoted against a
@@ -297,7 +335,8 @@ export default async function Page() {
           listing, not a market, and most of this category is listings. The names here are the
           ones with real money standing behind them.
         </p>
-        <p className="scroll-hint">Swipe the table sideways for holders and volume</p>
+              <Reveal label="Show the ranked table" count={`${byLiq.length} with a market`} open>
+<p className="scroll-hint">Swipe the table sideways for holders and volume</p>
         <div className="scroll">
           <table>
             <thead>
@@ -331,6 +370,7 @@ export default async function Page() {
             </tbody>
           </table>
         </div>
+      </Reveal>
       </section>
 
       {/* Volume against depth. This sits straight after the ranked table on
@@ -358,7 +398,9 @@ export default async function Page() {
           below, the higher above it a dot sits, the more of its trading is the same money
           going in circles instead of new buyers turning up.
         </p>
+      <Reveal label="Show the chart" count={`${churnPoints.length.toLocaleString()} pools`}>
         <Churn points={churnPoints} />
+      </Reveal>
       </section>
 
       <section id="issuers">
@@ -378,6 +420,7 @@ export default async function Page() {
           pools behind it, and how much of that catalogue has no pool at all. Used as a quote
           asset is the strictest test: it means other people built markets on top.
         </p>
+      <Reveal label="Compare the five issuers" count={`${T.universe.toLocaleString()} listings`}>
         <div className="issuers">
           {(["xStocks", "Backpack", "Ondo", "PreStocks", "Tessera"] as const).map((iss) => {
             // Sunrise is the brand the market knows; Backpack Securities is the
@@ -414,6 +457,7 @@ export default async function Page() {
             );
           })}
         </div>
+      </Reveal>
       </section>
 
       <section id="board">
@@ -433,6 +477,7 @@ export default async function Page() {
           are the ones near the bottom and the tickers that do not appear here at all.
           <b> 24/7</b> marks a stock with an always-on Pyth reference price.
         </p>
+        <Reveal label="Show the board" count={`${T.denominators} used as money`}>
         <div className="board">
           {board.map((r) => (
             <div className="row" key={r.mint}>
@@ -461,7 +506,89 @@ export default async function Page() {
             </div>
           ))}
         </div>
+        </Reveal>
       </section>
+
+      {/* Balances that grow. Placed after the board rather than before it,
+          because it is a detail about tokens you have already met. */}
+      {accrual.length > 2 && (
+        <section id="accrual">
+          <h2>The tokens that quietly grew</h2>
+          {topAccrual && (
+            <p className="finding">
+              <span className="nowtag">right now</span>
+              <b>{clean(topAccrual.name) || topAccrual.symbol}</b> has accrued{" "}
+              <b>{((topAccrual.action!.multiplier - 1) * 100).toFixed(2)}%</b> onto every balance,
+              so anyone holding since before it was set now shows that much more.{" "}
+              <b>{accrual.length} tokenized stocks carry an accrual like this.</b>
+            </p>
+          )}
+          <p className="lookfor">
+            <span className="k">What to look for</span>
+            Whether the thing you hold has been growing on its own. These tokens carry a
+            multiplier on the mint itself, so a balance of ten is shown as ten times that
+            number, and it moves without anything arriving in your wallet. The multiplier is
+            read from the token, so it is checkable rather than claimed, and the date is when
+            it last moved. What the issuer is passing through is not stated anywhere we can
+            read: the ordering tracks dividend yield closely enough to suggest distributions,
+            but two names here pay no dividend at all, so treat that as a pattern rather than
+            an explanation. The number itself is exact.
+          </p>
+        <Reveal label="Show what accrued" count={`${accrual.length} tokens`}>
+          <p className="scroll-hint">Swipe the table sideways for the date and what it is worth</p>
+          <div className="scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Company</th><th>Token</th><th>Issuer</th>
+                  <th>Balance multiplier</th><th>Growth</th>
+                  <th>Per $1,000 held</th><th>Last changed</th>
+                </tr>
+              </thead>
+              <tbody>
+                {accrual.slice(0, 15).map((r, i) => {
+                  const m = r.action!.multiplier;
+                  return (
+                    <tr key={r.mint}>
+                      <td>
+                        <span className="rank">{i + 1}</span>{" "}
+                        {r.icon && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img className="tick-icon" src={r.icon} alt="" width={18} height={18} loading="lazy" />
+                        )}
+                        <span className="coin">{clean(r.name) || r.symbol}</span>
+                      </td>
+                      <td><span className="denom">{r.symbol}</span></td>
+                      <td className="dex"><Brand name={r.issuer} size={16} label /></td>
+                      <td className="num">{m.toFixed(6)}</td>
+                      <td className="num"><b>{((m - 1) * 100).toFixed(2)}%</b></td>
+                      <td className="num">${((m - 1) * 1000).toFixed(2)}</td>
+                      <td className="num">
+                        {r.action!.effectiveAt
+                          ? new Date(r.action!.effectiveAt).toUTCString().slice(5, 16)
+                          : "\u2014"}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <p className="standout-note">
+            Read from each mint&rsquo;s Token-2022 scaled-amount extension. The date is when the
+            multiplier last changed, not when it started.
+            {splits.length > 0 && (
+              <>
+                {" "}
+                {splits.length} other token{splits.length === 1 ? " carries" : "s carry"} a far
+                larger multiplier, which is a split rather than a distribution and is handled in{" "}
+                <a href="#prices">the price comparison</a> instead.
+              </>
+            )}
+          </p>
+        </Reveal>
+        </section>
+      )}
 
       <section id="coins">
         <h2>Priced in equity</h2>
@@ -490,6 +617,7 @@ export default async function Page() {
           this is, nothing more: the issuer check on this site covers the tokenized stocks, not
           the coins quoted against them.
         </p>
+      <Reveal label="Show the coins" count={`${T.quotedCoins.toLocaleString()} coins`}>
         <p className="scroll-hint">Swipe the table sideways for liquidity and volume</p>
         <div className="scroll">
           <table>
@@ -550,6 +678,7 @@ export default async function Page() {
             </tbody>
           </table>
         </div>
+      </Reveal>
       </section>
 
       {dupes.length > 0 && (
@@ -570,9 +699,14 @@ export default async function Page() {
             <span className="k">What to look for</span>
             A green badge means the issuers agree, because a public share price exists and
             anyone selling it wrong gets arbitraged. A red badge means nobody can tell you
-            which price is right, including the issuers. Some of a wide gap may be
-            denomination rather than overcharging, and that is the problem: you cannot check.
+            which price is right, including the issuers. Every price here is per underlying
+            share rather than per token, because one token is not always one share: where a
+            row says split-adjusted, a corporate action has been divided out and the sticker
+            price sits beneath it. That is read from the mint where the issuer encodes it,
+            and taken from the issuer where they do not. What is left is a real
+            disagreement rather than a unit mismatch.
           </p>
+        <Reveal label="Compare the issuers" count={`${dupes.length} companies`}>
           <div className="dupes">
             {dupes.map((d) => {
               const pct = (d.gap * 100).toFixed(d.gap < 0.1 ? 1 : 0);
@@ -583,6 +717,9 @@ export default async function Page() {
                     <span className={`dupe-gap ${d.gap > 0.1 ? "wide" : "tight"}`}>
                       {pct}% apart
                     </span>
+                    {d.normalised && (
+                      <span className="dupe-norm">per share, split-adjusted</span>
+                    )}
                   </div>
                   <div className="dupe-row h">
                     <span>Token</span>
@@ -597,8 +734,18 @@ export default async function Page() {
                     <div className="dupe-row" key={r.mint}>
                       <b>{r.symbol}</b>
                       <span><Brand name={r.issuer} size={16} label /></span>
+                      {/* Per share. The sticker price is kept beside it when the
+                          two differ, so somebody looking at the token on a DEX can
+                          see why this page shows a different number. */}
                       <span className="r">
-                        <b>${r.price < 1 ? r.price.toFixed(4) : r.price.toFixed(2)}</b>
+                        <b>
+                          ${(() => { const v = perShare(r); return v < 1 ? v.toFixed(4) : v.toFixed(2); })()}
+                        </b>
+                        {r.sharesPerToken !== 1 && (
+                          <span className="per-note">
+                            {r.sharesPerToken}x · ${r.price.toFixed(2)}/token
+                          </span>
+                        )}
                       </span>
                       <span className="r hide-s">{usd(r.liquidity)}</span>
                       <span className="r hide-s">{usd(r.volume24h)}</span>
@@ -635,7 +782,7 @@ export default async function Page() {
           </div>
           {anyWide && (
             <div className="callout">
-              <b>Part of a wide gap may be denomination rather than disagreement.</b>{" "}
+              <b>A gap that survives this is a disagreement, not a denomination.</b>{" "}
               One issuer&apos;s token can represent a different slice of a share than
               another&apos;s. What decides whether you can check is the Feed column, not
               whether the company is public: Pyth carries 24/7 prices for OpenAI and
@@ -645,6 +792,7 @@ export default async function Page() {
               is somebody being wrong rather than nobody being able to tell.
             </div>
           )}
+        </Reveal>
         </section>
       )}
 
@@ -661,6 +809,7 @@ export default async function Page() {
           <b>Equity.Index</b> feed. If you hold a coin quoted in a stock without the always-on
           one, its overnight and weekend moves are being priced against nothing.
         </p>
+        <Reveal label="Show which have a feed" count={`${T.with247Feed} with 24/7`}>
         <div className="chips">
           {board.map((r) => (
             <span className={`chip${r.has247Feed ? " on" : ""}`} key={r.mint + "c"}>
@@ -674,6 +823,7 @@ export default async function Page() {
           around the clock with nothing to price them against once the closing bell goes.
           {ms && !ms.isOpen && ` The US market is shut right now. It reopens ${when(ms.nextOpen)}.`}
         </div>
+        </Reveal>
       </section>
 
       <p className="footnote">
