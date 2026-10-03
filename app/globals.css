@@ -965,3 +965,16 @@ header + .snav{ border-top:none; margin-top:0 }
   .lookup-chip{ font-size:14px; padding:8px 15px }
   .lookup-eg-or{ font-size:14px; flex-basis:100% }
 }
+
+/* The follow-up questions under the headline. Same serif so it reads as one
+   thought, two thirds the size so it reads as the second half of it. */
+.h1-more{
+  font-family:"Bodoni Moda",Georgia,serif; font-weight:600; font-style:italic;
+  font-size:clamp(19px,3.2vw,27px); line-height:1.2; color:var(--muted);
+  margin:10px 0 0; max-width:30ch; text-wrap:balance;
+}
+@media (max-width:640px){ .h1-more{ font-size:21px; margin-top:9px } }
+/* The standfirst is a different voice from the questions above it and needs the
+   space to say so; at the default margin the two ran together as one block. */
+.h1-more + .standfirst{ margin-top:20px }
+@media (max-width:640px){ .h1-more + .standfirst{ margin-top:16px } }

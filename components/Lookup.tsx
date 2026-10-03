@@ -140,12 +140,17 @@ export function Lookup() {
           an empty box with a placeholder is the reason: it asks you to already
           know what you are looking for. These are one tap each, and they are
           chosen to teach rather than to demo. NVDA is the case everybody
-          expects, SPCX is the one where three issuers disagree, and STONKPILE
-          is a token with twenty impostors wearing its name. */}
+          expects and gets right, SPCX is the one where three issuers price the
+          same company differently, and OPENAI is a company with no public share
+          price at all, so nothing can check what either issuer is charging.
+
+          Deliberately not our own name: searching it returns the impostors that
+          minted themselves against it, and a suggestion chip is an endorsement
+          of the thing it leads to. */}
       {q.length === 0 && (
         <div className="lookup-eg">
           <span className="lookup-eg-k">Try</span>
-          {["NVDA", "SPCX", "STONKPILE"].map((t) => (
+          {["NVDA", "SPCX", "OPENAI"].map((t) => (
             <button
               key={t}
               type="button"

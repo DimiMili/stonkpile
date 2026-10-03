@@ -9,6 +9,15 @@ what was built inside a hackathon window.
 
 Dates are Athens time.
 
+## 3 October 2026
+
+- New hero. Three questions instead of one: is it real, is anyone actually
+  buying it, does it have perps. The standfirst now says what the site holds
+  (1,800 listings, 112 with liquidity, five issuers, and the memecoins paired
+  with them) rather than describing the search box twice.
+- Eyebrow changed from "Tokenized equities as quote assets", which was the
+  positioning from when this was only about coins priced in stocks.
+
 ## 2 October 2026
 
 - Sections collapse. Nine of them now open on a tap, keeping their headline,
@@ -18,7 +27,7 @@ Dates are Athens time.
   Built on <details>, so it works before React hydrates, the keyboard and
   screen-reader behaviour is the browser's own, and find-in-page opens a closed
   section to reach a match.
-- Starter chips under the search box: NVDA, SPCX, STONKPILE. An empty box asks
+- Starter chips under the search box: NVDA, SPCX, OPENAI. An empty box asks
   you to already know what you are looking for, which is what "I have no idea
   how to use it" meant.
 - Sunrise's own mark, from sunrise.xyz. The card said Sunrise and showed the

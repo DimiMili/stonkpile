@@ -204,9 +204,7 @@ export default async function Page() {
     <div className="wrap">
       <header>
         <p className="eyebrow">
-          <span>Tokenized equities as quote assets</span>
-          <span className="dot">/</span>
-          <span>Solana</span>
+          <span>Every tokenized stock on Solana</span>
           <span className="dot">/</span>
           {ms && (
             <span className={ms.isOpen ? "open" : "closed"}>
@@ -221,13 +219,23 @@ export default async function Page() {
             am supposed to do", and the fix is to answer that before anything
             else: ask their question, then hand them the box that answers it.
             The thesis moved down to the board, where the reading starts. */}
+        {/* Three questions, set at two sizes rather than three lines of the same
+            one. The first is the one a stranger arrives with and it keeps the
+            full headline weight; the other two are the follow-ups somebody has
+            once they believe the first, so they sit underneath at a size that
+            reads as a continuation rather than as a second headline. Set flat at
+            38px all three would be four lines of Bodoni on a phone, which is the
+            wall of text we spent yesterday removing. */}
         <h1>
           Is this tokenized stock <em>real</em>?
         </h1>
+        <p className="h1-more">
+          Is anyone actually buying it? Does it have perps?
+        </p>
         <p className="standfirst">
-          Paste a ticker or a contract address. You get the issuer, whether it has a
-          market at all, and what is priced against it. Everything below is the whole
-          market, if you want to read rather than look something up.
+          Check by ticker or CA. View all tokenized stocks and the memecoins paired
+          with them: 1,800 listings, 112 with liquidity, five issuers, gaps between
+          them.
         </p>
       </header>
 
