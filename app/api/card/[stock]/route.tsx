@@ -66,6 +66,16 @@ export async function GET(
 ) {
   const { stock: raw } = await params;
   const key = raw.replace(/\.(png|jpg|jpeg)$/i, "").toUpperCase();
+
+  /* Rendering an image is the most expensive thing this app does: it loads the
+     fonts, runs Satori and rasterises, and every distinct path is a new CDN
+     cache entry. Rendering one for a ticker that does not exist means anyone
+     can mint unlimited expensive, uncacheable-in-practice work by walking
+     /api/card/AAAA.png, /api/card/AAAB.png and so on. So an unknown key costs a
+     string comparison and nothing else. */
+  if (key.length > 24 || !/^[A-Z0-9.\-]+$/.test(key)) {
+    return new Response("Not found", { status: 404 });
+  }
   const [idx, fontSet] = await Promise.all([buildIndex(), fonts()]);
 
   const date = new Date(idx.generatedAt).toUTCString().slice(5, 16).toUpperCase();
@@ -144,7 +154,13 @@ export async function GET(
     (x) => x.symbol.toUpperCase() === key || x.underlying === key,
   );
 
-  if (!s || s.quotedCount === 0) {
+  /* A ticker nobody has ever issued gets no picture. The helpful "nothing is
+     priced in X, try these" card was a nice touch for a typo and a free image
+     renderer for anybody enumerating strings. Tickers that exist but have no
+     coins quoted against them still get their card. */
+  if (!s) return new Response("Not found", { status: 404, headers: IMG_HEADERS });
+
+  if (s.quotedCount === 0) {
     const avail = idx.stocks.filter((x) => x.quotedCount > 0).slice(0, 10)
       .map((x) => x.symbol).join("  ");
     return shell(

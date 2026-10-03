@@ -1,3 +1,7 @@
+"use client";
+
+import { useRef } from "react";
+
 /**
  * A section that opens.
  *
@@ -19,6 +23,13 @@
  * section to reach a match inside it. The height animates where the browser
  * supports interpolate-size and ::details-content, and simply snaps where it
  * does not, which is the correct way round.
+ *
+ * The control sits under the preview, which is where a "show more" belongs and
+ * where this one was asked for. The one cost of that is closing: the pill on an
+ * open section is at the foot of it, so a tap there would leave the reader
+ * stranded at whatever the page collapsed to. Hence the one piece of script in
+ * here, which puts the section's own headline back on screen on the way out.
+ * Everything else is still the browser's.
  */
 export function Reveal({
   label,
@@ -36,14 +47,41 @@ export function Reveal({
   peek?: number;
   children: React.ReactNode;
 }) {
+  const ref = useRef<HTMLDetailsElement>(null);
+
+  // On close only, and only when the section has scrolled off the top: bring
+  // its heading back under the sticky nav. Opening is left alone, because the
+  // content grows downward from where the reader already is.
+  const onToggle = () => {
+    const el = ref.current;
+    if (!el || el.open) return;
+    const anchor = (el.closest("section") as HTMLElement | null) ?? el;
+    const put = () => {
+      const top = anchor.getBoundingClientRect().top;
+      if (top < 72) window.scrollTo({ top: window.scrollY + top - 88 });
+    };
+    // Twice: once now, and once after the height animation, because the page
+    // keeps shrinking under the scroll position for the length of the
+    // transition and the browser clamps to the new maximum as it goes. One
+    // call lands 128px short, measured.
+    put();
+    setTimeout(put, 400);
+  };
+
   return (
     <details
+      ref={ref}
+      onToggle={onToggle}
       className="reveal"
       open={open}
       style={peek ? ({ ["--peek" as string]: `${peek}px` }) : undefined}
     >
       <summary className="reveal-sum">
+        {/* Both labels ship; CSS shows one. The control now sits under the
+            preview, so an open section would otherwise carry a button reading
+            "Show the chart" directly beneath the chart it already showed. */}
         <span className="reveal-open">{label}</span>
+        <span className="reveal-close">Hide</span>
         {count && <span className="reveal-count">{count}</span>}
         <span className="reveal-mark" aria-hidden="true" />
       </summary>

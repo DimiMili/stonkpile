@@ -521,14 +521,15 @@ export default async function Page() {
           because it is a detail about tokens you have already met. */}
       {accrual.length > 2 && (
         <section id="accrual">
-          <h2>The tokens that quietly grew</h2>
+          <h2>What you earned by doing nothing</h2>
           {topAccrual && (
             <p className="finding">
               <span className="nowtag">right now</span>
-              <b>{clean(topAccrual.name) || topAccrual.symbol}</b> has accrued{" "}
+              <b>{clean(topAccrual.name) || topAccrual.symbol}</b> is earning{" "}
               <b>{((topAccrual.action!.multiplier - 1) * 100).toFixed(2)}%</b> onto every balance,
-              so anyone holding since before it was set now shows that much more.{" "}
-              <b>{accrual.length} tokenized stocks carry an accrual like this.</b>
+              which is <b>${((topAccrual.action!.multiplier - 1) * 1000).toFixed(2)}</b> on every
+              $1,000 you hold.{" "}
+              <b>{accrual.length} tokenized stocks are doing this.</b>
             </p>
           )}
           <p className="lookfor">
@@ -542,15 +543,14 @@ export default async function Page() {
             but two names here pay no dividend at all, so treat that as a pattern rather than
             an explanation. The number itself is exact.
           </p>
-        <Reveal label="Show what accrued" count={`${accrual.length} tokens`}>
+        <Reveal label="Show what is earning" count={`${accrual.length} tokens`}>
           <p className="scroll-hint">Swipe the table sideways for the date and what it is worth</p>
           <div className="scroll">
             <table>
               <thead>
                 <tr>
                   <th>Company</th><th>Token</th><th>Issuer</th>
-                  <th>Balance multiplier</th><th>Growth</th>
-                  <th>Per $1,000 held</th><th>Last changed</th>
+                  <th>Balance multiplier</th><th>Earning</th><th>Last changed</th>
                 </tr>
               </thead>
               <tbody>
@@ -570,7 +570,6 @@ export default async function Page() {
                       <td className="dex"><Brand name={r.issuer} size={16} label /></td>
                       <td className="num">{m.toFixed(6)}</td>
                       <td className="num"><b>{((m - 1) * 100).toFixed(2)}%</b></td>
-                      <td className="num">${((m - 1) * 1000).toFixed(2)}</td>
                       <td className="num">
                         {r.action!.effectiveAt
                           ? new Date(r.action!.effectiveAt).toUTCString().slice(5, 16)

@@ -11,6 +11,22 @@ Dates are Athens time.
 
 ## 3 October 2026
 
+- The open control moved under the preview. You see the strip of chart or the
+  first rows, the fade, and then the way in, which is the order every feed
+  settled on and the order it was asked for. Done with column-reverse on the
+  <details> itself, since the flex items there are the summary and
+  ::details-content. An open section says Hide, and closing from the foot of a
+  long table puts that section's headline back on screen instead of dropping
+  you wherever the page collapsed to.
+- Security pass. /api/card/[stock] rendered a full image for any string, so
+  anyone walking /api/card/AAAA.png upward could mint unlimited expensive
+  renders and unlimited CDN cache entries; unknown tickers now cost a string
+  comparison. /api/snapshot rebuilds the whole index on every request and is
+  read by exactly one caller a day, so it now takes a shared secret.
+- "What you earned by doing nothing", renamed from "Quiet growth". The column
+  is Earning rather than Growth, and the per-$1,000 figure moved into the
+  sentence instead of being a column.
+
 - Collapsed sections now peek instead of hiding. Each closed section shows the
   top of its chart or its first rows and fades out, so you can see there is
   something worth opening rather than reading a column of headlines. Applied to

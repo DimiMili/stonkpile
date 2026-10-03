@@ -30,7 +30,30 @@ export const dynamic = "force-dynamic";
  * and the point of a snapshot is the shape of the category over time, not a
  * frozen copy of every row.
  */
-export async function GET() {
+export async function GET(req: Request) {
+  /* The only uncached route here, and the most expensive one.
+     Every request rebuilds the whole index: parsing a seven-megabyte Jupiter
+     payload, walking eighteen hundred mints and assembling the maps. The
+     upstream calls themselves are safe, because jget pins next.revalidate on
+     each fetch and that survives force-dynamic, so a flood here does not get us
+     rate-limited by Jupiter or DexScreener. What it does spend is serverless
+     CPU and function concurrency, both of which are billed and both of which
+     run out.
+
+     It is read once a day by one GitHub Action and by nothing else, so a shared
+     secret costs that job one header and closes it. With no secret configured
+     the route stays open, so an unconfigured deploy keeps working rather than
+     silently losing its history. */
+  const expected = process.env.SNAPSHOT_TOKEN;
+  if (expected) {
+    const url = new URL(req.url);
+    const given =
+      req.headers.get("x-snapshot-token") ?? url.searchParams.get("token") ?? "";
+    if (given !== expected) {
+      return new Response("Not found", { status: 404 });
+    }
+  }
+
   const idx = await buildIndex();
   const T = idx.totals;
 

@@ -930,13 +930,25 @@ header + .snav{ border-top:none; margin-top:0 }
   .reveal::details-content{ transition:none }
 }
 
-/* No flex reordering here.
-   Putting the body above the summary with order looked right on paper and laid
-   out wrong in the browser: a <summary> is not an ordinary flex item, and the
-   two ended up painted on top of each other. The control stays where the markup
-   puts it, with the preview underneath, which is the conventional accordion
-   anyway and costs nothing. */
-.reveal{ margin-top:16px }
+/* The control sits under the preview, not over it.
+   Reading order on the page is: headline, the one finding, a strip of the real
+   thing, then the way in. A pill above the preview asks you to decide before
+   you have seen anything; a pill under it is the answer to what you just saw
+   being cut off, which is why every feed in the world puts "show more" at the
+   bottom of the fade.
+
+   This is column-reverse on the <details> itself, which works because the two
+   flex items are the <summary> and ::details-content, the browser's own boxes.
+   An earlier attempt put order on .reveal-body and failed: that div is a child
+   of ::details-content, not a sibling of the summary, so reordering it moved
+   nothing and the two boxes painted over each other. Measured after the change,
+   on the churn section at 1280px: the box runs 2958-3321, the preview takes the
+   first 300px of it and the pill sits at 3272-3321, flush with the bottom. All
+   nine sections check out at 1280 and 440. */
+.reveal{
+  margin-top:16px;
+  display:flex; flex-direction:column-reverse; gap:14px;
+}
 .reveal-sum{
   display:flex; align-items:center; gap:12px; cursor:pointer; list-style:none;
   padding:13px 16px; border:1px solid var(--line); border-radius:999px;
@@ -945,6 +957,16 @@ header + .snav{ border-top:none; margin-top:0 }
   color:var(--ink); transition:background .12s ease, border-color .12s ease, transform .12s ease;
 }
 .reveal-sum::-webkit-details-marker{ display:none }
+.reveal:not([open]) .reveal-close{ display:none }
+.reveal[open] .reveal-open{ display:none }
+
+/* Not sticky.
+   The obvious follow-on from moving the control to the bottom was to pin it to
+   the window while an open section is on screen. Measured, position:sticky with
+   a bottom offset clamps to the TOP of its containing block whenever that block
+   starts below the fold, so scrolling down into an open section met a "Hide"
+   pill painted over the first rows of the table. The control stays in the flow;
+   closing from the foot of a long section is handled in Reveal instead. */
 .reveal-sum:hover{ background:var(--bg); border-color:var(--ink); transform:translateY(-1px) }
 .reveal-sum:focus-visible{ outline:2px solid var(--brass); outline-offset:3px }
 
@@ -964,7 +986,7 @@ header + .snav{ border-top:none; margin-top:0 }
 .reveal[open] .reveal-sum .reveal-count{ color:#e8b64a }
 .reveal[open] .reveal-mark{ border-color:var(--bg) }
 
-.reveal-body{ padding-top:18px; padding-bottom:4px }
+.reveal-body{ padding-bottom:4px }
 
 /* Open it to reach a find-in-page match inside it. */
 .reveal-body:has(:target), .reveal-body :target{ scroll-margin-top:72px }
@@ -972,7 +994,7 @@ header + .snav{ border-top:none; margin-top:0 }
 @media (max-width:640px){
   .reveal-sum{ font-size:14px; padding:14px 18px; width:100% }
   .reveal-count{ margin-left:auto }
-  .reveal-body{ padding-top:14px }
+  .reveal{ gap:12px }
 }
 @media (prefers-reduced-motion:reduce){
   .reveal::details-content{ transition:none }
