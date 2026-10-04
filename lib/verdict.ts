@@ -1,4 +1,5 @@
 import type { Index, LookupEntry, StockRow } from "@/lib/pipeline";
+import { isRated, type RatingResult } from "@/lib/rating";
 
 /**
  * One mint, one verdict.
@@ -48,6 +49,11 @@ export interface MintVerdict {
   perpVenues?: string[];
   /** For an impostor: the real token whose symbol it has taken. */
   impersonates?: string;
+  /** Present on an issued stock. Either a score with its band and the four
+   *  pillars it came from, or a statement that it is not rated and why. The
+   *  verdict above is still the only field to gate a buy on: this says how
+   *  good the market around it is, not whether the token is what it claims. */
+  rating?: RatingResult;
   /** Machine-readable, stable, additive. Branch on these, not on `summary`. */
   reasons: string[];
   /** The same finding in a sentence, for logs and for humans. */
@@ -130,6 +136,7 @@ export function verdictFor(mint: string, d: Index): MintVerdict {
   else if (row?.pythFeedId) reasons.push("reference_price_market_hours");
   else reasons.push("no_reference_price");
   if (row?.perpVenues.length) reasons.push("hedgeable");
+  if (row && isRated(row.rating)) reasons.push(`rated_${row.rating.band}`);
 
   return {
     mint: clean,
@@ -145,6 +152,10 @@ export function verdictFor(mint: string, d: Index): MintVerdict {
     // names only here: the agent-facing shape stays stable even though the
     // page now carries a URL per venue as well.
     perpVenues: (row?.perpVenues ?? []).map((p) => p.name),
+    rating: row?.rating ?? {
+      unrated: "no_market",
+      reason: "Listed by its issuer with no market behind it. Nothing to measure until somebody funds a pool.",
+    },
     reasons,
     summary:
       `${hit.symbol}${hit.name ? ` (${hit.name})` : ""}, a tokenized stock issued by ` +

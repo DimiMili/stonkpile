@@ -81,8 +81,78 @@ export async function GET(
     "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=604800",
   };
 
+  /* Two of these are not charts at all.
+     A section that shares well is not always a picture: the accrual and rating
+     sections are a headline and a handful of numbers, and a scatter plot of
+     them would be decoration. Same frame, same palette, same footer, so a
+     timeline full of these still reads as one site. */
+  if (key === "earning" || key === "rating") {
+    const rows: { k: string; v: string }[] = [];
+    let big = "", caption = "", title = "";
+
+    if (key === "earning") {
+      const acc = idx.stocks
+        .filter((r) => r.action && r.action.multiplier > 1.00005 && r.action.multiplier < 1.25)
+        .sort((a, b) => b.action!.multiplier - a.action!.multiplier);
+      const pct = (m: number) => `${((m - 1) * 100).toFixed(2)}%`;
+      title = "What you earned by doing nothing";
+      big = acc[0] ? pct(acc[0].action!.multiplier) : "0%";
+      caption = `${acc.length} doing it   ·   read from the mint, not claimed`;
+      // The leader is already the headline number; repeating it as the first
+      // column wastes a quarter of the row.
+      for (const r of acc.slice(1, 5)) {
+        rows.push({ k: r.symbol, v: pct(r.action!.multiplier) });
+      }
+    } else {
+      const b = idx.totals.ratings;
+      title = "Every tokenized stock, rated out of 100";
+      big = `${b.prime} Prime`;
+      caption = `${b.unrated.toLocaleString()} unrated   ·   nothing was ever funded behind them`;
+      rows.push(
+        { k: "SOUND", v: String(b.sound) },
+        { k: "THIN", v: String(b.thin) },
+        { k: "FRAGILE", v: String(b.fragile) },
+      );
+    }
+
+    return new ImageResponse(
+      (
+        <div style={col({
+          width: W, height: H, background: INK, color: PAPER,
+          padding: "42px 56px", justifyContent: "space-between",
+        })}>
+          <div style={{ ...mono(19, 400, BRASS), letterSpacing: 2.4 }}>
+            STONKPILE · SOLANA · {date}
+          </div>
+
+          <div style={col({ gap: 26 })}>
+            <div style={{ ...serif(52, 800, PAPER), lineHeight: 1 }}>{title}</div>
+            <div style={{ ...serif(132, 800, BRASS), lineHeight: 1 }}>{big}</div>
+            <div style={row({ gap: 56 })}>
+              {rows.map((r) => (
+                <div key={r.k} style={col({ gap: 6 })}>
+                  <div style={{ ...mono(20, 400, FAINT), letterSpacing: 1.8 }}>{r.k.toUpperCase()}</div>
+                  <div style={serif(40, 600, PAPER)}>{r.v}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={row({
+            justifyContent: "space-between",
+            borderTop: `1px solid ${LINE}`, paddingTop: 18,
+          })}>
+            <div style={mono(20, 400, MUTED)}>{caption}</div>
+            <div style={mono(20, 600, FAINT)}>stonkpile.xyz</div>
+          </div>
+        </div>
+      ),
+      { width: W, height: H, fonts: fontSet, headers: IMG_HEADERS },
+    );
+  }
+
   if (key !== "churn") {
-    return new Response("Unknown chart. Try /api/chart/churn.png", { status: 404 });
+    return new Response("Unknown chart. Try churn.png, earning.png or rating.png", { status: 404 });
   }
 
   const pts = [

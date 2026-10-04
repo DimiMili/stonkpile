@@ -9,8 +9,46 @@ what was built inside a hackathon window.
 
 Dates are Athens time.
 
+## 4 October 2026
+
+- Corrected the accrual copy. We said nobody had stated what the issuers were
+  passing through. xStocks have: dividends on the underlying are reinvested into
+  more of the same token, and splits run through the same rebasing mechanism,
+  stated in their own documentation and again in Kraken's risk disclosure. 17 of
+  the 19 pay a dividend and the order follows the yield; the two that do not,
+  DFDV and GameStop, last moved in late 2025 and have not moved since.
+- What you can redeem it for, per issuer, beside every rating and as a column on
+  the rated board: shares, cash, or not stated, each with the source it was read
+  from and the date. Backpack redeems 1:1 for the real security; xStocks and
+  Ondo redeem for cash, Ondo never for shares; PreStocks redeems for USDC
+  against an SPV; Tessera has stated nothing we could read. Deliberately not
+  part of the score, because every point in the score traces to a number this
+  site measured and this traces to somebody's terms page.
+- A slide answering the obvious question about the Solana Foundation's
+  tokens.xyz, which does canonical asset pages, variant tiers and a generic risk
+  grade. Their catalogue covers what exists; this rates how good it is, across
+  the listings a curated catalogue never shows.
+
 ## 3 October 2026
 
+- Three sections got their own URL: /rating, /earning and /volume, each with its
+  own title, description and share card. An anchor link could never carry one,
+  because the part after the hash never reaches the server, so every #section
+  link posted anywhere showed the home page's card. The derivations behind them
+  now live in lib/sections.ts, imported by both the home page and the section
+  page, so the numbers cannot drift apart.
+- The rating. Every tokenized stock with a market now carries one number out of
+  100 for the market around it: how much you can get out of (40), whether it is
+  being used (25), how many ways out exist (20), and whether it can be priced
+  (15). 16 rate Prime, 27 Sound, 51 Thin, 19 Fragile, and the other 1,689
+  listings are unrated because nothing was ever funded behind them. Two gates
+  come before any score: a token that fails the issuer check is not rated at
+  all, and neither is one with no market. One hard cap: nothing is Prime while
+  another issuer prices the same company more than 10% away per underlying
+  share. The recipe is RATING.md, the code is lib/rating.ts, every weight is a
+  constant at the top of it, and every point traces to a figure already on the
+  site. /api/verify now returns the rating with its four parts, and each
+  token's own page shows its working.
 - The open control moved under the preview. You see the strip of chart or the
   first rows, the fade, and then the way in, which is the order every feed
   settled on and the order it was asked for. Done with column-reverse on the

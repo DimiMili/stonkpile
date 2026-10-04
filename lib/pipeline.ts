@@ -6,6 +6,7 @@
  */
 
 import { corporateActions, type CorporateAction } from "@/lib/chain";
+import { peerGaps, rate, isRated, type RatingResult, type Band } from "@/lib/rating";
 
 export const REVALIDATE = 300; // seconds
 
@@ -101,6 +102,9 @@ export interface StockRow {
   topCoin?: string;
   quotedCoins: QuotedCoin[];
   venues: string[];
+  /** The opinion. Present on every stock that clears the liquidity floor;
+   *  everything below it is unrated and says why. See lib/rating.ts. */
+  rating?: RatingResult;
 }
 
 export interface LookupEntry {
@@ -161,6 +165,9 @@ export interface Index {
     with247Feed: number;
     /** Tickers with a perp market somewhere, so they can be hedged not just held. */
     withPerp: number;
+    /** How many rated stocks sit in each band, plus every verified listing with
+     *  no market at all, which is the bulk of the universe. */
+    ratings: Record<Band | "unrated", number>;
   };
   stocks: StockRow[];
   coins: QuotedCoin[];
@@ -548,6 +555,12 @@ export async function buildIndex(): Promise<Index> {
     rows.push(...done);
   }
 
+  /* The rating goes on last, because one of its inputs is the other issuers:
+     a company listed by two of them can have its price corroborated, and that
+     comparison only exists once every row is built. */
+  const gaps = peerGaps(rows);
+  for (const r of rows) r.rating = rate(r, gaps[r.mint] ?? null, true);
+
   rows.sort((a, b) => b.quotedVolume24h - a.quotedVolume24h);
   const coins = rows.flatMap((r) => r.quotedCoins).sort((a, b) => b.volume24h - a.volume24h);
 
@@ -654,6 +667,17 @@ export async function buildIndex(): Promise<Index> {
       // A tokenized stock you can also hedge is a different instrument to one
       // you can only hold, so this is worth counting on its own.
       withPerp: rows.filter((r) => r.perpVenues.length > 0).length,
+      /* The shape of the rated universe in one object, so the page can show the
+         distribution without walking every row and the nightly snapshot can
+         record how it moves. unrated is every verified listing with no market,
+         which is most of them. */
+      ratings: rows.reduce(
+        (acc, r) => {
+          if (isRated(r.rating)) acc[r.rating.band]++;
+          return acc;
+        },
+        { prime: 0, sound: 0, thin: 0, fragile: 0, unrated: uni.length - rows.length } as Record<Band | "unrated", number>,
+      ),
     },
     stocks: rows,
     coins,

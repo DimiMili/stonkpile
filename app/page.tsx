@@ -11,6 +11,10 @@ import { Reveal } from "@/components/Reveal";
 import { Churn, type ChurnPoint } from "@/components/Churn";
 import { history, hasHistory, series, since } from "@/lib/history";
 import { Live } from "@/components/Live";
+import { RatingChip } from "@/components/Rating";
+import { REDEMPTION } from "@/lib/redemption";
+import { BANDS } from "@/lib/rating";
+import { churnPoints as churn, accrualRows, splitRows, ratedRows } from "@/lib/sections";
 import { PLATFORM_TOKENS } from "@/lib/checks";
 
 export const revalidate = 300;
@@ -156,36 +160,23 @@ export default async function Page() {
   const totalLiq = Object.values(depth).reduce((a, d) => a + d.liquidity, 0);
   const byLiq = [...stocks].sort((a, b) => b.liquidity - a.liquidity);
 
+  /* The rated board. Only stocks with a market are rated at all, so this is the
+     same 113 rows the depth table ranks, ordered by the opinion instead of by
+     the money. Sorting by score rather than by size is the whole point: the
+     biggest pool is not automatically the best market, and this is the one
+     ranking on the site where that can show. */
+  const rated = ratedRows(stocks);
+  const bandCount = T.ratings;
+  const bestRated = rated[0];
+  const worstRated = rated[rated.length - 1];
+
   /* Every pool with both numbers, stocks and the coins quoted against them in
      one cloud. A $1k floor keeps dust out: a pool with eleven dollars in it can
      post an absurd ratio on a single trade, and that is noise rather than a
      finding. */
-  const churnPoints: ChurnPoint[] = [
-    ...stocks
-      .filter((s) => s.liquidity >= 1000 && s.volume24h >= 1000)
-      .map((s) => ({
-        label: s.symbol, sub: s.issuer, liquidity: s.liquidity,
-        volume: s.volume24h, kind: "stock" as const,
-      })),
-    ...coins
-      .filter((c) => c.liquidityUsd >= 1000 && c.volume24h >= 1000)
-      .map((c) => ({
-        label: c.coin, sub: `in ${c.stock}`, liquidity: c.liquidityUsd,
-        volume: c.volume24h, kind: "coin" as const,
-      })),
-  ];
-  /* Tokens whose balance has grown.
-     A ScaledUiAmount multiplier above 1 means a holder's balance is larger than
-     the number of tokens they bought. Two different things produce that and they
-     should not share a table: a split is a big clean ratio and changes nothing
-     about what you own, while a small accrual is the issuer passing something
-     through, and for the dividend-paying names here it tracks their yield almost
-     exactly. The cut at 1.25 separates them without having to guess which is
-     which from the name. */
-  const accrual = stocks
-    .filter((r) => r.action && r.action.multiplier > 1.00005 && r.action.multiplier < 1.25)
-    .sort((a, b) => b.action!.multiplier - a.action!.multiplier);
-  const splits = stocks.filter((r) => r.action && r.action.multiplier >= 1.25);
+  const churnPoints: ChurnPoint[] = churn(idx);
+  const accrual = accrualRows(stocks);
+  const splits = splitRows(stocks);
   const topAccrual = accrual[0];
 
   const churnLead = [...churnPoints].sort(
@@ -288,6 +279,92 @@ export default async function Page() {
         <Stat k="Tokenized stocks listed" v={T.universe.toLocaleString()} sub={`/ ${T.tradeable} with a market`} />
         <Stat k="Holders of tokenized stock" v={holders(T.universeHolders)} />
       </div>
+
+      {/* The opinion. Everything above and below this reports; this is the one
+          section that forms a judgment, so it carries its arithmetic in public
+          and names what it refuses to judge. */}
+      {rated.length > 0 && bestRated && worstRated && (
+        <section id="rating">
+          <h2>What the rating says</h2>
+          <p className="finding">
+            <span className="nowtag">right now</span>
+            <b>{bandCount.prime}</b> of the {rated.length} markets here rate Prime and{" "}
+            <b>{bandCount.fragile}</b> rate Fragile. The best is{" "}
+            <b>{clean(bestRated.row.name) || bestRated.row.symbol}</b> on{" "}
+            <b>{bestRated.rating.score}</b>. The other{" "}
+            <b>{bandCount.unrated.toLocaleString()}</b> listings are unrated, because nothing
+            was ever funded behind them.
+          </p>
+          <p className="lookfor">
+            <span className="k">What to look for</span>
+            One number out of 100 for the market around a token: <b>how much you can get out
+            of</b> it (40 points, log scaled, so the gap between $20k and $200k counts for more
+            than the gap between $5M and $10M), <b>whether it is being used</b> (25, scored as
+            a band, since a pool doing nothing and a pool doing eighty times its own size in a
+            day are both failures), <b>how many ways out exist</b> (20, pools and venues and
+            whether a perp lets you hedge), and <b>whether it can be priced</b> (15, a 24/7
+            reference feed and whether a second issuer on the same company agrees per share).
+            A token that fails the issuer check is not rated at all, and neither is one with
+            no market: both are statements about the token, not scores on a ladder it does not
+            belong to. It says nothing about the company, and nothing about whether the price
+            is fair.
+          </p>
+          <Reveal label="Show the rated board" count={`${rated.length} rated`} peek={260}>
+            <p className="scroll-hint">Swipe the table sideways for the four parts of the score</p>
+            <div className="scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Company</th><th>Token</th><th>Issuer</th><th>Rating</th><th>Redeem for</th>
+                    <th>Get out of</th><th>Used</th><th>Ways out</th><th>Priceable</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rated.slice(0, 20).map(({ row, rating }, i) => (
+                    <tr key={row.mint}>
+                      <td>
+                        <span className="rank">{i + 1}</span>{" "}
+                        {row.icon && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img className="tick-icon" src={row.icon} alt="" width={18} height={18} loading="lazy" />
+                        )}
+                        <span className="coin">{clean(row.name) || row.symbol}</span>
+                      </td>
+                      <td><a className="denom" href={`/s/${row.symbol}`}>{row.symbol}</a></td>
+                      <td className="dex"><Brand name={row.issuer} size={16} label /></td>
+                      <td><RatingChip rating={rating} /></td>
+                      <td className="dex">
+                        <span className={`rd-tag rd-${REDEMPTION[row.issuer].claim}`}>
+                          {REDEMPTION[row.issuer].claim === "unstated"
+                            ? "not stated"
+                            : REDEMPTION[row.issuer].claim}
+                        </span>
+                      </td>
+                      {rating.pillars.map((p) => (
+                        <td className="num" key={p.key}>
+                          {p.points}
+                          <small className="per-note">/{p.max}</small>
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="sec-note">
+              The bands: {BANDS.map((b, i) => (
+                <span key={b.band}>
+                  {i > 0 ? ", " : ""}
+                  <b>{b.label}</b> {b.min > 0 ? `${b.min}+` : "under 42"}, {b.blurb}
+                </span>
+              ))}. Lowest rated right now is{" "}
+              {clean(worstRated.row.name) || worstRated.row.symbol} on {worstRated.rating.score}.
+              Every token&rsquo;s own page carries its working and the parts it loses points
+              for.
+            </p>
+          </Reveal>
+        </section>
+      )}
 
       {/* The only part of this site that knows what yesterday looked like. A daily
           job appends one record to the repo, so the history is public and sits in
@@ -538,10 +615,12 @@ export default async function Page() {
             multiplier on the mint itself, so a balance of ten is shown as ten times that
             number, and it moves without anything arriving in your wallet. The multiplier is
             read from the token, so it is checkable rather than claimed, and the date is when
-            it last moved. What the issuer is passing through is not stated anywhere we can
-            read: the ordering tracks dividend yield closely enough to suggest distributions,
-            but two names here pay no dividend at all, so treat that as a pattern rather than
-            an explanation. The number itself is exact.
+            it last moved. xStocks state what is being passed through: dividends on the
+            underlying are reinvested into more of the same token, so the balance grows
+            instead of cash arriving, and splits run through the same mechanism. Seventeen of
+            these pay a dividend and the order here follows the yield. The two that do not,
+            DFDV and GameStop, last moved in late 2025 and have not moved since, which looks
+            like a one-off rather than a distribution. The numbers themselves are exact.
           </p>
         <Reveal label="Show what is earning" count={`${accrual.length} tokens`}>
           <p className="scroll-hint">Swipe the table sideways for the date and what it is worth</p>

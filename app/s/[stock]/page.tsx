@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { buildIndex } from "@/lib/pipeline";
 import { siteUrl } from "@/lib/site";
 import { Checks } from "@/components/Checks";
+import { RatingCard } from "@/components/Rating";
 import { Share } from "@/components/Share";
 import { Copy } from "@/components/Copy";
 import { stockChecks, coinChecks, worst, PLATFORM_TOKENS } from "@/lib/checks";
@@ -154,6 +155,11 @@ export default async function SharePage(
         checks={stockChecks(stock)}
         note="Five arithmetic checks on the tokenized stock itself, before you look at anything quoted against it."
       />
+
+      {/* The checks answer whether the token is real. This answers how good the
+          market around it is, which is a different question and the one somebody
+          about to buy actually has. */}
+      <RatingCard symbol={stock.symbol} rating={stock.rating} issuer={stock.issuer} />
 
       <section>
         <h2>What is priced in it</h2>

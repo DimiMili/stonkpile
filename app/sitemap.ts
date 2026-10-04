@@ -16,6 +16,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const pages: MetadataRoute.Sitemap = [
     { url: siteUrl, lastModified: now, changeFrequency: "hourly", priority: 1 },
     { url: `${siteUrl}/cards`, lastModified: now, changeFrequency: "daily", priority: 0.4 },
+    // The three sections that get shared on their own, each with its own card.
+    // An anchor link cannot carry one, because the part after the hash never
+    // reaches the server.
+    { url: `${siteUrl}/rating`, lastModified: now, changeFrequency: "hourly", priority: 0.9 },
+    { url: `${siteUrl}/earning`, lastModified: now, changeFrequency: "hourly", priority: 0.8 },
+    { url: `${siteUrl}/volume`, lastModified: now, changeFrequency: "hourly", priority: 0.8 },
   ];
 
   for (const s of idx.stocks) {
