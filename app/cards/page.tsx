@@ -1,4 +1,5 @@
 import { buildIndex } from "@/lib/pipeline";
+import { ratedRows } from "@/lib/sections";
 
 export const revalidate = 300;
 
@@ -9,7 +10,12 @@ const usd = (v: number) =>
 
 export default async function Cards() {
   const idx = await buildIndex();
-  const rows = idx.stocks.filter((s) => s.quotedCount > 0).slice(0, 24);
+  /* Best first, because this page exists to be opened after a deploy so the
+     CDN has rendered every card before anybody shares one, and the ones that
+     get shared are the ones at the top of the board. It used to list whatever
+     carried memecoins, which is a different set and no longer what the card
+     is about. */
+  const rows = ratedRows(idx.stocks).slice(0, 24).map((r) => r.row);
 
   return (
     <div className="wrap">
@@ -48,9 +54,10 @@ export default async function Cards() {
       <section>
         <h2>Per stock</h2>
         <p className="sec-note">
-          {rows.length} stocks currently carry coins. Any symbol or underlying ticker works:
-          <code> /api/card/LMT.png</code>, <code> /api/card/GMEx.png</code>,
-          <code> /api/card/GME.png</code>.
+          The rating, as a picture. Any symbol or underlying ticker works:
+          <code> /api/card/NVDAx.png</code>, <code> /api/card/NVDA.png</code>. Add
+          <code> ?view=coins</code> for the old card, the one showing what is priced in a
+          stock rather than how the market around it rates.
         </p>
         <div className="cardgrid">
           {rows.map((s) => (

@@ -6,6 +6,7 @@ import { RatingCard } from "@/components/Rating";
 import { Share } from "@/components/Share";
 import { Copy } from "@/components/Copy";
 import { stockChecks, coinChecks, worst, PLATFORM_TOKENS } from "@/lib/checks";
+import { bandLabel, bandLetter, isRated } from "@/lib/rating";
 
 export const revalidate = 300;
 
@@ -30,20 +31,29 @@ export async function generateMetadata(
   const { stock: raw } = await params;
   const { idx, stock } = await find(raw);
 
-  if (!stock || stock.quotedCount === 0) {
+  if (!stock) {
     return {
       title: "Stonkpile",
-      description: "Every memecoin on Solana quoted against a tokenized stock.",
+      description: "Every tokenized stock on Solana, rated.",
     };
   }
 
   const name = clean(stock.name);
-  const title = `${stock.quotedCount} coins are priced in ${name}`;
-  const description =
-    `${stock.quotedCount} memecoins on Solana are quoted against ${stock.symbol}, ` +
-    `doing ${usd(stock.quotedVolume24h)} in 24h volume. ` +
-    (stock.topCoin ? `Biggest is ${stock.topCoin}. ` : "") +
-    (stock.has247Feed ? "" : `${stock.underlying} has no 24/7 reference price.`);
+  const r = stock.rating;
+
+  /* The title and the card are the only parts of this page most people see, so
+     they say the rating rather than the memecoin count. That count was the
+     subject when this site was Ticker Wars; it is now one section of several,
+     and leading with it meant every link we posted sold the old product. */
+  const title = isRated(r)
+    ? `${name} rates ${bandLetter(r.band)} ${bandLabel(r.band)}, ${r.score} out of 100`
+    : `${name} on Solana is not rated`;
+  const description = isRated(r)
+    ? `${stock.symbol} from ${stock.issuer} scores ${r.score}: ` +
+      r.pillars.map((p) => `${p.label.toLowerCase()} ${p.score.toFixed(1)}`).join(", ") +
+      `. ${usd(stock.liquidity)} of liquidity behind it.` +
+      (stock.has247Feed ? "" : ` No 24/7 reference price.`)
+    : (r && "reason" in r ? r.reason : "Nothing here to measure yet.");
   /* Version the image URL by the index timestamp. Social crawlers cache per
      image URL, so a fixed path means a single failed fetch is cached forever
      and a stale card is served after the data moves. This changes every
@@ -54,7 +64,7 @@ export async function generateMetadata(
   // 24 chances a day to burn a card; daily means one, and it can be warmed by
   // hand after a deploy. The suffix is the manual break for when we need a URL
   // their crawler has never seen at all.
-  const v = `${Math.floor(Date.parse(idx.generatedAt) / 86_400_000)}r4`;
+  const v = `${Math.floor(Date.parse(idx.generatedAt) / 86_400_000)}r5`;
   const image = `${siteUrl}/api/card/${stock.symbol}.png?v=${v}`;
 
   return {
@@ -75,19 +85,68 @@ export default async function SharePage(
   const { stock: raw } = await params;
   const { idx, stock } = await find(raw);
 
-  if (!stock || stock.quotedCount === 0) {
-    const avail = idx.stocks.filter((s) => s.quotedCount > 0).slice(0, 16);
+  /* Only a ticker nobody has issued is a dead end now.
+     This used to turn away any stock with no memecoins quoted against it,
+     which quietly hid nine rated tokens: INTC rates Sound on $88k of
+     liquidity and its page said "Nothing is priced in INTC" with a list of
+     other tickers. The memecoin count is a section of this page, not the
+     condition for having one. */
+  if (!stock) {
+    const k = raw.toUpperCase();
+    /* A listing with no pool is not in idx.stocks, but it is in the lookup,
+       and it is a real token somebody is holding. Telling them nothing on
+       Solana is called that would be a false statement about an asset that
+       exists; what is true is that nobody has funded a market behind it. */
+    const listed = idx.lookup.find(
+      (e) => e.kind === "stock" && (e.symbol.toUpperCase() === k || e.underlying === k),
+    );
+    const avail = idx.stocks.filter((s) => isRated(s.rating)).slice(0, 16);
     return (
       <div className="wrap">
         <header>
-          <p className="eyebrow"><a className="brand" href="/">Stonkpile</a></p>
-          <h1>Nothing is priced in <em>{raw.toUpperCase()}</em>.</h1>
-          <p className="standfirst">
-            {idx.totals.denominators} tokenized stocks are currently being used as quote
-            assets on Solana. That is not one of them.
+          <p className="eyebrow">
+            <a className="brand" href="/">Stonkpile</a>
+            {listed?.issuer && (
+              <>
+                <span className="dot">/</span>
+                <span>{listed.issuer}</span>
+              </>
+            )}
           </p>
+          {listed ? (
+            <>
+              <h1><em>{listed.name || listed.symbol}</em> has no market behind it.</h1>
+              <p className="standfirst">
+                {listed.symbol} is issued and verified, and nobody has funded a pool
+                against it, so there is nothing here to rate.{" "}
+                {idx.totals.universe.toLocaleString()} tokenized stocks are listed on
+                Solana and {idx.totals.tradeable} of them have a market.
+              </p>
+              <p className="ca-line">
+                <span className="k">{listed.symbol} contract</span>
+                <Copy value={listed.mint} label="copy address" />
+                <a
+                  href={`https://solscan.io/token/${listed.mint}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  check it on Solscan
+                </a>
+              </p>
+            </>
+          ) : (
+            <>
+              <h1>Nothing on Solana is called <em>{k}</em>.</h1>
+              <p className="standfirst">
+                {idx.totals.universe.toLocaleString()} tokenized stocks are listed on
+                Solana and {idx.totals.tradeable} of them have a market. That ticker is
+                not one of them, under that name.
+              </p>
+            </>
+          )}
         </header>
         <section>
+          <h2>These are rated</h2>
           <div className="chips">
             {avail.map((s) => (
               <a className="chip" key={s.mint} href={`/s/${s.symbol}`}>{s.symbol}</a>
@@ -98,6 +157,14 @@ export default async function SharePage(
       </div>
     );
   }
+
+  /* What gets typed into the post. The card carries the breakdown, so this is
+     the verdict and the number, not a second copy of the table. */
+  const shareText = isRated(stock.rating)
+    ? `${clean(stock.name)} rates ${bandLetter(stock.rating.band)} ` +
+      `${bandLabel(stock.rating.band).toLowerCase()} on Stonkpile, ` +
+      `${stock.rating.score} out of 100 for the market around it.`
+    : `${clean(stock.name)} is listed on Solana and has no market behind it worth rating.`;
 
   const top = stock.quotedCoins.slice(0, 10);
   // One coin can hold several pools against the same stock, so dedupe by mint
@@ -126,14 +193,37 @@ export default async function SharePage(
             </>
           )}
         </p>
-        <h1>
-          {stock.quotedCount} coins are priced in <em>{clean(stock.name)}</em>.
-        </h1>
-        <p className="standfirst">
-          {stock.symbol} is doing {usd(stock.quotedVolume24h)} of 24-hour volume as a quote
-          asset, across {usd(stock.quotedLiquidity)} of liquidity. These are the coins using
-          it as their unit of account.
-        </p>
+        {isRated(stock.rating) ? (
+          <>
+            <h1>
+              <em>{clean(stock.name)}</em> rates {bandLetter(stock.rating.band)}{" "}
+              {bandLabel(stock.rating.band)}.
+            </h1>
+            <p className="standfirst">
+              {stock.rating.score} out of 100 for the market around {stock.symbol}:{" "}
+              {usd(stock.liquidity)} you can sell into,{" "}
+              {usd(stock.volume24h)} of volume in a day, {stock.venues.length} pool
+              {stock.venues.length === 1 ? "" : "s"}
+              {stock.perpVenues.length > 0
+                ? ` and a perp on ${stock.perpVenues.map((p) => p.name).join(" and ")}`
+                : " and no perp"}
+              . It rates the market, never the company.
+            </p>
+          </>
+        ) : (
+          <>
+            <h1>
+              <em>{clean(stock.name)}</em> is not rated.
+            </h1>
+            <p className="standfirst">
+              {"reason" in (stock.rating ?? {})
+                ? (stock.rating as { reason: string }).reason
+                : "Nothing here to measure yet."}{" "}
+              {stock.quotedCount > 0 &&
+                `${stock.quotedCount} coins are priced in it even so.`}
+            </p>
+          </>
+        )}
         {/* The address, on the page that says why this is the right one. The
             explorer link is the point: copying from us means trusting us, and
             one tap to check beats asking anybody to take our word. */}
@@ -150,17 +240,29 @@ export default async function SharePage(
         </p>
       </header>
 
+      {/* The headline states the verdict, so the working comes next and the
+          share block sits under it. The five checks used to run first, which
+          put a detour between the claim and the evidence for it, and left the
+          share block about four screens down a phone. A share button nobody
+          scrolls to is the same as no share button. */}
+      <RatingCard symbol={stock.symbol} rating={stock.rating} issuer={stock.issuer} />
+
+      <Share
+        url={`${siteUrl}/s/${stock.symbol}`}
+        card={`/api/card/${stock.symbol}.png`}
+        text={shareText}
+      />
+
+      {/* The rating says how good the market is. This says whether the token is
+          the real one, which is a different question and the gate the rating
+          applies before it scores anything. */}
       <Checks
         title={`Is ${stock.symbol} what it says it is?`}
         checks={stockChecks(stock)}
         note="Five arithmetic checks on the tokenized stock itself, before you look at anything quoted against it."
       />
 
-      {/* The checks answer whether the token is real. This answers how good the
-          market around it is, which is a different question and the one somebody
-          about to buy actually has. */}
-      <RatingCard symbol={stock.symbol} rating={stock.rating} issuer={stock.issuer} />
-
+      {stock.quotedCount > 0 && (
       <section>
         <h2>What is priced in it</h2>
         <p className="sec-note">
@@ -234,6 +336,7 @@ export default async function SharePage(
           </table>
         </div>
       </section>
+      )}
 
       {top[0] && (
         <Checks
@@ -242,12 +345,6 @@ export default async function SharePage(
           note={`${top[0].coin} is the largest coin quoted against ${stock.symbol} right now. Same checks, applied to it.`}
         />
       )}
-
-      <Share
-        url={`${siteUrl}/s/${stock.symbol}`}
-        card={`/api/card/${stock.symbol}.png`}
-        text={`${stock.quotedCount} coin${stock.quotedCount === 1 ? "" : "s"} on Solana are priced in ${stock.name.replace(/\s*(xStock|-\s*Backpack Securities|\(Ondo Tokenized\))\s*/gi, "").trim()} stock, not SOL.`}
-      />
 
       <footer>
         <span>

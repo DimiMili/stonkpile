@@ -1,6 +1,8 @@
 import { ImageResponse } from "next/og";
 import { buildIndex, type StockRow, type Index } from "@/lib/pipeline";
 import { fonts } from "@/lib/fonts";
+import { bandLabel, bandLetter, isRated, type Band, type Rating } from "@/lib/rating";
+import { CLAIM_LABEL, REDEMPTION } from "@/lib/redemption";
 
 export const runtime = "nodejs";
 export const revalidate = 300;
@@ -9,6 +11,12 @@ const W = 1200, H = 630;
 const INK = "#0f1218", PAPER = "#e9ebe6", MUTED = "#8b94a0",
       FAINT = "#5b6470", BRASS = "#d9ae51", LINE = "#242a34",
       TRACK = "#20262f", DOWN = "#ef6d62", UP = "#41cb8b";
+
+/* The same four colours the chip uses on the site. A card that grades a token
+   green while the page grades it amber is a card nobody trusts twice. */
+const BAND_COLOR: Record<Band, string> = {
+  prime: UP, sound: BRASS, thin: MUTED, fragile: DOWN,
+};
 
 const usd = (v: number) =>
   v >= 1e6 ? `$${(v / 1e6).toFixed(v / 1e6 >= 10 ? 1 : 2)}M`
@@ -39,6 +47,58 @@ function Bar({ pct }: { pct: number }) {
   );
 }
 
+/* One part of the rating: what it measures, how full it is, and the two numbers
+   that let somebody add the total up themselves. The bar is wide on purpose.
+   A timeline renders this at about a third of its size, where the four bar
+   lengths are the only thing still legible, so they carry the verdict and the
+   digits confirm it for anyone who opens the image. */
+function PillarRow({
+  label, score, weight, color,
+}: { label: string; score: number; weight: number; color: string }) {
+  return (
+    <div style={row({ height: 62 })}>
+      <div style={{ ...mono(25, 400, PAPER), width: 268 }}>{label}</div>
+      <div style={row({ flex: 1, height: 18, background: TRACK, marginRight: 22 })}>
+        <div style={{
+          display: "flex", width: `${Math.max(score * 10, 1.5)}%`,
+          height: 18, background: color,
+        }} />
+      </div>
+      <div style={{ ...mono(27, 600, PAPER), width: 62, justifyContent: "flex-end" }}>
+        {score.toFixed(1)}
+      </div>
+      <div style={{ ...mono(21, 400, FAINT), width: 72, justifyContent: "flex-end" }}>
+        &times;{weight}
+      </div>
+    </div>
+  );
+}
+
+/* The verdict, as big as it can be drawn. The letter is the thing that survives
+   a thumbnail; the score is for the person who stops. */
+function Verdict({ rating }: { rating: Rating }) {
+  const c = BAND_COLOR[rating.band];
+  return (
+    <div style={row({ alignItems: "flex-start" })}>
+      <div style={col({
+        width: 168, height: 168, border: `4px solid ${c}`,
+        alignItems: "center", justifyContent: "center", marginRight: 30,
+      })}>
+        <div style={{ ...serif(132, 800, c), lineHeight: 1 }}>{bandLetter(rating.band)}</div>
+      </div>
+      <div style={col({ paddingTop: 10 })}>
+        <div style={row({ alignItems: "flex-end" })}>
+          <div style={{ ...serif(96, 800, PAPER), lineHeight: 1 }}>{rating.score}</div>
+          <div style={{ ...mono(28, 400, MUTED), marginLeft: 12, paddingBottom: 10 }}>/ 100</div>
+        </div>
+        <div style={{ ...mono(30, 600, c), letterSpacing: 2, marginTop: 14 }}>
+          {bandLabel(rating.band).toUpperCase()}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Chrome({ date, open }: { date: string; open?: boolean }) {
   return (
     <div style={row({ justifyContent: "space-between", letterSpacing: 2.4 })}>
@@ -61,7 +121,7 @@ function Footer({ bits, warn }: { bits: string[]; warn?: string }) {
 }
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ stock: string }> },
 ) {
   const { stock: raw } = await params;
@@ -160,6 +220,85 @@ export async function GET(
      coins quoted against them still get their card. */
   if (!s) return new Response("Not found", { status: 404, headers: IMG_HEADERS });
 
+  const issuerLabel = s.issuer === "Backpack" ? "Sunrise" : s.issuer;
+  const redeem = REDEMPTION[s.issuer];
+
+  /* ---------------- the rating ----------------
+     The default card, because the rating is what this site is for. The old
+     card led with how many memecoins were priced in the stock, which was the
+     subject back when this was Ticker Wars and is now a footnote on the page.
+     It is still reachable at ?view=coins, since that story is worth its own
+     picture, just not the one attached to every link. */
+  if (new URL(req.url).searchParams.get("view") !== "coins") {
+    const r = s.rating;
+    /* The stock's own pool, not the memecoin pools quoted against it.
+       quotedLiquidity is a different number measuring a different thing, and
+       printing it under a liquidity score computed from s.liquidity put a
+       figure on the card that contradicted the bar above it. */
+    const foot = [
+      `${usd(s.liquidity)} liquidity`,
+      `${usd(s.volume24h)} 24h volume`,
+      redeem ? CLAIM_LABEL[redeem.claim].toLowerCase() : null,
+    ].filter(Boolean) as string[];
+
+    return shell(
+      <div style={col({ flex: 1, justifyContent: "space-between", paddingTop: 20, paddingBottom: 10 })}>
+        <div style={row({ justifyContent: "space-between", alignItems: "flex-start" })}>
+          {isRated(r) ? <Verdict rating={r} /> : (
+            <div style={row({ alignItems: "flex-start" })}>
+              <div style={col({
+                width: 168, height: 168, border: `4px solid ${LINE}`,
+                alignItems: "center", justifyContent: "center", marginRight: 30,
+              })}>
+                <div style={{ ...serif(132, 800, FAINT), lineHeight: 1 }}>&ndash;</div>
+              </div>
+              <div style={col({ paddingTop: 34 })}>
+                <div style={{ ...mono(30, 600, MUTED), letterSpacing: 2 }}>NOT RATED</div>
+                <div style={{ ...mono(22, 400, FAINT), marginTop: 16, maxWidth: 440 }}>
+                  {r && "reason" in r ? r.reason : "Nothing here to measure yet."}
+                </div>
+              </div>
+            </div>
+          )}
+          <div style={col({ alignItems: "flex-end", maxWidth: 440, paddingTop: 4 })}>
+            <div style={{ ...serif(72, 800, PAPER), lineHeight: 1 }}>{cut(s.symbol, 11)}</div>
+            <div style={mono(23, 400, MUTED)}>
+              <span style={{ marginTop: 12 }}>{cut(clean(s.name), 28)}</span>
+            </div>
+            <div style={mono(23, 400, FAINT)}>
+              <span style={{ marginTop: 6 }}>{issuerLabel}</span>
+            </div>
+          </div>
+        </div>
+
+        {isRated(r) ? (
+          <div style={col({ marginTop: 10 })}>
+            {r.pillars.map((p) => (
+              <PillarRow
+                key={p.key} label={p.label} score={p.score}
+                weight={p.weight} color={BAND_COLOR[r.band]}
+              />
+            ))}
+          </div>
+        ) : (
+          <div style={col({ marginTop: 10 })}>
+            <div style={{ ...serif(44, 800, PAPER), lineHeight: 1.2, maxWidth: 1000 }}>
+              Listed, and nobody has funded a market behind it.
+            </div>
+            <div style={mono(22, 400, MUTED)}>
+              <span style={{ marginTop: 18 }}>
+                {idx.totals.universe.toLocaleString()} tokenized stocks are listed on Solana
+                and {idx.totals.tradeable} of them have one.
+              </span>
+            </div>
+          </div>
+        )}
+      </div>,
+      <Footer bits={foot} warn={s.has247Feed ? undefined : "NO 24/7 ORACLE"} />,
+    );
+  }
+
+  /* ---------------- what is priced in it ---------------- */
   if (s.quotedCount === 0) {
     const avail = idx.stocks.filter((x) => x.quotedCount > 0).slice(0, 10)
       .map((x) => x.symbol).join("  ");

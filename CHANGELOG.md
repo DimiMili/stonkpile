@@ -11,6 +11,29 @@ Dates are Athens time.
 
 ## 5 October 2026
 
+- The rating is the share card. Every link to a ticker page now unfurls as the
+  letter, the score out of 100 and the four parts as bars, in the band's own
+  colour, with the liquidity, the day's volume and what the issuer redeems for
+  along the bottom. The old card led with how many memecoins were priced in the
+  stock, which was the subject when this was Ticker Wars and is a section of the
+  page now; it is still there at ?view=coins. The headline, the page title and
+  the share text say the rating too, so a posted link sells what the site is
+  rather than what it used to be.
+- The card's liquidity figure was the memecoin pools quoted against the stock
+  while the bar above it scored the stock's own pool. NVIDIA read $898k under a
+  liquidity score computed from $5.06M. Both are the stock's own pool now.
+- Nine rated stocks had no page. Intel rates B Sound on real liquidity and its
+  page said "Nothing is priced in INTC" with a list of other tickers, because
+  the page opened on the memecoin count rather than on whether the stock exists.
+  Also Robinhood, Tessera's SpaceX, Broadcom, AMD, silver, TSMC, the Ondo S&P
+  and UnitedHealth. They are in the sitemap now as well.
+- A listing nobody has funded says so instead of being denied. The page used to
+  answer "nothing on Solana is called NFLXx", which is false: it is issued and
+  verified, and what is missing is a market behind it.
+- The share block moved up, directly under the rating. It was at the foot of the
+  page, past a ten-row table and a second block of checks, which is about four
+  screens down a phone from the point where somebody has already decided.
+
 - The hero stopped lying. It carried typed figures from the day it was written,
   "1,800 listings, 112 with liquidity", while the stats row ten centimetres
   below read the live index. Both numbers now come from the same place, and the

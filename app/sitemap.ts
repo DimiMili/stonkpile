@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { buildIndex } from "@/lib/pipeline";
 import { siteUrl } from "@/lib/site";
+import { isRated } from "@/lib/rating";
 
 export const revalidate = 3600;
 
@@ -24,14 +25,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/volume`, lastModified: now, changeFrequency: "hourly", priority: 0.8 },
   ];
 
+  /* Every rated stock, not only the ones carrying memecoins. The quotedCount
+     filter was hiding nine pages from search entirely, including Intel and
+     Robinhood, which are rated and are what somebody searching "tokenized
+     Intel" is looking for. */
   for (const s of idx.stocks) {
-    if (s.quotedCount === 0) continue;
+    if (!isRated(s.rating)) continue;
     pages.push({
       url: `${siteUrl}/s/${s.symbol}`,
       lastModified: now,
       changeFrequency: "hourly",
-      // the denominators carrying real volume matter more than the tail
-      priority: s.quotedVolume24h > 1_000_000 ? 0.8 : 0.6,
+      // a better-rated market is the more useful page to land on
+      priority: s.rating.score >= 80 ? 0.8 : s.rating.score >= 62 ? 0.7 : 0.6,
     });
   }
 

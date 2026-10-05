@@ -1068,6 +1068,13 @@ header + .snav{ border-top:none; margin-top:0 }
   height:10px; border-radius:999px; background:var(--bar-track); overflow:hidden;
 }
 .rt-fill{ display:block; height:100%; background:var(--bar); border-radius:999px }
+/* The bars take the band's colour, so the page, the chip and the share card
+   all grade a token the same colour. Brass everywhere meant a Prime read amber
+   on the page and green on the card it links to. */
+.rt-pillars.rt-b-prime .rt-fill{ background:var(--up) }
+.rt-pillars.rt-b-sound .rt-fill{ background:var(--brass) }
+.rt-pillars.rt-b-thin .rt-fill{ background:var(--muted) }
+.rt-pillars.rt-b-fragile .rt-fill{ background:var(--down) }
 .rt-pts{ font-size:15px; font-variant-numeric:tabular-nums; text-align:right }
 .rt-pts small{ color:var(--faint); font-size:.78em }
 .rt-detail{

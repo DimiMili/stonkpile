@@ -86,7 +86,7 @@ export function RatingCard({
         Each part is scored out of 10 and carries its own weight, so ten across all four is
         exactly 100. Nothing here is about the company, or about whether the price is fair.
       </p>
-      <ul className="rt-pillars">
+      <ul className={`rt-pillars rt-b-${rating.band}`}>
         {rating.pillars.map((p) => (
           <li key={p.key}>
             <span className="rt-label">{p.label}</span>
