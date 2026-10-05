@@ -236,10 +236,6 @@ export default async function Page() {
           past the two things they were meant to help you skip. */}
       <SectionNav />
 
-      <div id="check">
-        <Lookup />
-      </div>
-
       <section className="standout" aria-label="Findings">
         <p className="standout-k">Findings</p>
         <ul>
@@ -273,11 +269,55 @@ export default async function Page() {
       </section>
 
 
+      {/* The only part of this site that knows what yesterday looked like. A daily
+          job appends one record to the repo, so the history is public and sits in
+          git next to the code that produced it. Until a few days have accumulated
+          there is nothing honest to draw, and this says so rather than inventing a
+          trend from one measurement. */}
+      <section id="history">
+        <h2>Tokenized stocks on Solana, over time</h2>
+        <Reveal label="Show the charts" count={`${history.length} daily records`} peek={280}>
+        {hasHistory ? (
+          <>
+            <p className="lookfor">
+              <span className="k">What to look for</span>
+              Direction, not the level. A category growing its liquidity is being funded;
+              one adding tokens while liquidity sits still is adding listings. One record a
+              day, taken after the US close.
+            </p>
+            <div className="sparks">
+              <Spark label="Liquidity, whole category" points={series((s) => s.liquidity)} format="usd" />
+              <Spark label="Tokenized stocks listed" points={series((s) => s.universe)} format="count" />
+              <Spark label="With a pool above $5k" points={series((s) => s.withPool)} format="plain" />
+              <Spark label="Coins priced in stocks" points={series((s) => s.quotedCoins)} format="count" />
+              <Spark label="Holders" points={series((s) => s.holders)} format="people" />
+              <Spark label="Used as a quote asset" points={series((s) => s.denominators)} format="plain" />
+            </div>
+          </>
+        ) : (
+          <p className="collecting">
+            Collecting. One record a day lands in the repo after the US close, and these
+            charts fill in as it goes.{" "}
+            {since ? <>First reading {since}.</> : <>The first lands tonight.</>}{" "}
+            Nothing is drawn until there is something real to draw, because a trend line
+            through one measurement is a lie.
+          </p>
+        )}
+        </Reveal>
+      </section>
+
+      {/* Where the money is. Every other table here ranks coins quoted against a
+          stock; this one ranks the stocks themselves by the money standing
+          behind them, which is the question a newcomer actually arrives with. */}
       <div className="stats">
         <Stat k="Coins quoted in stocks" v={T.quotedCoins.toLocaleString()} />
         <Stat k="Their 24h volume" v={usd(T.quotedVolume24h)} />
         <Stat k="Tokenized stocks listed" v={T.universe.toLocaleString()} sub={`/ ${T.tradeable} with a market`} />
         <Stat k="Holders of tokenized stock" v={holders(T.universeHolders)} />
+      </div>
+
+      <div id="check">
+        <Lookup />
       </div>
 
       {/* The opinion. Everything above and below this reports; this is the one
@@ -296,9 +336,16 @@ export default async function Page() {
             was ever funded behind them.
           </p>
           <p className="lookfor">
-            <span className="k">What to look for</span>
-            Four parts, each out of 10, each carrying its own weight. Ten across all four is
-            100. It rates the market around a token, never the company behind it.
+            <span className="k">What is rated, and how</span>
+            Every tokenized stock on Solana with a market gets one: all five issuers, no
+            applications, nobody paying to be in it. The memecoins priced against these stocks
+            are not rated here, because a coin is a different question and belongs on a
+            different scale.
+            <br />
+            <br />
+            What it judges is the market around a token, never the company behind it and never
+            whether the price is fair. Four parts, each scored out of 10, each carrying its own
+            weight. Ten across all four is exactly 100, so you can add it up yourself.
           </p>
           <ul className="rt-key">
             <li>
@@ -377,46 +424,6 @@ export default async function Page() {
         </section>
       )}
 
-      {/* The only part of this site that knows what yesterday looked like. A daily
-          job appends one record to the repo, so the history is public and sits in
-          git next to the code that produced it. Until a few days have accumulated
-          there is nothing honest to draw, and this says so rather than inventing a
-          trend from one measurement. */}
-      <section id="history">
-        <h2>Tokenized stocks on Solana, over time</h2>
-        <Reveal label="Show the charts" count={`${history.length} daily records`} peek={280}>
-        {hasHistory ? (
-          <>
-            <p className="lookfor">
-              <span className="k">What to look for</span>
-              Direction, not the level. A category growing its liquidity is being funded;
-              one adding tokens while liquidity sits still is adding listings. One record a
-              day, taken after the US close.
-            </p>
-            <div className="sparks">
-              <Spark label="Liquidity, whole category" points={series((s) => s.liquidity)} format="usd" />
-              <Spark label="Tokenized stocks listed" points={series((s) => s.universe)} format="count" />
-              <Spark label="With a pool above $5k" points={series((s) => s.withPool)} format="plain" />
-              <Spark label="Coins priced in stocks" points={series((s) => s.quotedCoins)} format="count" />
-              <Spark label="Holders" points={series((s) => s.holders)} format="people" />
-              <Spark label="Used as a quote asset" points={series((s) => s.denominators)} format="plain" />
-            </div>
-          </>
-        ) : (
-          <p className="collecting">
-            Collecting. One record a day lands in the repo after the US close, and these
-            charts fill in as it goes.{" "}
-            {since ? <>First reading {since}.</> : <>The first lands tonight.</>}{" "}
-            Nothing is drawn until there is something real to draw, because a trend line
-            through one measurement is a lie.
-          </p>
-        )}
-        </Reveal>
-      </section>
-
-      {/* Where the money is. Every other table here ranks coins quoted against a
-          stock; this one ranks the stocks themselves by the money standing
-          behind them, which is the question a newcomer actually arrives with. */}
       <section id="depth">
         <h2>Where the money actually is</h2>
         <p className="finding">
@@ -427,9 +434,10 @@ export default async function Page() {
         </p>
         <p className="lookfor">
           <span className="k">What to look for</span>
-          Which companies people actually funded. A tokenized stock with no liquidity is a
-          listing, not a market, and most of this category is listings. The names here are the
-          ones with real money standing behind them.
+          Liquidity, holders, market share and volume, so you can see where the money actually
+          is. A tokenized stock with no liquidity is a listing, not a market, and most of this
+          category is listings. The names here are the ones with real money standing behind
+          them.
         </p>
               <Reveal label="Show the ranked table" count={`${byLiq.length} with a market`} open>
 <p className="scroll-hint">Swipe the table sideways for holders and volume</p>
