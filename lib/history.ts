@@ -23,9 +23,75 @@ export interface Snapshot {
   universeVolume24h: number;
   holders: number;
   with247Feed: number;
-  byIssuer: Record<string, { listed: number; withPool: number; liquidity: number; holders: number }>;
+  byIssuer: Record<string, {
+    listed: number;
+    withPool: number;
+    liquidity: number;
+    /** Added 5 Oct 2026. Absent on older records. */
+    strandedLiquidity?: number;
+    holders: number;
+  }>;
   top: { symbol: string; issuer: string; liquidity: number; holders: number }[];
   topDenominator: { symbol: string; coins: number } | null;
+  /** Added 5 Oct 2026, so every earlier record is missing it. The counts above
+   *  say how many; these say which, and a name is what makes a change postable:
+   *  a company getting its first pool, a stock gaining a perp, a grade falling. */
+  sets?: {
+    listed: string[];
+    withPool: string[];
+    feed247: string[];
+    withPerp: string[];
+    denominators: string[];
+    grades: Record<string, string>;
+  };
+}
+
+/**
+ * What changed between the two most recent records that both carry sets.
+ *
+ * Deliberately computed on read rather than stored: a stored diff is a second
+ * copy of the truth, and the two disagree the first time a job runs twice in a
+ * day or skips one. Returns null until two days of sets exist.
+ */
+export function movements(): {
+  from: string;
+  to: string;
+  gainedPool: string[];
+  lostPool: string[];
+  newListings: string[];
+  delistings: string[];
+  gainedPerp: string[];
+  gainedFeed: string[];
+  upgrades: { symbol: string; from: string; to: string }[];
+  downgrades: { symbol: string; from: string; to: string }[];
+} | null {
+  const withSets = history.filter((s) => s.sets);
+  if (withSets.length < 2) return null;
+  const b = withSets[withSets.length - 1];
+  const a = withSets[withSets.length - 2];
+  const gone = (x: string[], y: string[]) => x.filter((s) => !y.includes(s));
+
+  const order = ["fragile", "thin", "sound", "prime"];
+  const upgrades: { symbol: string; from: string; to: string }[] = [];
+  const downgrades: { symbol: string; from: string; to: string }[] = [];
+  for (const [symbol, to] of Object.entries(b.sets!.grades)) {
+    const from = a.sets!.grades[symbol];
+    if (!from || from === to) continue;
+    (order.indexOf(to) > order.indexOf(from) ? upgrades : downgrades).push({ symbol, from, to });
+  }
+
+  return {
+    from: a.date,
+    to: b.date,
+    gainedPool: gone(b.sets!.withPool, a.sets!.withPool),
+    lostPool: gone(a.sets!.withPool, b.sets!.withPool),
+    newListings: gone(b.sets!.listed, a.sets!.listed),
+    delistings: gone(a.sets!.listed, b.sets!.listed),
+    gainedPerp: gone(b.sets!.withPerp, a.sets!.withPerp),
+    gainedFeed: gone(b.sets!.feed247, a.sets!.feed247),
+    upgrades,
+    downgrades,
+  };
 }
 
 export const history: Snapshot[] = (raw as Snapshot[])

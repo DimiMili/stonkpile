@@ -1103,3 +1103,24 @@ header + .snav{ border-top:none; margin-top:0 }
 .rd p{ margin:0; font-size:15.5px; line-height:1.5 }
 .rd .rd-who{ color:var(--muted) }
 .rd .rd-src{ font-size:13.5px; color:var(--faint) }
+
+/* The rating key. Four lines, not a paragraph: a reader skimming this wants to
+   know what the four numbers in the table mean, and a block of prose with bold
+   words inside it is the slowest possible way to tell them. */
+.rt-key{ list-style:none; margin:14px 0 0; padding:0; display:grid; gap:10px }
+.rt-key li{
+  display:grid; grid-template-columns:auto auto 1fr; gap:4px 12px; align-items:baseline;
+  padding-bottom:10px; border-bottom:1px solid var(--line-soft);
+}
+.rt-key b{ font-size:16.5px; font-weight:600 }
+.rt-wt{
+  font-family:"IBM Plex Mono",monospace; font-size:13px; color:var(--brass);
+  border:1px solid var(--line); border-radius:999px; padding:1px 8px 2px;
+  justify-self:start; /* or the pill stretches across the whole column */
+}
+.rt-key li > span:last-child{ font-size:16px; color:var(--muted); line-height:1.45 }
+.rt-gate{ margin:12px 0 0; font-size:15.5px; color:var(--muted) }
+@media (max-width:640px){
+  .rt-key li{ grid-template-columns:auto 1fr }
+  .rt-key li > span:last-child{ grid-column:1 / -1 }
+}

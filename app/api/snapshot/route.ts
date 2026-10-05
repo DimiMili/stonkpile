@@ -1,4 +1,5 @@
 import { buildIndex } from "@/lib/pipeline";
+import { isRated } from "@/lib/rating";
 
 /**
  * Never cached, unlike every other route here.
@@ -61,6 +62,32 @@ export async function GET(req: Request) {
   const byLiq = [...idx.stocks].sort((a, b) => b.liquidity - a.liquidity);
   const topDenominator = [...idx.stocks].sort((a, b) => b.quotedCount - a.quotedCount)[0];
 
+  /* Sets, not counts.
+     A count can only ever produce "113 have a pool, up two". The names produce
+     "Coca-Cola has a market on Solana for the first time", which is the post.
+     Sorted so a diff between two days is a diff of the data and not of the
+     order the pipeline happened to return.
+     Cost is a few kilobytes a day against a file that is already public. */
+  const sorted = (xs: string[]) => [...new Set(xs)].sort();
+  const listed = sorted(idx.lookup.filter((l) => l.kind === "stock").map((l) => l.symbol));
+  const withPoolSymbols = sorted(idx.stocks.map((r) => r.symbol));
+  const feed247 = sorted(idx.stocks.filter((r) => r.has247Feed).map((r) => r.symbol));
+  const withPerpSymbols = sorted(
+    idx.stocks.filter((r) => r.perpVenues.length > 0).map((r) => r.symbol),
+  );
+  const denominatorSymbols = sorted(
+    idx.stocks.filter((r) => r.quotedCount > 0).map((r) => r.symbol),
+  );
+  /* The grade per symbol, so a change is a finding with a name on it: a stock
+     falling from A to B is specific and true, where "16 rate A, down one" is
+     neither. */
+  const grades = Object.fromEntries(
+    idx.stocks
+      .filter((r) => isRated(r.rating))
+      .map((r) => [r.symbol, (r.rating as { band: string }).band])
+      .sort((a, b) => a[0].localeCompare(b[0])),
+  );
+
   const record = {
     date: idx.generatedAt.slice(0, 10),
     at: idx.generatedAt,
@@ -80,7 +107,15 @@ export async function GET(req: Request) {
     byIssuer: Object.fromEntries(
       Object.entries(T.byIssuerDepth).map(([k, d]) => [
         k,
-        { listed: d.listed, withPool: d.withPool, liquidity: d.liquidity, holders: d.holders },
+        {
+          listed: d.listed,
+          withPool: d.withPool,
+          liquidity: d.liquidity,
+          // money sitting behind tokens too small to clear the floor, which is
+          // an issuer's dead catalogue measured in dollars rather than in rows
+          strandedLiquidity: d.strandedLiquidity,
+          holders: d.holders,
+        },
       ]),
     ),
 
@@ -95,6 +130,24 @@ export async function GET(req: Request) {
     topDenominator: topDenominator
       ? { symbol: topDenominator.symbol, coins: topDenominator.quotedCount }
       : null,
+
+    /* The sets. Counts above answer how big; these answer which, and only these
+       can say a name out loud. New listings and delistings are not stored: they
+       are a diff of `listed` against the day before, computed when the history
+       is read, because a stored diff is a second copy of the truth that can
+       disagree with the first.
+       quotedCoins stays a count on purpose. The coin list is thousands of rows
+       of launchpad output and the number itself is the one DexScreener is least
+       reliable about, so keeping the names would be a lot of bytes spent on
+       noise. */
+    sets: {
+      listed,
+      withPool: withPoolSymbols,
+      feed247,
+      withPerp: withPerpSymbols,
+      denominators: denominatorSymbols,
+      grades,
+    },
   };
 
   return Response.json(record, {

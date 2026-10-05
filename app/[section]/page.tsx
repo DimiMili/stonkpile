@@ -202,18 +202,34 @@ export default async function SectionPage(
       {section === "rating" && (
         <section>
           <p className="sec-note">
-            One number out of 100 for the market around a token: how much you can get out of it
-            (40 points), whether it is being used (25), how many ways out exist (20), and
-            whether it can be priced (15). A token that fails the issuer check is not rated at
-            all, and neither is one with no market. It says nothing about the company, and
-            nothing about whether the price is fair.
+            One number out of 100 for the market around a token, not the company behind it.
           </p>
+          <ul className="rt-key">
+            <li>
+              <b>Liquidity</b><span className="rt-wt">40</span>
+              <span>How much you can sell into before you move the price.</span>
+            </li>
+            <li>
+              <b>Real volume</b><span className="rt-wt">25</span>
+              <span>A pool nobody trades and a pool doing 80 times its own size in a day both fail.</span>
+            </li>
+            <li>
+              <b>Exits</b><span className="rt-wt">20</span>
+              <span>More than one pool to sell into, and a perp to hedge or short with.</span>
+            </li>
+            <li>
+              <b>Pricing</b><span className="rt-wt">15</span>
+              <span>A price after the US close, and other issuers agreeing on it per share.</span>
+            </li>
+          </ul>
+          <p className="rt-gate">Not rated: a token that fails the issuer check, or one with no market at all.</p>
+          <p className="rt-gate">Never rated on: the company, or whether the price is fair.</p>
           <div className="scroll">
             <table>
               <thead>
                 <tr>
                   <th>Company</th><th>Token</th><th>Issuer</th><th>Rating</th><th>Redeem for</th>
-                  <th>Get out of</th><th>Used</th><th>Ways out</th><th>Priceable</th>
+                  <th>Liquidity</th><th>Real volume</th><th>Exits</th><th>Pricing</th>
                 </tr>
               </thead>
               <tbody>
@@ -247,8 +263,8 @@ export default async function SectionPage(
           <p className="sec-note">
             {BANDS.map((b, i) => (
               <span key={b.band}>
-                {i > 0 ? ", " : ""}
-                <b>{b.label}</b> {b.min > 0 ? `${b.min}+` : "under 42"}, {b.blurb}
+                {i > 0 ? " · " : ""}
+                <b>{b.letter} {b.label}</b> {b.min > 0 ? `${b.min}+` : "under 42"}, {b.blurb}
               </span>
             ))}. The whole recipe is in the repo.
           </p>

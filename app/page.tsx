@@ -297,18 +297,28 @@ export default async function Page() {
           </p>
           <p className="lookfor">
             <span className="k">What to look for</span>
-            One number out of 100 for the market around a token: <b>how much you can get out
-            of</b> it (40 points, log scaled, so the gap between $20k and $200k counts for more
-            than the gap between $5M and $10M), <b>whether it is being used</b> (25, scored as
-            a band, since a pool doing nothing and a pool doing eighty times its own size in a
-            day are both failures), <b>how many ways out exist</b> (20, pools and venues and
-            whether a perp lets you hedge), and <b>whether it can be priced</b> (15, a 24/7
-            reference feed and whether a second issuer on the same company agrees per share).
-            A token that fails the issuer check is not rated at all, and neither is one with
-            no market: both are statements about the token, not scores on a ladder it does not
-            belong to. It says nothing about the company, and nothing about whether the price
-            is fair.
+            One number out of 100 for the market around a token, not the company behind it.
           </p>
+          <ul className="rt-key">
+            <li>
+              <b>Liquidity</b><span className="rt-wt">40</span>
+              <span>How much you can sell into before you move the price.</span>
+            </li>
+            <li>
+              <b>Real volume</b><span className="rt-wt">25</span>
+              <span>A pool nobody trades and a pool doing 80 times its own size in a day both fail.</span>
+            </li>
+            <li>
+              <b>Exits</b><span className="rt-wt">20</span>
+              <span>More than one pool to sell into, and a perp to hedge or short with.</span>
+            </li>
+            <li>
+              <b>Pricing</b><span className="rt-wt">15</span>
+              <span>A price after the US close, and other issuers agreeing on it per share.</span>
+            </li>
+          </ul>
+          <p className="rt-gate">Not rated: a token that fails the issuer check, or one with no market at all.</p>
+          <p className="rt-gate">Never rated on: the company, or whether the price is fair.</p>
           <Reveal label="Show the rated board" count={`${rated.length} rated`} peek={260}>
             <p className="scroll-hint">Swipe the table sideways for the four parts of the score</p>
             <div className="scroll">
@@ -316,7 +326,7 @@ export default async function Page() {
                 <thead>
                   <tr>
                     <th>Company</th><th>Token</th><th>Issuer</th><th>Rating</th><th>Redeem for</th>
-                    <th>Get out of</th><th>Used</th><th>Ways out</th><th>Priceable</th>
+                    <th>Liquidity</th><th>Real volume</th><th>Exits</th><th>Pricing</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -352,10 +362,10 @@ export default async function Page() {
               </table>
             </div>
             <p className="sec-note">
-              The bands: {BANDS.map((b, i) => (
+              The scale: {BANDS.map((b, i) => (
                 <span key={b.band}>
-                  {i > 0 ? ", " : ""}
-                  <b>{b.label}</b> {b.min > 0 ? `${b.min}+` : "under 42"}, {b.blurb}
+                  {i > 0 ? " · " : ""}
+                  <b>{b.letter} {b.label}</b> {b.min > 0 ? `${b.min}+` : "under 42"}, {b.blurb}
                 </span>
               ))}. Lowest rated right now is{" "}
               {clean(worstRated.row.name) || worstRated.row.symbol} on {worstRated.rating.score}.

@@ -84,11 +84,17 @@ export const REDEMPTION: Record<Issuer, Redemption> = {
   PreStocks: {
     claim: "cash",
     what:
-      "Backed by SPVs that hold shares in the private companies. No voting, dividend or information rights. " +
-      "Redeemable for USDC at fair market value, with the tokens frozen while the SPV sells the shares off chain.",
-    who: "Issued under Regulation S to non-US investors. Redemption requires KYC and a fee; buying and selling on chain does not.",
-    source: "Third-party write-ups, not the issuer's own terms page",
-    sourceUrl: "https://www.blocmates.com/articles/prestocks-modernizing-and-democratizing-access-to-pre-ipo-stocks",
+      "In their own words, these “provide only economic exposure to private companies; confer no ownership, " +
+      "voting, dividend, information, or other legal rights”, and may result in total loss with no guaranteed " +
+      "secondary-market liquidity. The backing is a basket of SPVs holding shares in the companies. " +
+      "Redemption is reported as USDC at fair market value, with the tokens frozen while the SPV sells the " +
+      "shares off chain, which means the price is set by an actual sale of private stock rather than by a quote.",
+    who:
+      "Reported as Regulation S, non-US, with KYC and a fee for redemption but not for buying and selling on chain. " +
+      "The redemption terms come from third-party write-ups: their own FAQ is a client-rendered accordion we could not read.",
+    source: "PreStocks' own disclaimer for the rights, third-party write-ups for the redemption mechanics",
+    sourceUrl: "https://prestocks.com/faq?tab=mechanics",
+    alsoUrl: "https://www.blocmates.com/articles/prestocks-modernizing-and-democratizing-access-to-pre-ipo-stocks",
     asOf: "2026-10-04",
   },
   Tessera: {

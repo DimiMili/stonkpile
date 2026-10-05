@@ -9,6 +9,22 @@ what was built inside a hackathon window.
 
 Dates are Athens time.
 
+## 5 October 2026
+
+- Rating language, rewritten. The four parts are Liquidity, Real volume, Exits
+  and Pricing, which is what they measure in the words the market already uses,
+  and the explainer is four lines with their weights instead of a paragraph with
+  bold words buried in it. The scale is letters now, A to D, because there is no
+  standard for scoring a token market and the one convention everybody reads is
+  the credit scale. "Band" is gone; it was our word and nobody else's.
+- The nightly snapshot stores names, not just counts. Which tokens have a pool,
+  a 24/7 price, a perp, a grade, and which are listed at all, as sorted sets,
+  plus stranded liquidity per issuer. Counts could only ever produce "113 have a
+  pool, up two"; names produce "Coca-Cola has a market on Solana for the first
+  time". New listings and grade changes are computed as a diff when the history
+  is read rather than stored, because a stored diff is a second copy of the
+  truth that eventually disagrees with the first.
+
 ## 4 October 2026
 
 - Corrected the accrual copy. We said nobody had stated what the issuers were

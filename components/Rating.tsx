@@ -1,4 +1,4 @@
-import { bandLabel, isRated, type RatingResult } from "@/lib/rating";
+import { bandLabel, bandLetter, isRated, type RatingResult } from "@/lib/rating";
 import { CLAIM_LABEL, REDEMPTION } from "@/lib/redemption";
 import type { Issuer } from "@/lib/pipeline";
 
@@ -17,9 +17,9 @@ export function RatingChip({ rating }: { rating?: RatingResult }) {
     return <span className="rt-chip rt-none">Unrated</span>;
   }
   return (
-    <span className={`rt-chip rt-${rating.band}`}>
-      <b className="num">{rating.score}</b>
-      <span>{bandLabel(rating.band)}</span>
+    <span className={`rt-chip rt-${rating.band}`} title={bandLabel(rating.band)}>
+      <b className="rt-letter">{bandLetter(rating.band)}</b>
+      <span className="num">{rating.score}</span>
     </span>
   );
 }
@@ -80,13 +80,11 @@ export function RatingCard({
   return (
     <section className="rt-card">
       <h2>
-        {symbol} rates <RatingChip rating={rating} />
+        {symbol} rates <RatingChip rating={rating} /> {bandLabel(rating.band)}
       </h2>
       <p className="sec-note">
-        Out of 100, from four things about the market around this token: how much you can get
-        out of, whether anyone is using it, how many ways out exist, and whether it can be
-        priced. It says nothing about the company, and nothing about whether the price is
-        fair.
+        Out of 100, on the market around this token: liquidity, real volume, exits and
+        pricing. Nothing about the company, and nothing about whether the price is fair.
       </p>
       <ul className="rt-pillars">
         {rating.pillars.map((p) => (

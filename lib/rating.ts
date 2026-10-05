@@ -109,11 +109,19 @@ export type RatingResult = Rating | NotRated;
 export const isRated = (r: RatingResult | undefined): r is Rating =>
   !!r && "score" in r;
 
-export const BANDS: { band: Band; min: number; label: string; blurb: string }[] = [
-  { band: "prime", min: 80, label: "Prime", blurb: "deep, used, priceable and with more than one way out" },
-  { band: "sound", min: 62, label: "Sound", blurb: "a real market with one or two things missing" },
-  { band: "thin", min: 42, label: "Thin", blurb: "it works at small size and not much more" },
-  { band: "fragile", min: 0, label: "Fragile", blurb: "one pool, little use, or trading that does not look like trading" },
+/**
+ * The rating scale.
+ *
+ * Letters, because there is no standard for scoring a token market and the one
+ * convention everybody already reads is the credit scale: a letter you grasp in
+ * a glance, a word for what it means, and a sentence for why. "Band" was our
+ * word for this and nobody else's, so it is gone.
+ */
+export const BANDS: { band: Band; letter: string; min: number; label: string; blurb: string }[] = [
+  { band: "prime", letter: "A", min: 80, label: "Prime", blurb: "deep, traded, priceable, more than one way out" },
+  { band: "sound", letter: "B", min: 62, label: "Sound", blurb: "a real market missing one or two things" },
+  { band: "thin", letter: "C", min: 42, label: "Thin", blurb: "fine in small size, not much more" },
+  { band: "fragile", letter: "D", min: 0, label: "Fragile", blurb: "one pool, barely traded, or volume that is not real" },
 ];
 
 export const bandOf = (score: number): Band =>
@@ -121,6 +129,9 @@ export const bandOf = (score: number): Band =>
 
 export const bandLabel = (band: Band): string =>
   BANDS.find((b) => b.band === band)?.label ?? "Unrated";
+
+export const bandLetter = (band: Band): string =>
+  BANDS.find((b) => b.band === band)?.letter ?? "\u2014";
 
 const clamp01 = (x: number) => (x < 0 ? 0 : x > 1 ? 1 : x);
 const round = (x: number) => Math.round(x * 10) / 10;
@@ -259,28 +270,28 @@ export function rate(
   const pillars: Pillar[] = [
     {
       key: "depth",
-      label: "How much you can get out of",
+      label: "Liquidity",
       points: round(depth),
       max: W_DEPTH,
       detail: `${money(row.liquidity)} in the pool`,
     },
     {
       key: "use",
-      label: "Whether it is being used",
+      label: "Real volume",
       points: round(use),
       max: W_USE,
       detail: `turns over ${turnover < 0.1 ? turnover.toFixed(2) : turnover.toFixed(1)}x its own size a day`,
     },
     {
       key: "exit",
-      label: "Ways out",
+      label: "Exits",
       points: round(exit.points),
       max: W_EXIT,
       detail: exit.detail,
     },
     {
       key: "price",
-      label: "Whether you can price it",
+      label: "Pricing",
       points: round(price.points),
       max: W_PRICE,
       detail: price.detail,
