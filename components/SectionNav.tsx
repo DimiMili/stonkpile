@@ -19,7 +19,7 @@ import { useEffect, useState } from "react";
 const SECTIONS = [
   { id: "check", label: "Check a ticker" },
   { id: "rating", label: "The rating" },
-  { id: "history", label: "Movement" },
+  { id: "history", label: "Over time" },
   { id: "depth", label: "Where the money is" },
   { id: "churn", label: "Real volume" },
   { id: "issuers", label: "Issuers" },

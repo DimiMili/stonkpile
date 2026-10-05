@@ -11,6 +11,18 @@ Dates are Athens time.
 
 ## 5 October 2026
 
+- The daily charts can be read. Hover or drag across one and the headline figure
+  becomes that day's, with its date under the chart and a marker on the point.
+  One pointer handler covers mouse and touch, and touch-action is pan-y so a
+  finger moving down the page still scrolls it. The per-point titles stay for
+  screen readers and for a view with no JavaScript.
+- "How this is moving" is now "Tokenized stocks on Solana, over time", and the
+  shortcut reads "Over time".
+- Each part of the rating is scored out of 10 and carries a weight: Liquidity
+  x4, Real volume x2.5, Exits x2, Pricing x1.5. Ten across all four is exactly
+  100, so the total still adds up by hand, and the four parts can finally be
+  compared with each other without arithmetic.
+
 - Rating language, rewritten. The four parts are Liquidity, Real volume, Exits
   and Pricing, which is what they measure in the words the market already uses,
   and the explainer is four lines with their weights instead of a paragraph with

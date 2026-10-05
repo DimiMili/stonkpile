@@ -383,7 +383,7 @@ export default async function Page() {
           there is nothing honest to draw, and this says so rather than inventing a
           trend from one measurement. */}
       <section id="history">
-        <h2>How this is moving</h2>
+        <h2>Tokenized stocks on Solana, over time</h2>
         <Reveal label="Show the charts" count={`${history.length} daily records`} peek={280}>
         {hasHistory ? (
           <>
@@ -394,12 +394,12 @@ export default async function Page() {
               day, taken after the US close.
             </p>
             <div className="sparks">
-              <Spark label="Liquidity, whole category" points={series((s) => s.liquidity)} format={usd} />
-              <Spark label="Tokenized stocks listed" points={series((s) => s.universe)} format={(v) => v.toLocaleString()} />
-              <Spark label="With a pool above $5k" points={series((s) => s.withPool)} format={(v) => String(v)} />
-              <Spark label="Coins priced in stocks" points={series((s) => s.quotedCoins)} format={(v) => v.toLocaleString()} />
-              <Spark label="Holders" points={series((s) => s.holders)} format={holders} />
-              <Spark label="Used as a quote asset" points={series((s) => s.denominators)} format={(v) => String(v)} />
+              <Spark label="Liquidity, whole category" points={series((s) => s.liquidity)} format="usd" />
+              <Spark label="Tokenized stocks listed" points={series((s) => s.universe)} format="count" />
+              <Spark label="With a pool above $5k" points={series((s) => s.withPool)} format="plain" />
+              <Spark label="Coins priced in stocks" points={series((s) => s.quotedCoins)} format="count" />
+              <Spark label="Holders" points={series((s) => s.holders)} format="people" />
+              <Spark label="Used as a quote asset" points={series((s) => s.denominators)} format="plain" />
             </div>
           </>
         ) : (

@@ -1124,3 +1124,12 @@ header + .snav{ border-top:none; margin-top:0 }
   .rt-key li{ grid-template-columns:auto 1fr }
   .rt-key li > span:last-child{ grid-column:1 / -1 }
 }
+
+/* Scrubbing a sparkline.
+   pan-y rather than none: a finger moving down the page must still scroll it,
+   and only a sideways drag reads the series. Without this the charts become
+   dead zones on a phone, which is worse than having no readout at all. */
+.spark svg{ touch-action:pan-y; cursor:crosshair }
+.spark-mark line{ stroke:var(--line); stroke-width:1.5 }
+.spark-mark circle{ fill:var(--bar); stroke:var(--surface); stroke-width:2 }
+.spark-live{ color:var(--brass) }
