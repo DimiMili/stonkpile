@@ -85,6 +85,15 @@ export type Unrated = "unverified" | "no_market";
 export interface Pillar {
   key: "depth" | "use" | "exit" | "price";
   label: string;
+  /** This part on its own, 0 to 10, so four parts with four different weights
+   *  can be compared without arithmetic. Nobody reads 36.1 out of 40 against
+   *  11.5 out of 15 and forms a view; everybody reads 9.0 against 7.7. */
+  score: number;
+  /** What that 0 to 10 is worth in the total. Ten across all four is exactly
+   *  100, so the composite stays reconstructable by hand. */
+  weight: number;
+  /** Still carried, because the weighted contribution is what makes the total
+   *  add up and an API consumer should not have to multiply to check us. */
   points: number;
   max: number;
   /** The figure the points came from, in the words the site uses elsewhere. */
@@ -267,33 +276,36 @@ export function rate(
   const raw = depth + use + exit.points + price.points;
   const score = Math.round(disputed ? Math.min(raw, BANDS[0].min - 1) : raw);
 
+  const mk = (points: number, max: number) => ({
+    score: round((points / max) * 10),
+    weight: max / 10,
+    points: round(points),
+    max,
+  });
+
   const pillars: Pillar[] = [
     {
       key: "depth",
       label: "Liquidity",
-      points: round(depth),
-      max: W_DEPTH,
+      ...mk(depth, W_DEPTH),
       detail: `${money(row.liquidity)} in the pool`,
     },
     {
       key: "use",
       label: "Real volume",
-      points: round(use),
-      max: W_USE,
+      ...mk(use, W_USE),
       detail: `turns over ${turnover < 0.1 ? turnover.toFixed(2) : turnover.toFixed(1)}x its own size a day`,
     },
     {
       key: "exit",
       label: "Exits",
-      points: round(exit.points),
-      max: W_EXIT,
+      ...mk(exit.points, W_EXIT),
       detail: exit.detail,
     },
     {
       key: "price",
       label: "Pricing",
-      points: round(price.points),
-      max: W_PRICE,
+      ...mk(price.points, W_PRICE),
       detail: price.detail,
     },
   ];

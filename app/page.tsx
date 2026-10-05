@@ -297,23 +297,24 @@ export default async function Page() {
           </p>
           <p className="lookfor">
             <span className="k">What to look for</span>
-            One number out of 100 for the market around a token, not the company behind it.
+            Four parts, each out of 10, each carrying its own weight. Ten across all four is
+            100. It rates the market around a token, never the company behind it.
           </p>
           <ul className="rt-key">
             <li>
-              <b>Liquidity</b><span className="rt-wt">40</span>
+              <b>Liquidity</b><span className="rt-wt">&times;4</span>
               <span>How much you can sell into before you move the price.</span>
             </li>
             <li>
-              <b>Real volume</b><span className="rt-wt">25</span>
+              <b>Real volume</b><span className="rt-wt">&times;2.5</span>
               <span>A pool nobody trades and a pool doing 80 times its own size in a day both fail.</span>
             </li>
             <li>
-              <b>Exits</b><span className="rt-wt">20</span>
+              <b>Exits</b><span className="rt-wt">&times;2</span>
               <span>More than one pool to sell into, and a perp to hedge or short with.</span>
             </li>
             <li>
-              <b>Pricing</b><span className="rt-wt">15</span>
+              <b>Pricing</b><span className="rt-wt">&times;1.5</span>
               <span>A price after the US close, and other issuers agreeing on it per share.</span>
             </li>
           </ul>
@@ -352,8 +353,8 @@ export default async function Page() {
                       </td>
                       {rating.pillars.map((p) => (
                         <td className="num" key={p.key}>
-                          {p.points}
-                          <small className="per-note">/{p.max}</small>
+                          {p.score.toFixed(1)}
+                          <small className="per-note">&times;{p.weight}</small>
                         </td>
                       ))}
                     </tr>

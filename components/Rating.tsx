@@ -83,8 +83,8 @@ export function RatingCard({
         {symbol} rates <RatingChip rating={rating} /> {bandLabel(rating.band)}
       </h2>
       <p className="sec-note">
-        Out of 100, on the market around this token: liquidity, real volume, exits and
-        pricing. Nothing about the company, and nothing about whether the price is fair.
+        Each part is scored out of 10 and carries its own weight, so ten across all four is
+        exactly 100. Nothing here is about the company, or about whether the price is fair.
       </p>
       <ul className="rt-pillars">
         {rating.pillars.map((p) => (
@@ -93,12 +93,12 @@ export function RatingCard({
             <span className="rt-track">
               <span
                 className="rt-fill"
-                style={{ width: `${Math.max(1, (p.points / p.max) * 100)}%` }}
+                style={{ width: `${Math.max(1, p.score * 10)}%` }}
               />
             </span>
             <span className="rt-pts num">
-              {p.points}
-              <small>/{p.max}</small>
+              {p.score.toFixed(1)}
+              <small>/10 &times;{p.weight}</small>
             </span>
             <span className="rt-detail">{p.detail}</span>
           </li>
