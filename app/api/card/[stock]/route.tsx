@@ -143,7 +143,7 @@ export async function GET(
       </div>,
       <Footer bits={[
         `${T.universe.toLocaleString()} tokenized stocks listed`,
-        `${T.tradeable} actually trade`,
+        `${T.tradeable} have a market`,
         `${T.with247Feed}/${T.denominators} have a 24/7 oracle`,
       ]} />,
     );

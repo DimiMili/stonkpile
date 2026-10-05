@@ -52,7 +52,7 @@ import type { StockRow } from "@/lib/pipeline";
 const W_DEPTH = 40;
 /** Whether the pool is being used, and used by people rather than by a loop. */
 const W_USE = 25;
-/** How many ways out exist: pools, venues, and a perp to hedge against. */
+/** How many ways out exist: pools to sell into, and a perp to hedge with. */
 const W_EXIT = 20;
 /** Whether the thing can be priced when the US market is shut, and whether a
  *  second issuer's price on the same company agrees with this one. */
@@ -298,7 +298,7 @@ export function rate(
     },
     {
       key: "exit",
-      label: "Exits",
+      label: "Pools & perps",
       ...mk(exit.points, W_EXIT),
       detail: exit.detail,
     },

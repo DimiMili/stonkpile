@@ -215,7 +215,7 @@ export default async function SectionPage(
               <span>A pool nobody trades and a pool doing 80 times its own size in a day both fail.</span>
             </li>
             <li>
-              <b>Exits</b><span className="rt-wt">&times;2</span>
+              <b>Pools &amp; perps</b><span className="rt-wt">&times;2</span>
               <span>More than one pool to sell into, and a perp to hedge or short with.</span>
             </li>
             <li>
@@ -230,7 +230,7 @@ export default async function SectionPage(
               <thead>
                 <tr>
                   <th>Company</th><th>Token</th><th>Issuer</th><th>Rating</th><th>Redeem for</th>
-                  <th>Liquidity</th><th>Real volume</th><th>Exits</th><th>Pricing</th>
+                  <th>Liquidity</th><th>Real volume</th><th>Pools &amp; perps</th><th>Pricing</th>
                 </tr>
               </thead>
               <tbody>

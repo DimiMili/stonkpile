@@ -223,10 +223,14 @@ export default async function Page() {
         <p className="h1-more">
           Is anyone actually buying it? Does it have perps?
         </p>
+        {/* Live, not typed. These were hardcoded and drifted from the real
+            figures within days, so the hero contradicted the stats row ten
+            centimetres below it. Nothing on this page should state a number the
+            index can state itself. */}
         <p className="standfirst">
           Check by ticker or CA. View all tokenized stocks and the memecoins paired
-          with them: 1,800 listings, 112 with liquidity, five issuers, gaps between
-          them.
+          with them: {T.universe.toLocaleString()} listings, {T.tradeable} with a market,
+          five issuers, gaps between them.
         </p>
       </header>
 
@@ -282,8 +286,12 @@ export default async function Page() {
             <p className="lookfor">
               <span className="k">What to look for</span>
               Direction, not the level. A category growing its liquidity is being funded;
-              one adding tokens while liquidity sits still is adding listings. One record a
-              day, taken after the US close.
+              one adding tokens while liquidity sits still is adding listings.
+              <br />
+              <br />
+              Every figure here is last night&rsquo;s record, taken after the US close, so it
+              will not match the live numbers further down the page. That gap is yesterday
+              against now, not a disagreement.
             </p>
             <div className="sparks">
               <Spark label="Liquidity, whole category" points={series((s) => s.liquidity)} format="usd" />
@@ -357,7 +365,7 @@ export default async function Page() {
               <span>A pool nobody trades and a pool doing 80 times its own size in a day both fail.</span>
             </li>
             <li>
-              <b>Exits</b><span className="rt-wt">&times;2</span>
+              <b>Pools &amp; perps</b><span className="rt-wt">&times;2</span>
               <span>More than one pool to sell into, and a perp to hedge or short with.</span>
             </li>
             <li>
@@ -374,7 +382,7 @@ export default async function Page() {
                 <thead>
                   <tr>
                     <th>Company</th><th>Token</th><th>Issuer</th><th>Rating</th><th>Redeem for</th>
-                    <th>Liquidity</th><th>Real volume</th><th>Exits</th><th>Pricing</th>
+                    <th>Liquidity</th><th>Real volume</th><th>Pools &amp; perps</th><th>Pricing</th>
                   </tr>
                 </thead>
                 <tbody>

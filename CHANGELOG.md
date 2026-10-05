@@ -11,6 +11,16 @@ Dates are Athens time.
 
 ## 5 October 2026
 
+- The hero stopped lying. It carried typed figures from the day it was written,
+  "1,800 listings, 112 with liquidity", while the stats row ten centimetres
+  below read the live index. Both numbers now come from the same place, and the
+  page agrees with itself.
+- The daily charts say out loud that they are last night's record, so the gap
+  between them and the live figures reads as yesterday against now rather than
+  as a contradiction.
+- "Exits" is "Pools & perps" everywhere, matching the launch video.
+- The share card says 114 have a market rather than 114 actually trade.
+
 - The daily charts can be read. Hover or drag across one and the headline figure
   becomes that day's, with its date under the chart and a marker on the point.
   One pointer handler covers mouse and touch, and touch-action is pan-y so a
