@@ -2,12 +2,19 @@
 
 **Every tokenized stock on Solana, rated.**
 
-1,806 of them are listed. 116 have a market. Those get a score out of 100 for the
-market around them. The other 1,690 get a page saying why they do not.
+Most of them are listed and nothing more. The ones with a market behind them get a
+score out of 100 for that market. The rest get a page saying why they do not have
+one.
 
-Live at **[stonkpile.xyz](https://stonkpile.xyz)**. Built for
-[Stocklana](https://hackathons.solana.com/hackathons/stocklana) and entered in the
-Colosseum Crypto World's Fair with Superteam Balkan.
+[![Stonkpile: every tokenized stock on Solana, rated](https://stonkpile.xyz/api/card/board.png)](https://stonkpile.xyz)
+
+That picture renders live from the index, so it is current whenever you are reading
+this. There are no counts written into this file on purpose: they move every night,
+and a README that states one is wrong by morning. For exact figures, open
+[stonkpile.xyz](https://stonkpile.xyz) or `GET /api/index`.
+
+Built for [Stocklana](https://hackathons.solana.com/hackathons/stocklana) and
+entered in the Colosseum Crypto World's Fair with Superteam Balkan.
 
 ---
 
@@ -17,13 +24,16 @@ Listing a tokenized stock costs an issuer almost nothing. Funding a market behin
 costs real money. So the catalogues are enormous and nearly empty, and nothing tells
 you which is which.
 
-Ondo lists 448 tokenized stocks. Two of them have a pool, holding $71k between the
-whole catalogue. xStocks lists 1,271 and 32 have a pool. A buyer searching for a
-ticker finds a token, a price and a chart, and no way to know whether there is
-anything on the other side of the trade.
+The scale of it is the part people get wrong. One issuer has funded two pools in a
+catalogue of hundreds, and between them they hold less than a used car is worth.
+Another lists over a thousand tokens and has funded pools behind a few dozen. A
+buyer searching for a ticker finds a token, a price and a chart, and no way to know
+whether there is anything on the other side of the trade.
 
-Volume does not answer it either. A pool holding $58k can show $4.96M of 24-hour
-trading, which is the same money going round 85 times rather than demand turning up.
+Volume does not answer it either. A pool can show tens of times its own size in a
+day, which is the same money going round rather than demand turning up. Filling a
+pool costs real money; pushing trades through one costs almost nothing, so anyone
+can make a token look busy.
 
 ## The rating
 
@@ -75,9 +85,10 @@ kind of claim with a different failure mode.
 
 ## Issuer verification
 
-A token's name proves nothing: 1,273 tokens in Jupiter's verified list carry
-"xStock" in their name or symbol, and a name is the one thing anybody can copy. What
-cannot be copied is the host serving the metadata, so the index reads that instead.
+A token's name proves nothing. More than a thousand tokens in Jupiter's verified
+list carry one issuer's brand in their name or symbol, and a name is the one thing
+anybody can copy. What cannot be copied is the host serving the metadata, so the
+index reads that instead.
 `ISSUERS` in [`lib/pipeline.ts`](lib/pipeline.ts) is the allowlist, and every issuer
 on the site is there because the metadata comes from a domain they control.
 
@@ -85,23 +96,19 @@ The same check runs the other way for coins. A coin taking the exact symbol of a
 real tokenized stock is flagged as a lookalike, case sensitive, because an
 impersonator copies the casing and looking right is the entire point.
 
-Seven issuers, read from the live index on 6 October 2026:
-
-| Issuer | Listed | With a pool | Liquidity |
-|---|---:|---:|---:|
-| xStocks | 1,271 | 32 | $30.1M |
-| Ondo | 448 | 2 | $71k |
-| Backpack Securities | 73 | 71 | $13.9M |
-| PreStocks | 9 | 8 | $2.85M |
-| Tessera | 3 | 3 | $1.34M |
-| Securitize | 1 | 0 | — |
-| Superstate | 1 | 0 | — |
+Seven issuers are verified this way: xStocks, Ondo, Backpack Securities, PreStocks,
+Tessera, Securitize and Superstate. The site compares them on catalogue against
+funded pools rather than on catalogue alone, because listing a token costs an issuer
+nothing and a big catalogue proves nothing on its own. Two of them have funded
+almost everything they list; two have funded almost none of it; the gap between
+those two habits is the most useful thing on that section of the site.
 
 Securitize and Superstate record the share with a registered transfer agent rather
 than minting against a custodied claim, and neither has a pool on Solana, so both
 are unrated. That is the correct verdict rather than a gap.
 
-These numbers move every night. `GET /api/index` is the current ones.
+Current figures per issuer: `GET /api/index`, or the issuer comparison on the
+home page.
 
 ## What else it reads
 
@@ -110,8 +117,10 @@ These numbers move every night. `GET /api/index` is the current ones.
   a number the site reads rather than one somebody types in. Cross-issuer prices are
   compared per underlying share because of it: SpaceX went from "399% apart" to 41%
   once one issuer's token was understood as five post-split shares.
-- **Balances that grow on their own.** Nineteen tokenized stocks are larger than the
-  tokens bought, with the multiplier read from the mint and the date it last moved.
+- **Balances that grow on their own.** Some tokenized stocks are larger than the
+  tokens that were bought, because the issuer passes a dividend through by rebasing
+  rather than paying cash. The multiplier is read from the mint, with the date it
+  last moved.
 - **Perp markets.** Every rated stock shows whether it has a perp on Phoenix or
   Hyperliquid, linking to that exact market.
 - **A daily record.** One snapshot a day is committed to `data/history.json` by a
