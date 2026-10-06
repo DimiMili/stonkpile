@@ -11,6 +11,19 @@ Dates are Athens time.
 
 ## 6 October 2026
 
+- Coverage first, judgement second, everywhere. The site asked "Is this tokenized
+  stock real?" until this morning, which was the pitch before the rating existed,
+  and then it swung the other way and read as a rating site with no index in front
+  of it. Both are wrong. The index is the hard part and the defensible one: every
+  token verified by the host serving its metadata rather than by its name, across
+  seven issuers, with corporate actions read off the chain and prices compared per
+  underlying share. The rating is two hundred lines of arithmetic on top, and the
+  method is published, so anyone could copy it. What they cannot copy is the thing
+  it runs on. The hero, the unfurl title, the share card and the README opening all
+  say it in that order now.
+- The eyebrow stopped repeating the headline. It read "Every tokenized stock on
+  Solana" directly above an h1 that now says the same thing.
+
 - The rating section stopped teaching before it showed. You used to read about a
   hundred and fifty words before a single rating: ninety on what is rated and how,
   then the four parts with a definition each, then two lines on what is never rated.

@@ -187,16 +187,16 @@ export async function GET(
     return shell(
       <div style={col({ flex: 1, justifyContent: "space-between", paddingTop: 10, paddingBottom: 6 })}>
         <div style={col()}>
-          <div style={{ ...serif(62, 800, PAPER), lineHeight: 1 }}>Every tokenized stock</div>
-          <div style={{ ...serif(62, 800, PAPER), lineHeight: 1, marginTop: 6 }}>
+          <div style={{ ...serif(58, 800, PAPER), lineHeight: 1 }}>Every tokenized stock</div>
+          <div style={{ ...serif(58, 800, PAPER), lineHeight: 1, marginTop: 6 }}>
             {/* Satori drops whitespace between a text node and a span, so the
                 gap before the coloured word is set explicitly. */}
-            on Solana,<span style={{ color: BRASS, marginLeft: 17 }}>rated</span>.
+            on Solana,<span style={{ color: BRASS, marginLeft: 16 }}>indexed</span>.
           </div>
-          <div style={mono(21, 400, MUTED)}>
-            <span style={{ marginTop: 14 }}>
-              {T.universe.toLocaleString()} listed. {T.tradeable} have a market. Those are the
-              ones rated.
+          <div style={mono(22, 400, MUTED)}>
+            <span style={{ marginTop: 13 }}>
+              {T.universe.toLocaleString()} listings, seven issuers. The{" "}
+              {T.tradeable} with a market are rated.
             </span>
           </div>
         </div>

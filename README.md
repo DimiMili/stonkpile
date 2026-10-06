@@ -1,10 +1,11 @@
 # Stonkpile
 
-**Every tokenized stock on Solana, rated.**
+**Every tokenized stock on Solana, indexed. The ones with a market, rated.**
 
-Most of them are listed and nothing more. The ones with a market behind them get a
-score out of 100 for that market. The rest get a page saying why they do not have
-one.
+The index is the whole catalogue, across every issuer, verified by the host serving
+each token's metadata rather than by its name. Most of what is listed has no market
+behind it at all. The ones that do carry a score out of 100 for that market, and the
+rest carry a page saying why they do not.
 
 [![Stonkpile: every tokenized stock on Solana, rated](https://stonkpile.xyz/api/card/board.png)](https://stonkpile.xyz)
 

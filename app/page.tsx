@@ -39,8 +39,8 @@ export async function generateMetadata(): Promise<Metadata> {
      volume. That question is one section of the site now. */
   const T = idx.totals;
   const title =
-    `${T.universe.toLocaleString()} tokenized stocks listed on Solana. ` +
-    `${T.tradeable} have a market. ${T.ratings.prime} rate Prime.`;
+    `Every tokenized stock on Solana, indexed. ` +
+    `${T.tradeable} of ${T.universe.toLocaleString()} have a market, and those are rated.`;
   const description =
     `Every one with a market is scored out of 100 for the market around it: how much you can ` +
     `sell into, whether the volume is real, how many ways out there are, and whether it can be ` +
@@ -225,7 +225,10 @@ export default async function Page() {
     <div className="wrap">
       <header>
         <p className="eyebrow">
-          <span>Every tokenized stock on Solana</span>
+          {/* Not a second copy of the headline. The eyebrow carried the same
+              sentence as the h1 once the hero became "Every tokenized stock on
+              Solana, indexed", so it says what the site is instead. */}
+          <span>The rating for tokenized equities</span>
           <span className="dot">/</span>
           {ms && (
             <span className={ms.isOpen ? "open" : "closed"}>
@@ -240,27 +243,33 @@ export default async function Page() {
             am supposed to do", and the fix is to answer that before anything
             else: ask their question, then hand them the box that answers it.
             The thesis moved down to the board, where the reading starts. */}
-        {/* Three questions, set at two sizes rather than three lines of the same
-            one. The first is the one a stranger arrives with and it keeps the
-            full headline weight; the other two are the follow-ups somebody has
-            once they believe the first, so they sit underneath at a size that
-            reads as a continuation rather than as a second headline. Set flat at
-            38px all three would be four lines of Bodoni on a phone, which is the
-            wall of text we spent yesterday removing. */}
+        {/* Coverage first, judgement second, and in that order everywhere.
+            This asked "Is this tokenized stock real?" until 6 October, which was
+            the pitch before the rating existed, and then the whole site swung the
+            other way and read as a rating site with no index in front of it. The
+            index is the hard part and the defensible one: 1,800 tokens verified
+            by metadata host across seven issuers, corporate actions read off the
+            chain, prices compared per underlying share. The rating is two hundred
+            lines of arithmetic on top, and the method is published, so anyone
+            could copy it. What they cannot copy is the thing it runs on.
+
+            Two sizes, not two headlines. The second line is the consequence of
+            the first, so it sits under it at a weight that reads as a
+            continuation. */}
         <h1>
-          Is this tokenized stock <em>real</em>?
+          Every tokenized stock on Solana, <em>indexed</em>.
         </h1>
         <p className="h1-more">
-          Is anyone actually buying it? Does it have perps?
+          The ones with a market, rated.
         </p>
         {/* Live, not typed. These were hardcoded and drifted from the real
             figures within days, so the hero contradicted the stats row ten
             centimetres below it. Nothing on this page should state a number the
             index can state itself. */}
         <p className="standfirst">
-          Check by ticker or CA. View all tokenized stocks and the memecoins paired
-          with them: {T.universe.toLocaleString()} listings, {T.tradeable} with a market,
-          seven issuers, gaps between them.
+          {T.universe.toLocaleString()} listings across seven issuers, checkable by ticker
+          or contract address. {T.tradeable} of them have a market, and those carry a score
+          out of 100 for it. The rest say why they do not.
         </p>
       </header>
 
