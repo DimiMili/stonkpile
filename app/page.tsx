@@ -373,50 +373,30 @@ export default async function Page() {
             <b>{bandCount.unrated.toLocaleString()}</b> listings are unrated, because nothing
             was ever funded behind them.
           </p>
-          <p className="lookfor">
-            <span className="k">What is rated, and how</span>
-            Every tokenized stock on Solana with a market gets one: all seven issuers, no
-            applications, nobody paying to be in it. The memecoins priced against these stocks
-            are not rated here, because a coin is a different question and belongs on a
-            different scale.
-            <br />
-            <br />
-            What it judges is the market around a token, never the company behind it and never
-            whether the price is fair. Four parts, each scored out of 10, each carrying its own
-            weight. Ten across all four is exactly 100, so you can add it up yourself.
-          </p>
-          <ul className="rt-key">
-            <li>
-              <b>Liquidity</b><span className="rt-wt">&times;4</span>
-              <span>How much you can sell into before you move the price.</span>
-            </li>
-            <li>
-              <b>Real volume</b><span className="rt-wt">&times;2.5</span>
-              <span>A pool nobody trades and a pool doing 80 times its own size in a day both fail.</span>
-            </li>
-            <li>
-              <b>Pools &amp; perps</b><span className="rt-wt">&times;2</span>
-              <span>More than one pool to sell into, and a perp to hedge or short with.</span>
-            </li>
-            <li>
-              <b>Pricing</b><span className="rt-wt">&times;1.5</span>
-              <span>A price after the US close, and other issuers agreeing on it per share.</span>
-            </li>
-          </ul>
-          <p className="rt-gate">Not rated: a token that fails the issuer check, or one with no market at all.</p>
-          <p className="rt-gate">Never rated on: the company, or whether the price is fair.</p>
-          <Reveal label="Show the rated board" count={`${rated.length} rated`} peek={260}>
-            <p className="scroll-hint">Swipe the table sideways for the four parts of the score</p>
+          {/* The method used to sit here, in front of the board: ninety words on
+              what is rated and how, then the four parts with a definition each,
+              then two lines on what is never rated. A hundred and fifty words
+              of homework before a single rating, and the four definitions said
+              what the table's own column headers already said.
+
+              The finding above is the reason to open a section. The method is
+              not, so it moved inside, where it explains the thing you are
+              now looking at. The full four-part key lives on /rating and in
+              RATING.md, which is where somebody who wants the recipe is going
+              anyway. */}
+          <Reveal label="Show the top rated" count={`${rated.length} rated`} peek={260}>
             <div className="scroll">
               <table>
                 <thead>
                   <tr>
-                    <th>Company</th><th>Token</th><th>Issuer</th><th>Rating</th><th>Redeem for</th>
-                    <th>Liquidity</th><th>Real volume</th><th>Pools &amp; perps</th><th>Pricing</th>
+                    {/* Rating second, not fourth. On a phone the table is wider than
+                        the screen, and the first render pushed the one column this
+                        section is named after off the right edge. */}
+                    <th>Company</th><th>Rating</th><th>Token</th><th>Issuer</th><th>Redeem for</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {rated.slice(0, 20).map(({ row, rating }, i) => (
+                  {rated.slice(0, 8).map(({ row, rating }, i) => (
                     <tr key={row.mint}>
                       <td>
                         <span className="rank">{i + 1}</span>{" "}
@@ -426,9 +406,9 @@ export default async function Page() {
                         )}
                         <span className="coin">{clean(row.name) || row.symbol}</span>
                       </td>
+                      <td><RatingChip rating={rating} /></td>
                       <td><a className="denom" href={`/s/${row.symbol}`}>{row.symbol}</a></td>
                       <td className="dex"><Brand name={row.issuer} size={16} label /></td>
-                      <td><RatingChip rating={rating} /></td>
                       <td className="dex">
                         <span className={`rd-tag rd-${REDEMPTION[row.issuer].claim}`}>
                           {REDEMPTION[row.issuer].claim === "unstated"
@@ -436,17 +416,19 @@ export default async function Page() {
                             : REDEMPTION[row.issuer].claim}
                         </span>
                       </td>
-                      {rating.pillars.map((p) => (
-                        <td className="num" key={p.key}>
-                          {p.score.toFixed(1)}
-                          <small className="per-note">&times;{p.weight}</small>
-                        </td>
-                      ))}
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
+            <p className="lookfor">
+              <span className="k">What is rated, and how</span>
+              Every tokenized stock on Solana with a market gets one: all seven issuers, no
+              applications, nobody paying to be in it. It judges the market around a token,
+              never the company behind it and never whether the price is fair. Four parts,
+              each out of 10, each with its own weight, and ten across all four is exactly
+              100. <a href="/rating">The four parts, with what each one measures</a>.
+            </p>
             <p className="sec-note">
               The scale: {BANDS.map((b, i) => (
                 <span key={b.band}>
@@ -455,8 +437,9 @@ export default async function Page() {
                 </span>
               ))}. Lowest rated right now is{" "}
               {clean(worstRated.row.name) || worstRated.row.symbol} on {worstRated.rating.score}.
-              Every token&rsquo;s own page carries its working and the parts it loses points
-              for.
+              The four parts of any score, and the figures behind them, sit on that
+              token&rsquo;s own page.{" "}
+              <a href="/rating">All {rated.length} rated, in one table</a>.
             </p>
           </Reveal>
         </section>

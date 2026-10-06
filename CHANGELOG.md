@@ -9,6 +9,32 @@ what was built inside a hackathon window.
 
 Dates are Athens time.
 
+## 6 October 2026
+
+- The rating section stopped teaching before it showed. You used to read about a
+  hundred and fifty words before a single rating: ninety on what is rated and how,
+  then the four parts with a definition each, then two lines on what is never rated.
+  The four definitions said what the table's own column headers already said, and
+  every cell already carried its weight. The headline and the "right now" line stay
+  outside, which is what gives anybody a reason to open a section; everything else
+  moved inside, under the table it describes. The full four-part key is on /rating
+  and in RATING.md, where somebody who wants the recipe is already going.
+- The rated board is five columns instead of nine. The four sub-scores were asking
+  people to compare four numbers across a hundred rows, which nobody does, so they
+  live on each token's own page where you are looking at one of them. The note
+  telling you to swipe sideways went with them.
+- The home page shows the top eight rated rather than twenty, with a link to the
+  full table on /rating, which exists for that and has its own share card. Opening
+  the section used to unfold 2,198px and leave you scrolling past a hundred rows to
+  reach the next section or the way out. A fixed-height scrolling box was the
+  obvious fix and the wrong one: it puts three scroll directions under one thumb on
+  a phone, the page, the box and the table sideways.
+- Rating is the second column now, not the fourth. The table is wider than a phone,
+  and the first cut pushed the one column the section is named after off the right
+  edge, so you opened "What the rating says" and saw no ratings.
+- Closed, that section is 390px on a phone instead of 1,373px. Open, it is 1,338px
+  instead of 2,198px. The page is 8,611px instead of 9,207px. One section.
+
 ## 5 October 2026
 
 - The share card for the home page is the rating. It asked "Is this tokenized
