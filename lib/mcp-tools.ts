@@ -76,14 +76,14 @@ export const TOOLS: Tool[] = [
     title: "Stocks used as quote assets",
     description:
       "Tokenized stocks that memecoins are being priced against on Solana, ranked by the " +
-      "24h volume of those coins. Covers xStocks, Sunrise (enum Backpack), Ondo, PreStocks and Tessera.",
+      "24h volume of those coins. Covers xStocks, Backpack, Ondo, PreStocks, Tessera, Securitize and Superstate.",
     inputSchema: {
       type: "object",
       properties: {
         limit: { type: "integer", minimum: 1, maximum: 100, default: 20, description: "How many to return" },
         issuer: {
           type: "string",
-          enum: ["xStocks", "Backpack", "Ondo", "PreStocks", "Tessera"],
+          enum: ["xStocks", "Backpack", "Ondo", "PreStocks", "Tessera", "Securitize", "Superstate"],
           description: "Filter by issuer",
         },
         only_without_247_feed: {
@@ -223,7 +223,7 @@ export const TOOLS: Tool[] = [
       if (!hits.length) {
         return (
           `No verified tokenized stock matches "${a.ticker}".\n` +
-          `Nothing with that ticker is issued by xStocks, Sunrise, Ondo, PreStocks or Tessera. ` +
+          `Nothing with that ticker is issued by any of the seven issuers this index verifies. ` +
           `If you have seen a token using this name on Solana, it is not one of theirs.`
         );
       }
@@ -257,7 +257,7 @@ export const TOOLS: Tool[] = [
     title: "Tokenized stocks ranked by liquidity",
     description:
       "Which tokenized stocks actually have money behind them, ranked by pool liquidity across " +
-      "all five issuers. This is the question most tools cannot answer, because they cover one " +
+      "all seven issuers. This is the question most tools cannot answer, because they cover one " +
       "issuer. Listing a token costs nothing, so a large catalogue says nothing on its own.",
     inputSchema: {
       type: "object",
@@ -265,7 +265,7 @@ export const TOOLS: Tool[] = [
         limit: { type: "integer", minimum: 1, maximum: 100, default: 15 },
         issuer: {
           type: "string",
-          enum: ["xStocks", "Backpack", "Ondo", "PreStocks", "Tessera"],
+          enum: ["xStocks", "Backpack", "Ondo", "PreStocks", "Tessera", "Securitize", "Superstate"],
           description: "Filter to one issuer",
         },
       },
@@ -315,7 +315,7 @@ export const TOOLS: Tool[] = [
       if (!hit) {
         return (
           `${mint}\nNot in this index.\n\n` +
-          `It is not a tokenized stock issued by xStocks, Sunrise, Ondo, PreStocks or Tessera, ` +
+          `It is not a tokenized stock issued by any of the seven issuers this index verifies, ` +
           `and it is not a coin quoted against one of them. If it presents itself as a ` +
           `tokenized equity, it is not one. Issuers here are identified by token metadata ` +
           `host, so a matching name proves nothing.`

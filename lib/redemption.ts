@@ -107,6 +107,45 @@ export const REDEMPTION: Record<Issuer, Redemption> = {
     sourceUrl: "https://www.odaily.news/en/post/5210562",
     asOf: "2026-10-04",
   },
+  /* Securitize and Superstate are a different shape to the five above, and the
+     honest entry for both is that we have not read their own terms.
+
+     What is established: SECZ is Securitize's own stock, tokenized on the day
+     it listed on the NYSE, with Securitize itself the registered transfer
+     agent, issued natively as an SPL token rather than wrapped. Superstate's
+     Opening Bell puts SEC-registered equities on Solana the same way, and
+     Galaxy Digital is the one carrying a Solana token here.
+
+     If the token is the registered share, "redeem" is close to the wrong word:
+     there is no custodied asset behind it to claim, because the holder is on
+     the register. That is a stronger position than anything else on this list
+     and we are not going to assert it from press coverage. Both pages that
+     would settle it need JavaScript to render and did not come back readable,
+     so these say "not stated" until somebody reads the terms themselves. */
+  Securitize: {
+    claim: "unstated",
+    what:
+      "SECZ is Securitize's own stock, tokenized on its NYSE listing day and issued natively on Solana " +
+      "rather than wrapped, with Securitize as the registered transfer agent. " +
+      "We could not read Securitize's own statement of what a holder can redeem or convert a token for.",
+    who: "Not stated in a source we could read.",
+    source: "Securitize's press announcement and third-party coverage of the SECZ listing",
+    sourceUrl: "https://securitize.io/learn/press/securitize-tokenizes-secz-stock-onchain",
+    alsoUrl: "https://app.rwa.xyz/assets/SECZ",
+    asOf: "2026-10-05",
+  },
+  Superstate: {
+    claim: "unstated",
+    what:
+      "Opening Bell issues SEC-registered equities directly on Solana, with Superstate as transfer agent, " +
+      "and the shares are live as collateral in Solana lending markets. " +
+      "We could not read Superstate's own statement of what a holder can redeem or convert a token for.",
+    who: "Not stated in a source we could read.",
+    source: "Superstate's newsroom and The Block's coverage of the Opening Bell launch",
+    sourceUrl: "https://superstate.com/newsroom/superstate-equities-now-live-as-defi-collateral",
+    alsoUrl: "https://www.theblock.co/post/353344/superstate-unveils-opening-bell-to-bring-sec-registered-equities-onchain-starting-with-solana",
+    asOf: "2026-10-05",
+  },
 };
 
 export const CLAIM_LABEL: Record<Claim, string> = {

@@ -11,6 +11,72 @@ Dates are Athens time.
 
 ## 5 October 2026
 
+- The share card for the home page is the rating. It asked "Is this tokenized
+  stock real?" over a bar chart of memecoin volume per stock, which was the
+  product when this was Ticker Wars, so every link posted anywhere unfurled as
+  the old site. It is now four band tiles, A to D with their counts in their own
+  colours, under the line the site actually makes, with the three best-rated
+  names and the unrated figure along the bottom. Checked at the size a timeline
+  renders it: the headline and the four tiles are what survive, which is why
+  they carry it alone.
+- The title and the description went with it. A timeline shows the picture and
+  the title and usually swallows the description, so the picture carries the
+  proposition and the title carries the result: how many are listed, how many
+  have a market, how many rate Prime. Both come off the same index.
+- The card URL carries a design revision now. Social crawlers cache per image
+  URL and do not come back, so a redesigned card behind an unchanged URL is a
+  card nobody ever sees.
+
+- Phone legibility, second pass. The 2 October pass fixed what existed then and
+  everything shipped since came in at the old sizes. Measured at 393px: 18
+  elements failed WCAG AA on contrast, 9 tap targets were under 44px, and the
+  page was 10,957px tall, which is 12.9 phone screens against the 6,720px the
+  collapse work got it to three days earlier. Now 0 contrast failures, every
+  control over 44px, and 9,207px.
+- One colour caused all 18 contrast failures. --faint was #8a929c, which is
+  2.69:1 on the paper background where 4.5:1 is the floor, and 36 rules used it
+  for words: table headers, every micro-label, the lookup label, the scroll
+  hint, the footnote, the disclaimer. There is no grey on this background that
+  is both fainter than --muted and readable at 12px, so the ramp is two text
+  greys now instead of three, and --rule keeps the old value for the separator
+  dots, where there are no words and the rule does not apply.
+- The peek is 96px on a phone rather than 210px. Ten sections previewing
+  themselves is 2,100px of teaser, a screen and a half spent on things you have
+  not opened, and the headline, the "right now" line and the count were already
+  three reasons to open one.
+- The ranked table no longer opens by default. It was the only section that did,
+  and it was 901px of the page on a phone.
+- "Five issuers, very different shapes" said five under a count reading 1,805
+  listings and a control reading "Compare the seven issuers".
+
+- Two issuers were missing. Jupiter's verified list carries seven metadata hosts
+  that belong to a tokenized-stock issuer and this index knew five, so Securitize
+  and Superstate were invisible. Securitize tokenized its own NYSE stock on
+  listing day, SECZ, and Superstate's Opening Bell puts SEC-registered equity on
+  Solana, with Galaxy Digital the one listed here. One token each, no pool behind
+  either, so both are unrated, which is the correct verdict and the interesting
+  one: Zinn Research puts $30.0M of held value behind Superstate, more than
+  Backpack, with no onchain trading at all. Both record the share with a
+  registered transfer agent rather than minting against a custodied claim.
+- Backpack, not Sunrise. The issuer column said Sunrise and carried Sunrise's
+  mark, on the reasoning that Sunrise is the brand the market sees. Backpack's
+  own documentation says the other thing: Backpack Securities issues and
+  custodies, Sunrise is a Wormhole Labs platform that coordinates the listing and
+  the liquidity. The verification underneath already said so, since the host we
+  read is backpack.exchange, and the redemption note already said so, since those
+  terms are Backpack Securities'. Six places said Sunrise and five said Backpack,
+  on the same page in two cases. All seven now say Backpack, and Sunrise is named
+  where it belongs, as the listing.
+- Redemption terms for Securitize and Superstate say "not stated", because both
+  pages that would settle it need JavaScript to render and did not come back
+  readable. If the token is the registered share then "redeem" is close to the
+  wrong word and the claim is stronger than anything else on the list, which is
+  exactly why it is not being asserted from press coverage.
+- A ticker shared by two issuers goes to the token actually called that. xStocks
+  lists Galaxy Digital as GLXYx and Superstate lists it as GLXY, and matching the
+  symbol or the underlying in whichever order the array happened to be in meant
+  /s/GLXY served the xStocks token and Superstate's had no reachable page at all.
+
 - The rating is the share card. Every link to a ticker page now unfurls as the
   letter, the score out of 100 and the four parts as bars, in the band's own
   colour, with the liquidity, the day's volume and what the issuer redeems for

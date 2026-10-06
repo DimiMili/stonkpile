@@ -194,14 +194,14 @@ export function Lookup() {
               {isCA ? (
                 <>
                   Nothing in this index has that mint address. It is not a tokenized stock
-                  issued by xStocks, Sunrise, Ondo, PreStocks or Tessera, and it is not a coin
+                  issued by one of the seven issuers this index verifies, and it is not a coin
                   quoted against one. Whatever it calls itself, it is something else.
                 </>
               ) : (
                 <>
                   No verified tokenized stock or quoted coin matches “{q}”. If you have found a
-                  token using that name on-chain, it is not issued by xStocks, Sunrise, Ondo,
-                  PreStocks or Tessera.
+                  token using that name on-chain, it is not issued by xStocks, Backpack, Ondo,
+                  PreStocks, Tessera, Securitize or Superstate.
                 </>
               )}
             </p>
@@ -237,7 +237,7 @@ function Hit({ i }: { i: LookupItem }) {
           : i.name || (coin ? "coin" : "")}
       </span>
       <span className="hit-issuer">
-        {i.lookalike ? "no issuer" : coin ? "coin" : i.issuer === "Backpack" ? "Sunrise" : i.issuer}
+        {i.lookalike ? "no issuer" : coin ? "coin" : i.issuer}
       </span>
       <span className="hit-state">
         {i.lookalike

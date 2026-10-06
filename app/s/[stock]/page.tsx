@@ -21,7 +21,12 @@ async function find(key: string) {
   const k = key.toUpperCase();
   return {
     idx,
-    stock: idx.stocks.find((s) => s.symbol.toUpperCase() === k || s.underlying === k),
+    /* Exact symbol first, then the underlying. Several companies are tokenized
+       by more than one issuer, so matching either one in array order hands
+       /s/SPCX to whichever row happened to be sorted higher. */
+    stock:
+      idx.stocks.find((s) => s.symbol.toUpperCase() === k) ??
+      idx.stocks.find((s) => s.underlying === k),
   };
 }
 
@@ -97,9 +102,14 @@ export default async function SharePage(
        and it is a real token somebody is holding. Telling them nothing on
        Solana is called that would be a false statement about an asset that
        exists; what is true is that nobody has funded a market behind it. */
-    const listed = idx.lookup.find(
-      (e) => e.kind === "stock" && (e.symbol.toUpperCase() === k || e.underlying === k),
-    );
+    /* The token actually called that wins over a token merely tracking that
+       company. Two issuers tokenize Galaxy Digital, xStocks as GLXYx and
+       Superstate as GLXY, and matching either in array order meant /s/GLXY
+       served the xStocks token and Superstate's had no reachable page at all. */
+    const stocksOnly = idx.lookup.filter((e) => e.kind === "stock");
+    const listed =
+      stocksOnly.find((e) => e.symbol.toUpperCase() === k) ??
+      stocksOnly.find((e) => e.underlying === k);
     const avail = idx.stocks.filter((s) => isRated(s.rating)).slice(0, 16);
     return (
       <div className="wrap">

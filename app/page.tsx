@@ -27,16 +27,25 @@ export async function generateMetadata(): Promise<Metadata> {
   // 24 chances a day to burn a card; daily means one, and it can be warmed by
   // hand after a deploy. The suffix is the manual break for when we need a URL
   // their crawler has never seen at all.
-  const v = `${Math.floor(Date.parse(idx.generatedAt) / 86_400_000)}r4`;
+  const v = `${Math.floor(Date.parse(idx.generatedAt) / 86_400_000)}r5`;
   const image = `${siteUrl}/api/card/board.png?v=${v}`;
-  /* The card sells the same thing the page now promises. The image below still
-     carries the board and its own line, because that is a caption on a chart
-     rather than a second pitch: the title asks the question, the picture is the
-     evidence that somebody has actually done the work. */
-  const title = "Is this tokenized stock real?";
+  /* Title and picture say different things on purpose. A timeline shows the
+     image and the title and usually swallows the description, so the image
+     carries the proposition, "every tokenized stock on Solana, rated", and the
+     title carries the result. Both come off the same index, so neither can go
+     stale against the other.
+
+     It used to ask "Is this tokenized stock real?" over a bar chart of memecoin
+     volume. That question is one section of the site now. */
+  const T = idx.totals;
+  const title =
+    `${T.universe.toLocaleString()} tokenized stocks listed on Solana. ` +
+    `${T.tradeable} have a market. ${T.ratings.prime} rate Prime.`;
   const description =
-    `Paste a ticker or a contract address. Who issued it, whether it has a market, ` +
-    `and what is priced against it. Every tokenized stock on Solana, across five issuers.`;
+    `Every one with a market is scored out of 100 for the market around it: how much you can ` +
+    `sell into, whether the volume is real, how many ways out there are, and whether it can be ` +
+    `priced. The other ${T.ratings.unrated.toLocaleString()} are unrated, because nothing was ` +
+    `ever funded behind them. Nobody applies and nobody pays to be rated.`;
   return {
     openGraph: {
       title, description, type: "website", url: siteUrl,
@@ -57,6 +66,27 @@ const clean = (s: string) =>
 
 const holders = (v: number) =>
   v >= 1e6 ? `${(v / 1e6).toFixed(2)}M` : `${Math.round(v / 1e3)}k`;
+
+/* The issuers, biggest catalogue first, with one line each saying what they
+   actually are. Securitize and Superstate were added on 5 Oct and sit last
+   because they list one token apiece: both record the share with a registered
+   transfer agent rather than minting against a custodied claim, and neither
+   has a pool on Solana, so both are unrated here and the reason is the point.
+   Backpack, not Sunrise. Backpack Securities issues and custodies; Sunrise is
+   a Wormhole Labs platform that coordinates the listing and the liquidity. */
+const ISSUER_ORDER = [
+  "xStocks", "Ondo", "Backpack", "PreStocks", "Tessera", "Securitize", "Superstate",
+] as const;
+
+const ISSUER_SUB: Record<(typeof ISSUER_ORDER)[number], string> = {
+  xStocks: "issues the xStocks range",
+  Ondo: "Ondo Finance",
+  Backpack: "Backpack Securities, listed through Sunrise",
+  PreStocks: "pre-IPO equity",
+  Tessera: "pre-IPO, tessera.pe",
+  Securitize: "its own NYSE stock, onchain",
+  Superstate: "Opening Bell, SEC-registered equity",
+};
 
 const when = (ts?: number) =>
   ts ? new Date(ts * 1000).toUTCString().slice(0, 22) + " UTC" : "";
@@ -136,12 +166,12 @@ export default async function Page() {
   /* Ranked by money per listed token, not by the size of the gap in counts.
      Counting picks the issuer with the biggest catalogue; what the reader wants
      is the one whose catalogue is emptiest, and that is a liquidity question. */
-  const deadest = (["xStocks", "Backpack", "Ondo", "PreStocks", "Tessera"] as const)
+  const deadest = ISSUER_ORDER
     .map((iss) => {
       const d = T.byIssuerDepth[iss];
       return {
         iss,
-        shown: iss === "Backpack" ? "Sunrise" : iss,
+        shown: iss,
         listed: T.byIssuer[iss] ?? 0,
         liquidity: d?.liquidity ?? 0,
         withPool: d?.withPool ?? 0,
@@ -230,7 +260,7 @@ export default async function Page() {
         <p className="standfirst">
           Check by ticker or CA. View all tokenized stocks and the memecoins paired
           with them: {T.universe.toLocaleString()} listings, {T.tradeable} with a market,
-          five issuers, gaps between them.
+          seven issuers, gaps between them.
         </p>
       </header>
 
@@ -345,7 +375,7 @@ export default async function Page() {
           </p>
           <p className="lookfor">
             <span className="k">What is rated, and how</span>
-            Every tokenized stock on Solana with a market gets one: all five issuers, no
+            Every tokenized stock on Solana with a market gets one: all seven issuers, no
             applications, nobody paying to be in it. The memecoins priced against these stocks
             are not rated here, because a coin is a different question and belongs on a
             different scale.
@@ -447,7 +477,7 @@ export default async function Page() {
           category is listings. The names here are the ones with real money standing behind
           them.
         </p>
-              <Reveal label="Show the ranked table" count={`${byLiq.length} with a market`} open>
+              <Reveal label="Show the ranked table" count={`${byLiq.length} with a market`}>
 <p className="scroll-hint">Swipe the table sideways for holders and volume</p>
         <div className="scroll">
           <table>
@@ -516,7 +546,7 @@ export default async function Page() {
       </section>
 
       <section id="issuers">
-        <h2>Five issuers, very different shapes</h2>
+        <h2>Seven issuers, very different shapes</h2>
         {deadest && (
           <p className="finding">
             <span className="nowtag">right now</span>
@@ -532,12 +562,9 @@ export default async function Page() {
           pools behind it, and how much of that catalogue has no pool at all. Used as a quote
           asset is the strictest test: it means other people built markets on top.
         </p>
-      <Reveal label="Compare the five issuers" count={`${T.universe.toLocaleString()} listings`} peek={260}>
+      <Reveal label="Compare the seven issuers" count={`${T.universe.toLocaleString()} listings`} peek={260}>
         <div className="issuers">
-          {(["xStocks", "Backpack", "Ondo", "PreStocks", "Tessera"] as const).map((iss) => {
-            // Sunrise is the brand the market knows; Backpack Securities is the
-            // entity that actually issues, and what the token metadata says.
-            const shown = iss === "Backpack" ? "Sunrise" : iss;
+          {ISSUER_ORDER.map((iss) => {
             const listed = T.byIssuer[iss] ?? 0;
             const rows = stocks.filter((s) => s.issuer === iss);
             const depth = T.byIssuerDepth[iss];
@@ -547,15 +574,9 @@ export default async function Page() {
               <div className="issuer" key={iss}>
                 <p className="issuer-name">
                   <Brand name={iss} size={22} />
-                  {shown}
+                  {iss}
                 </p>
-                <p className="issuer-sub">
-                  {iss === "Backpack" ? "issued by Backpack Securities"
-                    : iss === "xStocks" ? "issues the xStocks range"
-                    : iss === "PreStocks" ? "pre-IPO equity"
-                    : iss === "Tessera" ? "pre-IPO, tessera.pe"
-                    : "Ondo Finance"}
-                </p>
+                <p className="issuer-sub">{ISSUER_SUB[iss]}</p>
                 <div className="issuer-row"><span>Tokens listed</span><b>{listed.toLocaleString()}</b></div>
                 <div className="issuer-row"><span>Have a pool</span><b>{depth?.withPool ?? rows.length}</b></div>
                 <div className="issuer-row"><span>Liquidity, all tokens</span><b>{usd(depth?.liquidity ?? 0)}</b></div>

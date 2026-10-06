@@ -13,14 +13,23 @@ const MARKS: Record<string, { src: string; label: string }> = {
   Phoenix: { src: "/brand/phoenix.png", label: "Phoenix" },
   Hyperliquid: { src: "/brand/hyperliquid.png", label: "Hyperliquid" },
   xStocks: { src: "/brand/xstocks.png", label: "xStocks" },
-  // The card says Sunrise, so the mark has to be Sunrise's. Backpack Securities
-  // is the entity that issues and custodies; Sunrise is the brand the market
-  // sees and the name on the listing, and showing the backpack next to the word
-  // "Sunrise" was simply the wrong logo. Taken from sunrise.xyz's own icon.
-  Backpack: { src: "/brand/sunrise.svg", label: "Sunrise" },
+  // Backpack, not Sunrise. On 2 Oct this read Sunrise and carried sunrise.xyz's
+  // icon, on the reasoning that Sunrise is the brand the market sees. Backpack's
+  // own documentation settles it the other way: Backpack Securities issues and
+  // custodies, and Sunrise, a Wormhole Labs platform, coordinates the listing,
+  // the liquidity and the distribution. In a column headed Issuer, the issuer is
+  // Backpack. The verification underneath says so too: we read the metadata host
+  // backpack.exchange and then printed a different company's name next to it.
+  Backpack: { src: "/brand/backpack.png", label: "Backpack" },
   Ondo: { src: "/brand/ondo.svg", label: "Ondo" },
   PreStocks: { src: "/brand/prestocks.png", label: "PreStocks" },
   Tessera: { src: "/brand/tessera.png", label: "Tessera" },
+  Securitize: { src: "/brand/securitize.png", label: "Securitize" },
+  // Superstate has no usable mark on their own domain: the only thing served is
+  // a 766-byte favicon, and the logos under assets.superstate.com belong to the
+  // companies they list rather than to Superstate. So no entry, and the
+  // component falls back to a lettered tile, which is the designed behaviour
+  // and better than an approximation.
 };
 
 export function Brand({

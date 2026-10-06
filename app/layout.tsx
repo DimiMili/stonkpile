@@ -5,16 +5,34 @@ import { Analytics } from "@vercel/analytics/next";
 import { PinkSheets } from "@/components/PinkSheets";
 
 const TITLE = "Stonkpile";
+
+/* The unfurl, which for most people is the whole site.
+   All three parts of it were still selling Ticker Wars: a title about Wall
+   Street being the denominator, a description about memecoins quoted against
+   stocks, and a card asking whether a token is real over a bar chart of
+   memecoin volume. That was the product three weeks ago.
+
+   No counts in here. This is a static export with no index behind it, so any
+   number typed here is frozen at the moment it was written, which is the exact
+   fault the hero carried until 5 October. The card renders live and carries
+   the figures. */
+const SHOUT = "Every tokenized stock on Solana, rated.";
 const DESC =
-  "Every memecoin on Solana quoted against a tokenized stock. Live index across xStocks, Sunrise, Ondo, PreStocks and Tessera.";
-const CARD = `${siteUrl}/api/card/board.png`;
+  "Every tokenized stock on Solana with a market gets a rating out of 100 for the market around it: " +
+  "liquidity, real volume, pools and perps, and pricing. The ones with nothing behind them get a reason instead. " +
+  "Across xStocks, Backpack, Ondo, PreStocks, Tessera, Securitize and Superstate.";
+
+/* Social crawlers cache per image URL and never come back, so a redesigned card
+   behind an unchanged URL is a card nobody sees. Bump this when the card's
+   design changes; it does not need to track the data, which the CDN handles. */
+const CARD = `${siteUrl}/api/card/board.png?v=rating1`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: { default: TITLE, template: "%s · Stonkpile" },
   description: DESC,
   openGraph: {
-    title: "Wall Street is the denominator now.",
+    title: SHOUT,
     description: DESC,
     type: "website",
     url: siteUrl,
@@ -23,7 +41,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Wall Street is the denominator now.",
+    title: SHOUT,
     description: DESC,
     images: [CARD],
   },

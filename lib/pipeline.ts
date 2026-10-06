@@ -35,6 +35,15 @@ const ISSUERS: Record<string, Issuer> = {
   // the two, and where it has since listed there is, which makes the gap a
   // harder question rather than an unanswerable one.
   "cdn.tesseralab.co": "Tessera",
+  // Securitize and Superstate issue a different shape of thing to the four
+  // above: the token is recorded by a registered transfer agent rather than
+  // minted against a custodied claim, and neither has a pool on Solana. They
+  // were missing here until 5 Oct, which meant the index said five issuers
+  // while Jupiter's verified list carried seven. Both currently list one token
+  // each: SECZ, Securitize's own NYSE stock, and GLXY, Galaxy Digital through
+  // Superstate's Opening Bell.
+  "metadata.securitize.io": "Securitize",
+  "assets.superstate.com": "Superstate",
 };
 
 const NOT_MEME = new Set([
@@ -52,7 +61,9 @@ export const PLATFORM_TOKENS: Record<string, string> = {
   "6GmAFSYs4gk3FDao5FzzySQpPZaWsa4rUJHacpMpUNgx": "StonkFun launchpad token",
 };
 
-export type Issuer = "xStocks" | "Backpack" | "Ondo" | "PreStocks" | "Tessera";
+export type Issuer =
+  | "xStocks" | "Backpack" | "Ondo" | "PreStocks" | "Tessera"
+  | "Securitize" | "Superstate";
 
 export interface QuotedCoin {
   coin: string;
@@ -615,7 +626,7 @@ export async function buildIndex(): Promise<Index> {
      Two deliberate narrowings, both to keep this from crying wolf:
 
      Only symbols that carry an issuer's own mark (AAPLx, RIVNon, tSpaceX) count.
-     Sunrise names its tokens with the bare ticker, so AMD, IBM and WEN are all
+     Backpack names its tokens with the bare ticker, so AMD, IBM and WEN are all
      real token symbols too, and flagging every memecoin called AMD would be
      wrong: naming a coin after a company is ordinary, and there is no way to
      tell an honest one from a fake by the ticker alone.

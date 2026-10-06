@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 """
-Ticker Wars pipeline v2
-Universe : every tokenized stock on Solana, across all three issuers.
+HISTORICAL. The original prototype, from when this was called Ticker Wars and
+covered three issuers. The live index is lib/pipeline.ts, which covers seven,
+reads corporate actions off the chain and carries the rating. This file is kept
+because it still runs offline and it is the shortest readable statement of the
+idea: fetch the universe, find what is quoted against it, check the prices.
+
+Universe : every tokenized stock on Solana, across three issuers.
 Pairs    : every coin quoted AGAINST one of them.
 Prices   : Pyth 24/7 Equity.Index feeds.
 All sources keyless and public.

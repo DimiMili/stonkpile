@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { buildIndex, type StockRow, type Index } from "@/lib/pipeline";
 import { fonts } from "@/lib/fonts";
-import { bandLabel, bandLetter, isRated, type Band, type Rating } from "@/lib/rating";
+import { BANDS, bandLabel, bandLetter, isRated, type Band, type Rating } from "@/lib/rating";
 import { CLAIM_LABEL, REDEMPTION } from "@/lib/redemption";
 
 export const runtime = "nodejs";
@@ -164,47 +164,79 @@ export async function GET(
       { width: W, height: H, fonts: fontSet, headers: IMG_HEADERS },
     );
 
-  /* ---------------- board ---------------- */
+  /* ---------------- board ----------------
+     The card every link to the home page unfurls as, so it has to be the
+     product. It used to ask "Is this tokenized stock real?" over a bar chart of
+     memecoin volume per stock, which was the pitch when this was Ticker Wars
+     and sells the wrong thing now that the site is a rating.
+
+     The four band tiles carry it. At the size a timeline renders this, the
+     headline is readable and the tiles are the only other thing that is, so
+     they have to say what the site does on their own: four letters, four
+     counts, four colours. The unrated figure goes in the footer rather than a
+     fifth tile, because it is an order of magnitude larger than the rest and a
+     tile sized to it would make the four that matter look like rounding. */
   if (key === "BOARD" || key === "INDEX") {
     const T = idx.totals;
-    const rows = idx.stocks.filter((s) => s.quotedCount > 0).slice(0, 5);
-    const max = Math.max(...rows.map((r) => r.quotedVolume24h), 1);
+    const best = idx.stocks
+      .filter((x) => isRated(x.rating))
+      .sort((a, b) => (b.rating as Rating).score - (a.rating as Rating).score)
+      .slice(0, 3);
 
+    const TILE = 254, TGAP = 24;
     return shell(
-      <div style={col({ flex: 1, justifyContent: "center", paddingTop: 4 })}>
-        {/* The card asks what the page asks. It used to carry its own slogan,
-            which meant a shared link showed two different pitches stacked on
-            each other: a question in the title and a manifesto in the picture.
-            The board underneath is the evidence, not a second argument. */}
-        <div style={{ ...serif(64, 800, PAPER), lineHeight: 1 }}>Is this tokenized</div>
-        <div style={{ ...serif(64, 800, PAPER), lineHeight: 1, marginTop: 4 }}>
-          {/* Satori drops whitespace between a text node and a span, so the gap
-              is set explicitly rather than typed as a space. */}
-          stock<span style={{ color: BRASS, marginLeft: 17 }}>real</span>?
+      <div style={col({ flex: 1, justifyContent: "space-between", paddingTop: 10, paddingBottom: 6 })}>
+        <div style={col()}>
+          <div style={{ ...serif(62, 800, PAPER), lineHeight: 1 }}>Every tokenized stock</div>
+          <div style={{ ...serif(62, 800, PAPER), lineHeight: 1, marginTop: 6 }}>
+            {/* Satori drops whitespace between a text node and a span, so the
+                gap before the coloured word is set explicitly. */}
+            on Solana,<span style={{ color: BRASS, marginLeft: 17 }}>rated</span>.
+          </div>
+          <div style={mono(21, 400, MUTED)}>
+            <span style={{ marginTop: 14 }}>
+              {T.universe.toLocaleString()} listed. {T.tradeable} have a market. Those are the
+              ones rated.
+            </span>
+          </div>
         </div>
-        <div style={mono(21, 400, MUTED)}>
-          <span style={{ marginTop: 16 }}>
-            Check any ticker or contract address. These are the stocks that{" "}
-            {T.quotedCoins.toLocaleString()} coins are actually priced in.
-          </span>
-        </div>
-        <div style={col({ marginTop: 22 })}>
-          {rows.map((r) => (
-            <div key={r.mint} style={row({ height: 46, borderBottom: `1px solid ${LINE}` })}>
-              <div style={{ ...serif(30, 600, PAPER), width: 132 }}>{r.symbol}</div>
-              <div style={{ ...mono(19, 400, MUTED), width: 120 }}>{r.quotedCount} coins</div>
-              <Bar pct={(r.quotedVolume24h / max) * 100} />
-              <div style={{ ...mono(22, 600, PAPER), width: 118, justifyContent: "flex-end" }}>
-                {usd(r.quotedVolume24h)}
+
+        <div style={row({ marginTop: 6 })}>
+          {BANDS.map((b, i) => {
+            const n = T.ratings[b.band] ?? 0;
+            const c = BAND_COLOR[b.band];
+            return (
+              <div key={b.band} style={col({
+                width: TILE, marginRight: i === BANDS.length - 1 ? 0 : TGAP,
+                border: `3px solid ${c}`, padding: "16px 20px 18px",
+              })}>
+                <div style={row({ alignItems: "flex-end" })}>
+                  <div style={{ ...serif(74, 800, c), lineHeight: 1 }}>{b.letter}</div>
+                  <div style={{ ...serif(58, 800, PAPER), lineHeight: 1, marginLeft: "auto" }}>{n}</div>
+                </div>
+                <div style={{ ...mono(21, 600, c), letterSpacing: 1.6, marginTop: 12 }}>
+                  {b.label.toUpperCase()}
+                </div>
               </div>
+            );
+          })}
+        </div>
+
+        <div style={row({ marginTop: 4 })}>
+          {best.map((x, i) => (
+            <div key={x.mint} style={row({ marginRight: 34 })}>
+              <div style={mono(20, 600, BRASS)}>{(x.rating as Rating).score}</div>
+              <div style={{ ...mono(20, 400, MUTED), marginLeft: 10 }}>
+                {cut(clean(x.name) || x.symbol, 18)}
+              </div>
+              {i < best.length - 1 && <div style={mono(20, 400, LINE)}>&nbsp;</div>}
             </div>
           ))}
         </div>
       </div>,
       <Footer bits={[
-        `${T.universe.toLocaleString()} tokenized stocks listed`,
-        `${T.tradeable} have a market`,
-        `${T.with247Feed}/${T.denominators} have a 24/7 oracle`,
+        `${T.ratings.unrated.toLocaleString()} unrated, nothing was ever funded behind them`,
+        `${T.withPerp} have a perp`,
       ]} />,
     );
   }
@@ -220,7 +252,7 @@ export async function GET(
      coins quoted against them still get their card. */
   if (!s) return new Response("Not found", { status: 404, headers: IMG_HEADERS });
 
-  const issuerLabel = s.issuer === "Backpack" ? "Sunrise" : s.issuer;
+  const issuerLabel = s.issuer;
   const redeem = REDEMPTION[s.issuer];
 
   /* ---------------- the rating ----------------
@@ -324,7 +356,7 @@ export async function GET(
       return true;
     })
     .slice(0, 5);
-  const issuerName = s.issuer === "Backpack" ? "Sunrise" : s.issuer;
+  const issuerName = s.issuer;
   const max = Math.max(...top.map((c) => c.volume24h), 1);
 
   return shell(
