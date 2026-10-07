@@ -61,7 +61,7 @@ export function Venues({
 
         {poolLinks.map((p) => (
           <a className="venue" key={p.label} href={p.url} target="_blank" rel="noopener noreferrer">
-            <span className="venue-name">{p.label}</span>
+            <span className="venue-name dexname">{p.label}</span>
             <span className="venue-meta">{usd(p.depth)} deep</span>
           </a>
         ))}

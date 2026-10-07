@@ -1293,10 +1293,11 @@ table.sortable td{ text-align:left; vertical-align:middle }
    another row in the list. */
 .venue-lead{ grid-column:1/-1; border-color:var(--brass) }
 
-.venue-name{
-  font-family:"IBM Plex Mono",monospace; font-size:13.5px; font-weight:600;
-  text-transform:capitalize;
-}
+.venue-name{ font-family:"IBM Plex Mono",monospace; font-size:13.5px; font-weight:600 }
+/* Only the DEX names need a capital. They arrive lowercase from the scan
+   ("raydium"), and capitalising the whole class turned the action labels into
+   Title Case Nonsense: "Trade The Perp On Phoenix". */
+.venue-name.dexname{ text-transform:capitalize }
 .venue-meta{
   font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--muted);
   margin-left:auto; display:flex; align-items:center; gap:8px;
