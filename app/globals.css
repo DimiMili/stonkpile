@@ -482,13 +482,18 @@ h1,h2,.stat .v,.tick b,.denom{font-optical-sizing:none}
 
 /* ---------- live indicator ---------- */
 .live{display:inline-flex; align-items:center; gap:7px; color:var(--up)}
+/* One live indicator on the page, and it is this. The "right now" tags were
+   considered for a blink too and rejected: there are eleven of them, they label
+   a thing that never changes, and eleven pulsing elements read as a broken page
+   rather than as emphasis. So this dot carries it alone, and it was given a
+   slightly wider ring and a slightly slower cycle to earn that. */
 .live-dot{
-  width:7px; height:7px; border-radius:50%; background:var(--up); flex:none;
-  box-shadow:0 0 0 0 var(--up); animation:pulse 2.4s ease-out infinite;
+  width:8px; height:8px; border-radius:50%; background:var(--up); flex:none;
+  box-shadow:0 0 0 0 var(--up); animation:pulse 2.8s ease-out infinite;
 }
 @keyframes pulse{
-  0%{box-shadow:0 0 0 0 color-mix(in srgb, var(--up) 55%, transparent)}
-  70%{box-shadow:0 0 0 7px transparent}
+  0%{box-shadow:0 0 0 0 color-mix(in srgb, var(--up) 70%, transparent)}
+  70%{box-shadow:0 0 0 10px transparent}
   100%{box-shadow:0 0 0 0 transparent}
 }
 @media (prefers-reduced-motion:reduce){ .live-dot{animation:none} }
@@ -1197,3 +1202,69 @@ header + .snav{ border-top:none; margin-top:0 }
      keeps enough to show there is a table or a chart under there. */
   .reveal::details-content{ block-size:var(--peek-sm,96px) }
 }
+
+/* ---------------------------------------------------------------------------
+   The rated board: issuer chips and sortable columns, 7 October.
+
+   Two pieces of feedback. One reader found the board overwhelming; another
+   arrived with an exact question, "does Backpack issue NVDA", and could not see
+   where to look. A long table answers neither.
+   --------------------------------------------------------------------------- */
+.iss-row{
+  display:flex; gap:8px; overflow-x:auto; padding:2px 0 8px; margin:0 0 4px;
+  scrollbar-width:none; -ms-overflow-style:none; -webkit-overflow-scrolling:touch;
+}
+.iss-row::-webkit-scrollbar{display:none}
+.iss-row button{
+  flex:none; display:flex; align-items:center; gap:8px; min-height:44px;
+  font-family:"IBM Plex Mono",monospace; font-size:13.5px; padding:9px 15px;
+  background:var(--surface); border:1px solid var(--line); border-radius:999px;
+  color:var(--ink); cursor:pointer; white-space:nowrap;
+}
+.iss-row button .n{ font-size:13px; color:var(--muted); font-variant-numeric:tabular-nums }
+.iss-row button.on{ background:var(--ink); border-color:var(--ink); color:var(--bg) }
+.iss-row button.on .n{ color:var(--brass) }
+.iss-row button .brand{ --mark:17px }
+
+/* A header you can tap is a button, so it says so to a keyboard and a screen
+   reader rather than being a div with a click handler. */
+table.sortable th{ padding:0 }
+table.sortable th button{
+  width:100%; display:flex; align-items:center; gap:6px; justify-content:inherit;
+  font:inherit; letter-spacing:inherit; text-transform:inherit; color:inherit;
+  background:none; border:0; padding:12px; cursor:pointer; min-height:44px;
+}
+table.sortable th button:hover{ color:var(--ink) }
+table.sortable th .sort-mark{ color:var(--brass); font-size:1.1em; width:1ch }
+.board-more{
+  font-family:"IBM Plex Mono",monospace; font-size:13.5px; color:var(--muted); margin:12px 0 0;
+}
+@media (max-width:640px){
+  .board-more{ font-size:14px }
+  .iss-row button{ font-size:14px }
+}
+
+/* Company names stopped truncating on the rated board. The 18ch clamp was set
+   when the board had nine columns and every one of them was fighting for room;
+   at five columns there is space for "Advanced Micro Devices" to be itself. The
+   clamp stays on the phone, where there genuinely is not. */
+@media (min-width:860px){
+  table.sortable .coin{ max-width:34ch }
+}
+/* On a phone the opposite problem: the name was wide enough to drop below the
+   rank and the company mark instead of sitting beside them, which turned every
+   row into two. Narrower, so the three parts stay on one line. */
+@media (max-width:640px){
+  table.sortable .coin{ max-width:13ch }
+  table.sortable td,table.sortable th button{ padding-inline:7px }
+}
+
+/* Headers left, cells left. The base th rule right-aligns, which is right for a
+   table of numbers and wrong for this one: every column here is a label, so the
+   header sat over the right edge of a left-aligned column and nothing lined up.
+   Token, Issuer and Redeem for were all out by the width of their own value. */
+table.sortable th{ text-align:left }
+table.sortable th button{ justify-content:flex-start }
+table.sortable td{ text-align:left; vertical-align:middle }
+.coin-link{ color:inherit; text-decoration:none; border-bottom:1px solid transparent }
+.coin-link:hover{ border-bottom-color:var(--brass); color:var(--brass) }

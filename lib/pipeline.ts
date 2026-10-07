@@ -65,6 +65,17 @@ export type Issuer =
   | "xStocks" | "Backpack" | "Ondo" | "PreStocks" | "Tessera"
   | "Securitize" | "Superstate";
 
+/** A pool holding this tokenized stock, with a way to reach it.
+ *  Until 7 October the pipeline kept only the venue's NAME and threw the pair
+ *  URL away, which meant the site could say a token had four pools and could not
+ *  send anybody to one of them. DexScreener returns the URL in the same response
+ *  the names came from, so this costs nothing extra to fetch. */
+export interface Pool {
+  dex: string;
+  url: string;
+  liquidityUsd: number;
+}
+
 export interface QuotedCoin {
   coin: string;
   coinMint?: string;
@@ -113,6 +124,10 @@ export interface StockRow {
   topCoin?: string;
   quotedCoins: QuotedCoin[];
   venues: string[];
+  /** The same venues, each with a link and its depth, deepest first. Kept
+   *  alongside `venues` rather than replacing it so the rating, the checks and
+   *  the agent tools keep counting the way they always did. */
+  pools: Pool[];
   /** The opinion. Present on every stock that clears the liquidity floor;
    *  everything below it is unrated and says why. See lib/rating.ts. */
   rating?: RatingResult;
@@ -455,6 +470,7 @@ async function scanPairs(
   const pairs = (await jget<DexPair[]>(DEX_PAIRS(stock.mint))) || [];
   const quoted: QuotedCoin[] = [];
   const venues = new Set<string>();
+  const pools = new Map<string, Pool>();
 
   for (const p of pairs) {
     const b = p.baseToken || {}, q = p.quoteToken || {};
@@ -481,10 +497,24 @@ async function scanPairs(
       });
     } else if (b.address === stock.mint && p.dexId) {
       venues.add(p.dexId);
+      /* One link per venue, the deepest pool there. A token can hold several
+         pools on the same DEX and sending somebody to the thin one would be
+         worse than sending them nowhere. */
+      if (p.url) {
+        const liq = n(p.liquidity?.usd);
+        const had = pools.get(p.dexId);
+        if (!had || liq > had.liquidityUsd) {
+          pools.set(p.dexId, { dex: p.dexId, url: p.url, liquidityUsd: liq });
+        }
+      }
     }
   }
   quoted.sort((a, b2) => b2.volume24h - a.volume24h);
-  return { quoted, venues: [...venues].sort() };
+  return {
+    quoted,
+    venues: [...venues].sort(),
+    pools: [...pools.values()].sort((x, y) => y.liquidityUsd - x.liquidityUsd),
+  };
 }
 
 /* ---------------- main ---------------- */
@@ -531,7 +561,7 @@ export async function buildIndex(): Promise<Index> {
     const slice = liquid.slice(i, i + BATCH);
     const done = await Promise.all(
       slice.map(async (t) => {
-        const { quoted, venues } = await scanPairs(t, stockMints);
+        const { quoted, venues, pools } = await scanPairs(t, stockMints);
         const feed = byTicker[t.underlying] || {};
         return {
           ...t,
@@ -560,6 +590,7 @@ export async function buildIndex(): Promise<Index> {
           quotedVolume24h: Math.round(quoted.reduce((s, c) => s + c.volume24h, 0)),
           topCoin: quoted[0]?.coin,
           venues,
+          pools,
         } as StockRow;
       }),
     );

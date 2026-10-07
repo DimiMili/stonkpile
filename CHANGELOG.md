@@ -9,6 +9,29 @@ what was built inside a hackathon window.
 
 Dates are Athens time.
 
+## 7 October 2026
+
+- The rated board filters and sorts. A reader with an exact question, does
+  Backpack issue NVDA, could not see where to look, and a wall of rows answered
+  neither him nor the reader who found the board overwhelming. A row of issuer
+  chips sits above it, each carrying that issuer's count of rated tokens, and one
+  tap filters the board. Every column header sorts, and each one opens at the end
+  worth seeing first: scores high to low, names A to Z.
+- The chip row is a finding before anything is tapped. Backpack has 72 rated and
+  xStocks 34, which says more about how those two operate than a paragraph would.
+- Issuers with nothing rated are left out of the chips. A chip reading zero is a
+  puzzle at that size, and the fact has room to be explained properly in the
+  issuer comparison lower down.
+- Every row carries its issuer's mark, in the chips and in the table.
+- The live dot pulses a little wider and slower, and it stays the only thing on
+  the page that moves. The "right now" tags were considered for the same
+  treatment and rejected: there are eleven of them, they label something that
+  never changes, and eleven pulsing elements read as a broken page rather than as
+  emphasis.
+- Company names stopped truncating on the board at desktop width. The clamp was
+  set when the table had nine columns fighting for room; at five there is space
+  for Advanced Micro Devices to be itself.
+
 ## 6 October 2026
 
 - The section pattern, rolled across the whole page. Every section ran headline,

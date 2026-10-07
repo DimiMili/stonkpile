@@ -12,8 +12,9 @@ import { Churn, type ChurnPoint } from "@/components/Churn";
 import { history, hasHistory, series, since } from "@/lib/history";
 import { Live } from "@/components/Live";
 import { RatingChip } from "@/components/Rating";
+import { RatedBoard } from "@/components/RatedBoard";
 import { REDEMPTION } from "@/lib/redemption";
-import { BANDS } from "@/lib/rating";
+import { BANDS, bandLabel, bandLetter } from "@/lib/rating";
 import { churnPoints as churn, accrualRows, splitRows, ratedRows } from "@/lib/sections";
 import { PLATFORM_TOKENS } from "@/lib/checks";
 
@@ -394,42 +395,12 @@ export default async function Page() {
               RATING.md, which is where somebody who wants the recipe is going
               anyway. */}
           <Reveal label="Show the top rated" count={`${rated.length} rated`} peek={260}>
-            <div className="scroll">
-              <table>
-                <thead>
-                  <tr>
-                    {/* Rating second, not fourth. On a phone the table is wider than
-                        the screen, and the first render pushed the one column this
-                        section is named after off the right edge. */}
-                    <th>Company</th><th>Rating</th><th>Token</th><th>Issuer</th><th>Redeem for</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rated.slice(0, 8).map(({ row, rating }, i) => (
-                    <tr key={row.mint}>
-                      <td>
-                        <span className="rank">{i + 1}</span>{" "}
-                        {row.icon && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img className="tick-icon" src={row.icon} alt="" width={18} height={18} loading="lazy" />
-                        )}
-                        <span className="coin">{clean(row.name) || row.symbol}</span>
-                      </td>
-                      <td><RatingChip rating={rating} /></td>
-                      <td><a className="denom" href={`/s/${row.symbol}`}>{row.symbol}</a></td>
-                      <td className="dex"><Brand name={row.issuer} size={16} label /></td>
-                      <td className="dex">
-                        <span className={`rd-tag rd-${REDEMPTION[row.issuer].claim}`}>
-                          {REDEMPTION[row.issuer].claim === "unstated"
-                            ? "not stated"
-                            : REDEMPTION[row.issuer].claim}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <RatedBoard rows={rated.map(({ row, rating }) => ({
+              mint: row.mint, symbol: row.symbol, name: clean(row.name), icon: row.icon,
+              issuer: row.issuer, score: rating.score, band: rating.band,
+              letter: bandLetter(rating.band), bandLabel: bandLabel(rating.band),
+              claim: REDEMPTION[row.issuer].claim, liquidity: row.liquidity,
+            }))} />
             <p className="lookfor">
               <span className="k">What is rated, and how</span>
               Every tokenized stock on Solana with a market gets one: all seven issuers, no
