@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Wordmark } from "@/components/SiteMark";
 import { notFound } from "next/navigation";
 import { buildIndex } from "@/lib/pipeline";
 import { siteUrl } from "@/lib/site";
@@ -119,7 +120,7 @@ export default async function SectionPage(
     <div className="wrap">
       <header>
         <p className="eyebrow">
-          <a className="brand" href="/">Stonkpile</a>
+          <Wordmark size={19} />
           <span className="dot">/</span>
           <span>{new Date(idx.generatedAt).toUTCString().slice(5, 16)}</span>
         </p>

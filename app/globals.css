@@ -606,7 +606,10 @@ a.btn:hover{border-bottom-color:var(--brass)}
    Real logos, downloaded from each company's own domain. They exist so a
    data section is recognisable at a glance instead of being read word by
    word, which is the whole job of a logo in a table. */
-.brand{display:inline-flex; align-items:center; gap:7px; vertical-align:middle}
+/* The issuer/venue logo component. Renamed off .brand on 7 Oct: the site
+   wordmark used the same class and the two rule sets were overwriting each
+   other, with whichever came later in the file winning. */
+.bmark{display:inline-flex; align-items:center; gap:7px; vertical-align:middle}
 .brand-mark{
   width:var(--mark,20px); height:var(--mark,20px); border-radius:5px;
   object-fit:contain; display:block; flex:none;
@@ -696,7 +699,7 @@ section[id],div[id]{scroll-margin-top:64px}
 
 /* A mark inside a dense table cell: smaller gap, and the name must not wrap
    away from its logo, otherwise the row reads as two separate things. */
-td.dex .brand,.dupe-row .brand{gap:6px; white-space:nowrap}
+td.dex .bmark,.dupe-row .bmark{gap:6px; white-space:nowrap}
 td.dex .brand-mark,.dupe-row .brand-mark{border-radius:4px}
 /* The ranked table already had an icon class; keep it aligned with the text
    baseline rather than letting it sit on the line box. */
@@ -1224,7 +1227,7 @@ header + .snav{ border-top:none; margin-top:0 }
 .iss-row button .n{ font-size:13px; color:var(--muted); font-variant-numeric:tabular-nums }
 .iss-row button.on{ background:var(--ink); border-color:var(--ink); color:var(--bg) }
 .iss-row button.on .n{ color:var(--brass) }
-.iss-row button .brand{ --mark:17px }
+.iss-row button .bmark{ --mark:17px }
 
 /* A header you can tap is a button, so it says so to a keyboard and a screen
    reader rather than being a div with a click handler. */
@@ -1310,3 +1313,35 @@ table.sortable td{ text-align:left; vertical-align:middle }
   border-left:2px solid var(--brass); padding-left:12px; margin-top:14px;
   color:var(--muted);
 }
+
+/* ---- the wordmark ------------------------------------------------------
+   Mark plus name, and the way home. Two contexts, one component:
+   standing on its own above the eyebrow on the home page, where it gets the
+   serif name at a size you can see; and inside the eyebrow row on every other
+   page, where it inherits that row's mono caps so it does not read as a
+   different site. The mark is sized by the call site either way. */
+.wordmark{
+  display:inline-flex; align-items:center; gap:9px;
+  color:inherit; text-decoration:none;
+  padding:4px 0; margin:-4px 0;          /* thumb-sized target, no layout shift */
+  border-bottom:0;                       /* the site underlines every link; here
+                                            it would run under the mark too, so
+                                            it moves onto the word alone below */
+}
+.wordmark span{ border-bottom:1px solid var(--brass-wash) }
+.wordmark:hover span,.wordmark:focus-visible span{ border-bottom-color:currentColor }
+.wordmark svg{ display:block; flex:none; color:var(--ink) }
+.wordmark:hover span,.wordmark:focus-visible span{ color:var(--brass) }
+
+/* Standalone, on the home page. */
+header > .wordmark{ margin:0 0 15px }
+header > .wordmark span{
+  font-family:"Bodoni Moda",Didot,Georgia,serif; font-weight:800;
+  font-size:25px; letter-spacing:-.01em; line-height:1; color:var(--ink);
+}
+/* Inside the eyebrow, on every other page: inherit the row. The eyebrow aligns
+   on the baseline, which an inline svg has no business sitting on, so this one
+   item centres instead. */
+.eyebrow .wordmark{ align-self:center; gap:7px }
+.eyebrow .wordmark span{ font:inherit; color:var(--brass); font-weight:600 }
+.eyebrow .wordmark svg{ color:var(--brass) }

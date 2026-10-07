@@ -12,6 +12,7 @@ import { Churn, type ChurnPoint } from "@/components/Churn";
 import { history, hasHistory, series, since } from "@/lib/history";
 import { Live } from "@/components/Live";
 import { RatingChip } from "@/components/Rating";
+import { Wordmark } from "@/components/SiteMark";
 import { RatedBoard } from "@/components/RatedBoard";
 import { REDEMPTION } from "@/lib/redemption";
 import { BANDS, bandLabel, bandLetter } from "@/lib/rating";
@@ -225,6 +226,7 @@ export default async function Page() {
   return (
     <div className="wrap">
       <header>
+        <Wordmark />
         <p className="eyebrow">
           {/* Not a second copy of the headline. The eyebrow carried the same
               sentence as the h1 once the hero became "Every tokenized stock on

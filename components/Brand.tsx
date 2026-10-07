@@ -45,7 +45,7 @@ export function Brand({
   const m = MARKS[name];
   const text = m?.label ?? name;
   return (
-    <span className="brand" style={{ ["--mark" as string]: `${size}px` }}>
+    <span className="bmark" style={{ ["--mark" as string]: `${size}px` }}>
       {m ? (
         <img className="brand-mark" src={m.src} alt="" width={size} height={size} loading="lazy" />
       ) : (

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Wordmark } from "@/components/SiteMark";
 import { buildIndex } from "@/lib/pipeline";
 import { siteUrl } from "@/lib/site";
 import { Checks } from "@/components/Checks";
@@ -116,7 +117,7 @@ export default async function SharePage(
       <div className="wrap">
         <header>
           <p className="eyebrow">
-            <a className="brand" href="/">Stonkpile</a>
+            <Wordmark size={19} />
             {listed?.issuer && (
               <>
                 <span className="dot">/</span>
@@ -194,7 +195,7 @@ export default async function SharePage(
         <p className="eyebrow">
           {/* The wordmark is the only thing on a ticker page that looks like a
               way back, so it had better be one. */}
-          <a className="brand" href="/">Stonkpile</a>
+          <Wordmark size={19} />
           <span className="dot">/</span>
           <span>{stock.issuer}</span>
           {!stock.has247Feed && (
