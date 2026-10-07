@@ -1268,3 +1268,45 @@ table.sortable th button{ justify-content:flex-start }
 table.sortable td{ text-align:left; vertical-align:middle }
 .coin-link{ color:inherit; text-decoration:none; border-bottom:1px solid transparent }
 .coin-link:hover{ border-bottom-color:var(--brass); color:var(--brass) }
+
+/* ---------- where to buy -------------------------------------------------
+   Links to real markets, which is the first thing on this site that sends
+   somebody somewhere to spend money. So each one carries its depth, the
+   issuer's own venue leads, and the one link we are paid for says so on
+   itself rather than only in the paragraph underneath. */
+.venue-list{ display:grid; gap:9px; margin:16px 0 14px }
+@media (min-width:560px){ .venue-list{ grid-template-columns:1fr 1fr } }
+
+.venue{
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  min-height:52px; padding:12px 14px;
+  border:1px solid var(--line); color:inherit; text-decoration:none;
+  transition:border-color .14s, background .14s;
+}
+.venue:hover,.venue:focus-visible{ border-color:var(--brass); background:var(--surface) }
+
+/* The issuer's own venue runs the full width above the pools: it is the one
+   place that both issues the token and takes the order, so it is not just
+   another row in the list. */
+.venue-lead{ grid-column:1/-1; border-color:var(--brass) }
+
+.venue-name{
+  font-family:"IBM Plex Mono",monospace; font-size:13.5px; font-weight:600;
+  text-transform:capitalize;
+}
+.venue-meta{
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--muted);
+  margin-left:auto; display:flex; align-items:center; gap:8px;
+  font-variant-numeric:tabular-nums;
+}
+.venue-tag{
+  font-size:9.5px; letter-spacing:.11em; text-transform:uppercase;
+  padding:3px 6px; border:1px solid var(--brass); color:var(--brass);
+}
+
+/* Not a footnote. If the one place money changes hands is set in grey 10px,
+   the whole argument for a rating nobody pays to be in gets weaker. */
+.disclosure{
+  border-left:2px solid var(--brass); padding-left:12px; margin-top:14px;
+  color:var(--muted);
+}

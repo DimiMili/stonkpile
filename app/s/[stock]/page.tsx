@@ -5,6 +5,7 @@ import { Checks } from "@/components/Checks";
 import { RatingCard } from "@/components/Rating";
 import { Share } from "@/components/Share";
 import { Copy } from "@/components/Copy";
+import { Venues } from "@/components/Venues";
 import { stockChecks, coinChecks, worst, PLATFORM_TOKENS } from "@/lib/checks";
 import { bandLabel, bandLetter, isRated } from "@/lib/rating";
 
@@ -270,6 +271,16 @@ export default async function SharePage(
         title={`Is ${stock.symbol} what it says it is?`}
         checks={stockChecks(stock)}
         note="Five arithmetic checks on the tokenized stock itself, before you look at anything quoted against it."
+      />
+
+      {/* Deliberately below the checks. The page tells you whether this is the
+          real token before it tells you where to buy it. */}
+      <Venues
+        symbol={stock.symbol}
+        issuer={stock.issuer}
+        pools={stock.pools}
+        perpVenues={stock.perpVenues}
+        liquidity={stock.liquidity}
       />
 
       {stock.quotedCount > 0 && (
