@@ -462,13 +462,6 @@ export default async function Page() {
           <b>{T.universe.toLocaleString()}</b> tokenized stocks. <b>{top10Share}%</b> of it is in
           the ten below.
         </p>
-        <p className="lookfor">
-          <span className="k">What to look for</span>
-          Liquidity, holders, market share and volume, so you can see where the money actually
-          is. A tokenized stock with no liquidity is a listing, not a market, and most of this
-          category is listings. The names here are the ones with real money standing behind
-          them.
-        </p>
               <Reveal label="Show the ranked table" count={`${byLiq.length} with a market`}>
 <p className="scroll-hint">Swipe the table sideways for holders and volume</p>
         <div className="scroll">
@@ -504,6 +497,13 @@ export default async function Page() {
             </tbody>
           </table>
         </div>
+        <p className="lookfor">
+          <span className="k">What to look for</span>
+          Liquidity, holders, market share and volume, so you can see where the money actually
+          is. A tokenized stock with no liquidity is a listing, not a market, and most of this
+          category is listings. The names here are the ones with real money standing behind
+          them.
+        </p>
       </Reveal>
       </section>
 
@@ -523,6 +523,8 @@ export default async function Page() {
             </b>
           </p>
         )}
+      <Reveal label="Show the chart" count={`${churnPoints.length.toLocaleString()} pools`} peek={300}>
+        <Churn points={churnPoints} />
         <p className="lookfor">
           <span className="k">What to look for</span>
           The liquidity pool is the pot of money you buy from and sell into. Filling it costs
@@ -532,8 +534,6 @@ export default async function Page() {
           below, the higher above it a dot sits, the more of its trading is the same money
           going in circles instead of new buyers turning up.
         </p>
-      <Reveal label="Show the chart" count={`${churnPoints.length.toLocaleString()} pools`} peek={300}>
-        <Churn points={churnPoints} />
       </Reveal>
       </section>
 
@@ -547,13 +547,6 @@ export default async function Page() {
             <b>{deadest.withPool}</b> have a pool at all.
           </p>
         )}
-        <p className="lookfor">
-          <span className="k">What to look for</span>
-          Liquidity, not the number of tokens. Listing a token costs an issuer nothing, so a
-          big catalogue proves nothing on its own. What matters is how much money sits in
-          pools behind it, and how much of that catalogue has no pool at all. Used as a quote
-          asset is the strictest test: it means other people built markets on top.
-        </p>
       <Reveal label="Compare the seven issuers" count={`${T.universe.toLocaleString()} listings`} peek={260}>
         <div className="issuers">
           {ISSUER_ORDER.map((iss) => {
@@ -582,6 +575,13 @@ export default async function Page() {
             );
           })}
         </div>
+        <p className="lookfor">
+          <span className="k">What to look for</span>
+          Liquidity, not the number of tokens. Listing a token costs an issuer nothing, so a
+          big catalogue proves nothing on its own. What matters is how much money sits in
+          pools behind it, and how much of that catalogue has no pool at all. Used as a quote
+          asset is the strictest test: it means other people built markets on top.
+        </p>
       </Reveal>
       </section>
 
@@ -594,14 +594,6 @@ export default async function Page() {
             <b>{lead.quotedCount}</b> coins settling in it.
           </p>
         )}
-        <p className="lookfor">
-          <span className="k">What to look for</span>
-          High volume against a low coin count means one pair is carrying the whole stock, so
-          that volume disappears if the pair does. Many coins against low volume is a crowded,
-          thin lane. If you are picking a denominator to launch against, the interesting rows
-          are the ones near the bottom and the tickers that do not appear here at all.
-          <b> 24/7</b> marks a stock with an always-on Pyth reference price.
-        </p>
         <Reveal label="Show the board" count={`${T.denominators} used as money`}>
         <div className="board">
           {board.map((r) => (
@@ -631,6 +623,14 @@ export default async function Page() {
             </div>
           ))}
         </div>
+          <p className="lookfor">
+            <span className="k">What to look for</span>
+            High volume against a low coin count means one pair is carrying the whole stock, so
+            that volume disappears if the pair does. Many coins against low volume is a crowded,
+            thin lane. If you are picking a denominator to launch against, the interesting rows
+            are the ones near the bottom and the tickers that do not appear here at all.
+            <b> 24/7</b> marks a stock with an always-on Pyth reference price.
+          </p>
         </Reveal>
       </section>
 
@@ -649,19 +649,6 @@ export default async function Page() {
               <b>{accrual.length} tokenized stocks are doing this.</b>
             </p>
           )}
-          <p className="lookfor">
-            <span className="k">What to look for</span>
-            Whether the thing you hold has been growing on its own. These tokens carry a
-            multiplier on the mint itself, so a balance of ten is shown as ten times that
-            number, and it moves without anything arriving in your wallet. The multiplier is
-            read from the token, so it is checkable rather than claimed, and the date is when
-            it last moved. xStocks state what is being passed through: dividends on the
-            underlying are reinvested into more of the same token, so the balance grows
-            instead of cash arriving, and splits run through the same mechanism. Seventeen of
-            these pay a dividend and the order here follows the yield. The two that do not,
-            DFDV and GameStop, last moved in late 2025 and have not moved since, which looks
-            like a one-off rather than a distribution. The numbers themselves are exact.
-          </p>
         <Reveal label="Show what is earning" count={`${accrual.length} tokens`}>
           <p className="scroll-hint">Swipe the table sideways for the date and what it is worth</p>
           <div className="scroll">
@@ -712,6 +699,19 @@ export default async function Page() {
               </>
             )}
           </p>
+          <p className="lookfor">
+            <span className="k">What to look for</span>
+            Whether the thing you hold has been growing on its own. These tokens carry a
+            multiplier on the mint itself, so a balance of ten is shown as ten times that
+            number, and it moves without anything arriving in your wallet. The multiplier is
+            read from the token, so it is checkable rather than claimed, and the date is when
+            it last moved. xStocks state what is being passed through: dividends on the
+            underlying are reinvested into more of the same token, so the balance grows
+            instead of cash arriving, and splits run through the same mechanism. Seventeen of
+            these pay a dividend and the order here follows the yield. The two that do not,
+            DFDV and GameStop, last moved in late 2025 and have not moved since, which looks
+            like a one-off rather than a distribution. The numbers themselves are exact.
+          </p>
         </Reveal>
         </section>
       )}
@@ -728,20 +728,6 @@ export default async function Page() {
           {topCoin && (
             <>The biggest is {topCoin.coin}, settling in {topCoin.underlying}.</>
           )}
-        </p>
-        <p className="lookfor">
-          <span className="k">What to look for</span>
-          Whether anyone is on the other side. A pool existing and a pool being used are
-          different claims, and launchpads now mint these by the hundred every day, so a
-          count of pools flatters the category. A coin is marked <b>seeded</b> here when it
-          has fewer than 25 trades in 24 hours: the money is in the pool and nobody is
-          trading it. Beyond that, compare liquidity against 24h volume. Volume many times
-          larger than the pool is churn rather than depth, and it usually means a handful of
-          wallets trading with each other. Anything marked <b>platform</b> is a launchpad or treasury token, so its
-          volume reflects that platform rather than demand for a coin. Each row carries the
-          coin&rsquo;s contract address so you can copy the right one. It tells you which coin
-          this is, nothing more: the issuer check on this site covers the tokenized stocks, not
-          the coins quoted against them.
         </p>
       <Reveal label="Show the coins" count={`${T.quotedCoins.toLocaleString()} coins`}>
         <p className="scroll-hint">Swipe the table sideways for liquidity and volume</p>
@@ -804,6 +790,20 @@ export default async function Page() {
             </tbody>
           </table>
         </div>
+        <p className="lookfor">
+          <span className="k">What to look for</span>
+          Whether anyone is on the other side. A pool existing and a pool being used are
+          different claims, and launchpads now mint these by the hundred every day, so a
+          count of pools flatters the category. A coin is marked <b>seeded</b> here when it
+          has fewer than 25 trades in 24 hours: the money is in the pool and nobody is
+          trading it. Beyond that, compare liquidity against 24h volume. Volume many times
+          larger than the pool is churn rather than depth, and it usually means a handful of
+          wallets trading with each other. Anything marked <b>platform</b> is a launchpad or treasury token, so its
+          volume reflects that platform rather than demand for a coin. Each row carries the
+          coin&rsquo;s contract address so you can copy the right one. It tells you which coin
+          this is, nothing more: the issuer check on this site covers the tokenized stocks, not
+          the coins quoted against them.
+        </p>
       </Reveal>
       </section>
 
@@ -821,17 +821,6 @@ export default async function Page() {
                 : "No oracle carries this company, so nothing here can check either price."}
             </p>
           )}
-          <p className="lookfor">
-            <span className="k">What to look for</span>
-            A green badge means the issuers agree, because a public share price exists and
-            anyone selling it wrong gets arbitraged. A red badge means nobody can tell you
-            which price is right, including the issuers. Every price here is per underlying
-            share rather than per token, because one token is not always one share: where a
-            row says split-adjusted, a corporate action has been divided out and the sticker
-            price sits beneath it. That is read from the mint where the issuer encodes it,
-            and taken from the issuer where they do not. What is left is a real
-            disagreement rather than a unit mismatch.
-          </p>
         <Reveal label="Compare the issuers" count={`${dupes.length} companies`}>
           <div className="dupes">
             {dupes.map((d) => {
@@ -918,6 +907,17 @@ export default async function Page() {
               is somebody being wrong rather than nobody being able to tell.
             </div>
           )}
+          <p className="lookfor">
+            <span className="k">What to look for</span>
+            A green badge means the issuers agree, because a public share price exists and
+            anyone selling it wrong gets arbitraged. A red badge means nobody can tell you
+            which price is right, including the issuers. Every price here is per underlying
+            share rather than per token, because one token is not always one share: where a
+            row says split-adjusted, a corporate action has been divided out and the sticker
+            price sits beneath it. That is read from the mint where the issuer encodes it,
+            and taken from the issuer where they do not. What is left is a real
+            disagreement rather than a unit mismatch.
+          </p>
         </Reveal>
         </section>
       )}
@@ -928,12 +928,6 @@ export default async function Page() {
           <span className="nowtag">right now</span>
           <b>{T.denominators - T.with247Feed}</b> of the <b>{T.denominators}</b> stocks being
           used as money have no price after the closing bell.
-        </p>
-        <p className="lookfor">
-          <span className="k">What to look for</span>
-          Pyth publishes a session feed that stops at 16:00 ET and an always-on{" "}
-          <b>Equity.Index</b> feed. If you hold a coin quoted in a stock without the always-on
-          one, its overnight and weekend moves are being priced against nothing.
         </p>
         <Reveal label="Show which have a feed" count={`${T.with247Feed} with 24/7`} peek={190}>
         <div className="chips">
@@ -949,6 +943,12 @@ export default async function Page() {
           around the clock with nothing to price them against once the closing bell goes.
           {ms && !ms.isOpen && ` The US market is shut right now. It reopens ${when(ms.nextOpen)}.`}
         </div>
+          <p className="lookfor">
+            <span className="k">What to look for</span>
+            Pyth publishes a session feed that stops at 16:00 ET and an always-on{" "}
+            <b>Equity.Index</b> feed. If you hold a coin quoted in a stock without the always-on
+            one, its overnight and weekend moves are being priced against nothing.
+          </p>
         </Reveal>
       </section>
 

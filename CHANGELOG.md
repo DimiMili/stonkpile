@@ -11,6 +11,17 @@ Dates are Athens time.
 
 ## 6 October 2026
 
+- The section pattern, rolled across the whole page. Every section ran headline,
+  "right now" finding, a paragraph of method, then the table. Eight of them still
+  had the method in front, which is a hundred-odd words of homework before any
+  data, eleven times over. The explainers now sit inside each section, underneath
+  the thing they explain, so a closed section is a headline, one finding, a strip
+  of the table and the way in.
+- The page is 6,671px on a phone. It was 10,957px yesterday morning and 13,172px
+  before the collapse work on 2 October. The copy sitting above the controls went
+  from 5,280px to 2,341px. Nothing was deleted; it moved behind the tap it always
+  belonged behind.
+
 - Coverage first, judgement second, everywhere. The site asked "Is this tokenized
   stock real?" until this morning, which was the pitch before the rating existed,
   and then it swung the other way and read as a rating site with no index in front
