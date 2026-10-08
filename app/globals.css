@@ -929,6 +929,24 @@ header + .snav{ border-top:none; margin-top:0 }
 @supports selector(::details-content){
   @supports (interpolate-size: allow-keywords){ :root{ interpolate-size: allow-keywords } }
 
+  /* `contain:paint` is load-bearing, not a nicety. A closed section is sized to
+     the peek with overflow:hidden, which clips what you SEE, and the browser
+     still counts the full content, tables three thousand pixels tall and chip
+     rows wider than a phone, into the document's scrollable area. Measured on a
+     390px viewport before this line: the document reported 728px wide against a
+     390px screen, so the whole page panned sideways and read as an unwanted
+     zoom, and 1,119px of empty scroll sat below the footer. `overflow:clip` here
+     does not fix it and neither does overflow-x on the html element; only real
+     containment does. After: 390px wide, 56px past the footer.
+
+     It applies open as well as closed, because opening a section brought the
+     sideways pan straight back: an open box is block-size:auto with
+     overflow:visible, so the wide tables leaked again. The tables keep their own
+     sideways scroll inside .scroll, measured after the change at 358px visible
+     of 600. Nothing inside a reveal is positioned fixed or sticky, so there is
+     nothing that needed to paint outside this box. */
+  .reveal::details-content{ contain:paint }
+
   .reveal::details-content{
     content-visibility:visible;
     block-size:var(--peek,210px);
