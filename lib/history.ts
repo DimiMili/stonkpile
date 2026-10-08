@@ -94,7 +94,28 @@ export function movements(): {
   };
 }
 
-export const history: Snapshot[] = (raw as Snapshot[])
+/**
+ * Through `unknown`, and this is load-bearing.
+ *
+ * A JSON import gets literal types, so TypeScript reads the shape of whatever
+ * happens to be in the file rather than the shape this file declares. The
+ * moment two snapshots carry different keys under `sets.grades`, which is
+ * every time a ticker is listed or delisted, TypeScript unions them and the
+ * key that appears in only one record becomes optional. `Record<string,string>`
+ * will not accept an optional key, so the cast fails and the whole build fails
+ * with it.
+ *
+ * That took production down on 8 October. The snapshot job appended a record
+ * at 03:57, and every deploy after it failed the type check in ten seconds:
+ * `Property '"ORCLx"' is incompatible with index signature`. It was invisible
+ * locally, because a checkout with one old snapshot has no second record to
+ * union against.
+ *
+ * So the data is treated as what it actually is, untyped input, and the filter
+ * below is the real guard. A direct cast made the build depend on the contents
+ * of a file a robot writes at four in the morning.
+ */
+export const history: Snapshot[] = (raw as unknown as Snapshot[])
   .filter((r) => r && r.date && Number.isFinite(r.liquidity))
   .sort((a, b) => a.date.localeCompare(b.date));
 
