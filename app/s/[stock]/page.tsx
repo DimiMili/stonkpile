@@ -371,6 +371,7 @@ export default async function SharePage(
       <footer>
         <span>
           <a href="/">The full board</a> · <a href="/cards">All cards</a> ·{" "}
+          <a href="/brand">Brand</a> ·{" "}
           <a href={`/api/index?stock=${stock.symbol}`}>JSON</a>
         </span>
         <span>Updated {idx.generatedAt.slice(0, 16).replace("T", " ")} UTC</span>

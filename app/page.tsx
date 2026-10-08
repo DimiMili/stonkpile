@@ -992,7 +992,8 @@ export default async function Page() {
           . Open source, MIT, and there is no token.{" "}
           <a href="https://github.com/DimiMili/stonkpile" target="_blank" rel="noopener noreferrer">
             GitHub
-          </a>
+          </a>{" "}
+          · <a href="/brand">Brand</a>
         </span>
         <span>
           Sources: <a href="https://dev.jup.ag">Jupiter</a> ·{" "}
