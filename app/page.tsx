@@ -556,6 +556,46 @@ export default async function Page() {
           asset is the strictest test: it means other people built markets on top.
         </p>
       </Reveal>
+
+      {/* The boundary of the index, stated rather than left to be discovered.
+          Securitize announced twelve US stocks on Solana on 8 October that settle
+          in USDC but change hands on their own broker-dealer platform behind KYC.
+          They have liquidity and a market maker. They have no public pool, and
+          this site cannot see them: the universe comes from the verified token
+          list and a rating measures depth in pools anyone can reach.
+
+          Saying so is the honest answer and the stronger one. A site claiming to
+          cover every tokenized stock on Solana, silently missing twelve of the
+          largest companies in the world, is a hole. The same site naming what it
+          excludes and why is a method. */}
+      <div className="callout scope">
+        <p>
+          <span className="k">What this does not count</span>
+          Issuances that can only change hands in a permissioned venue are not being
+          tracked by the numbers above. On{" "}
+          {/* The claim is sourced on the page rather than asserted. Everything in
+              this sentence comes from Securitize's own release, so the reader can
+              check it in one tap instead of taking our word for it, which is the
+              same standard every other number here is held to. */}
+          <a
+            href="https://www.prnewswire.com/news-releases/securitize-launches-global-onchain-trading-of-us-stocks-with-security-entitlements-302902107.html"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            8 October Securitize launched twelve US stocks on Solana
+          </a>
+          , settling in USDC, traded on their own registered broker-dealer platform
+          behind onboarding and KYC checks and market made by Jump. That is a market.
+          However, it is not one you can reach from a wallet, so there is no pool to
+          measure and nothing here to rate.
+        </p>
+        <p>
+          The line this site draws is a market anyone can get into and out of. Scoring
+          one you cannot reach would be a worse answer than saying it is out of scope.
+          Two different things are now both called tokenized stocks on Solana, and the
+          difference is who is allowed to hold them.
+        </p>
+      </div>
       </section>
 
       <section id="board">

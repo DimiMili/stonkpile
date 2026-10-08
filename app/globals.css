@@ -1364,3 +1364,16 @@ header > .wordmark span{
 .eyebrow .wordmark{ align-self:center; gap:7px }
 .eyebrow .wordmark span{ font:inherit; color:var(--brass); font-weight:600 }
 .eyebrow .wordmark svg{ color:var(--brass) }
+
+/* ---- the scope note --------------------------------------------------
+   A boundary the site states rather than leaves to be found. It sits under
+   the issuer comparison because that is where somebody asks "where is X",
+   and it is a touch heavier than a normal callout because what it says is
+   a method rather than an aside. */
+.callout.scope{ margin-top:22px }
+.callout.scope p{ margin:0 }
+.callout.scope p + p{ margin-top:12px }
+.callout.scope .k{
+  display:block; font-family:"IBM Plex Mono",monospace; font-size:10.5px;
+  letter-spacing:.13em; text-transform:uppercase; color:var(--brass); margin-bottom:7px;
+}
