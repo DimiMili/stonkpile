@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Wordmark } from "@/components/SiteMark";
+import { Brand } from "@/components/Brand";
 import { buildIndex } from "@/lib/pipeline";
 import { siteUrl } from "@/lib/site";
 import { Checks } from "@/components/Checks";
@@ -197,7 +198,12 @@ export default async function SharePage(
               way back, so it had better be one. */}
           <Wordmark size={19} />
           <span className="dot">/</span>
-          <span>{stock.issuer}</span>
+          {/* The issuer carries its own mark here, not just its name. On a page
+              whose whole job is telling you whether a token is the genuine one,
+              the issuer is the single most load-bearing fact, and a logo is
+              recognised before a word is read. Same component, same files, same
+              lettered fallback as everywhere else on the site. */}
+          <Brand name={stock.issuer} size={15} label />
           {!stock.has247Feed && (
             <>
               <span className="dot">/</span>

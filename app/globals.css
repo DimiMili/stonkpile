@@ -1416,3 +1416,13 @@ header > .wordmark span{
 .brand-display{ font-family:"Bodoni Moda",Didot,Georgia,serif; font-weight:600; font-size:30px; letter-spacing:-.01em }
 .brand-mono{ font-family:"IBM Plex Mono",monospace; font-size:15px; letter-spacing:.1em }
 .brand-note{ font-size:13.5px; color:var(--muted); margin:0; text-wrap:pretty }
+
+/* The issuer mark in a ticker page's eyebrow. The eyebrow aligns its children
+   on the baseline, which is right for words and wrong for a 15px square: the
+   mark sits a few pixels low and the row looks broken. Centring just this one
+   child fixes it, the same way the wordmark above already does. The letter
+   fallback inherits the eyebrow's mono tracking, which at 11px reads as a gap
+   rather than a tile, so it gets its own. */
+.eyebrow .bmark{ align-self:center; gap:6px }
+.eyebrow .bmark .brand-name{ letter-spacing:.16em }
+.eyebrow .bmark .brand-letter{ letter-spacing:0; font-size:9px }
