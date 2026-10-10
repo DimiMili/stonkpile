@@ -16,7 +16,7 @@ import { SiteMark, Wordmark } from "@/components/SiteMark";
  * while the site changes underneath it.
  */
 export const metadata: Metadata = {
-  title: "Brand · Stonkpile",
+  title: "Brand",
   description:
     "The Stonkpile mark, palette and typefaces, with the files to use them properly.",
 };

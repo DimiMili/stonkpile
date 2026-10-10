@@ -231,7 +231,7 @@ export default async function Page() {
           {/* Not a second copy of the headline. The eyebrow carried the same
               sentence as the h1 once the hero became "Every tokenized stock on
               Solana, indexed", so it says what the site is instead. */}
-          <span>The rating for tokenized equities</span>
+          <span>The rating for tokenized stocks</span>
           <span className="dot">/</span>
           {ms && (
             <span className={ms.isOpen ? "open" : "closed"}>
@@ -259,20 +259,26 @@ export default async function Page() {
             Two sizes, not two headlines. The second line is the consequence of
             the first, so it sits under it at a weight that reads as a
             continuation. */}
+        {/* 10 Oct 2026: "indexed" is out. A reviewer read it and asked whether we
+            meant an ETF or a database, which means the word was carrying the
+            weight of the whole product and could not hold it. "Rated" says what
+            we do. The second line stops being a qualifier and starts being the
+            offer, because the question we were not answering anywhere on this
+            page was how a person uses this. */}
         <h1>
-          Every tokenized stock on Solana, <em>indexed</em>.
+          Every tokenized stock on Solana, <em>rated</em>.
         </h1>
         <p className="h1-more">
-          The ones with a market, rated.
+          Free API. No key, no account.
         </p>
         {/* Live, not typed. These were hardcoded and drifted from the real
             figures within days, so the hero contradicted the stats row ten
             centimetres below it. Nothing on this page should state a number the
             index can state itself. */}
         <p className="standfirst">
-          {T.universe.toLocaleString()} listings across seven issuers, checkable by ticker
-          or contract address. {T.tradeable} of them have a market, and those carry a score
-          out of 100 for it. The rest say why they do not.
+          {T.universe.toLocaleString()} listings across seven issuers. {T.tradeable} have a
+          market, and those carry a score out of 100 for the market, never for the company.
+          Check one by ticker or contract address, or <a href="/docs">read the whole index</a>.
         </p>
       </header>
 
@@ -993,7 +999,7 @@ export default async function Page() {
           <a href="https://github.com/DimiMili/stonkpile" target="_blank" rel="noopener noreferrer">
             GitHub
           </a>{" "}
-          · <a href="/brand">Brand</a>
+          · <a href="/docs">Docs</a> · <a href="/brand">Brand</a>
         </span>
         <span>
           Sources: <a href="https://dev.jup.ag">Jupiter</a> ·{" "}
