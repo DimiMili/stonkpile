@@ -64,12 +64,6 @@ export function SectionNav() {
   return (
     <nav className="snav" aria-label="Sections of this page">
       <div className="snav-row">
-        {/* First, not last. This row overflows past "Coins" at desktop width,
-            so anything appended to it is invisible without scrolling sideways,
-            which is exactly the failure being fixed: on 10 Oct 2026 a reviewer
-            could not find how to get at the data. Not a section of this page,
-            so it never takes the active state and is ruled off from the rest. */}
-        <a className="snav-out" href="/docs">API &amp; docs</a>
         {SECTIONS.map((s) => (
           <a
             key={s.id}

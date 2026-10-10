@@ -226,7 +226,15 @@ export default async function Page() {
   return (
     <div className="wrap">
       <header>
-        <Wordmark />
+        {/* Top right, because that is where a developer looks for it on every
+            docs-having site they have ever used, and because the earlier
+            attempts (a footer link, then a word inside a sentence) both failed
+            the only test that matters: somebody went looking and did not find
+            it. */}
+        <div className="head-row">
+          <Wordmark />
+          <a className="head-docs" href="/docs">Docs</a>
+        </div>
         <p className="eyebrow">
           {/* Not a second copy of the headline. The eyebrow carried the same
               sentence as the h1 once the hero became "Every tokenized stock on
@@ -268,17 +276,20 @@ export default async function Page() {
         <h1>
           Every tokenized stock on Solana, <em>rated</em>.
         </h1>
-        <p className="h1-more">
-          <a href="/docs" className="h1-link">Free API. No key, no account.</a>
-        </p>
+        {/* The second line is gone on purpose. It was a qualifier, then briefly
+            an offer, and either way it was a third thing to read before the
+            first useful sentence. The headline says what this is and the
+            standfirst says what you do with it; nothing needed to sit between
+            them. "API" still appears above the fold, as the first chip in the
+            nav, which is where somebody looking for it actually looks. */}
         {/* Live, not typed. These were hardcoded and drifted from the real
             figures within days, so the hero contradicted the stats row ten
             centimetres below it. Nothing on this page should state a number the
             index can state itself. */}
         <p className="standfirst">
           {T.universe.toLocaleString()} listings across seven issuers. {T.tradeable} have a
-          market, and those carry a score out of 100 for the market, never for the company.
-          Check one by ticker or contract address, or <a href="/docs">read the whole index</a>.
+          market, and those carry an x/100 score for the market (never for the company).
+          Check one by ticker or CA, or <a href="/docs">read the whole index</a>.
         </p>
       </header>
 
