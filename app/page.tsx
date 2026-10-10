@@ -269,7 +269,7 @@ export default async function Page() {
           Every tokenized stock on Solana, <em>rated</em>.
         </h1>
         <p className="h1-more">
-          Free API. No key, no account.
+          <a href="/docs" className="h1-link">Free API. No key, no account.</a>
         </p>
         {/* Live, not typed. These were hardcoded and drifted from the real
             figures within days, so the hero contradicted the stats row ten

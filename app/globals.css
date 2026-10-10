@@ -1458,3 +1458,20 @@ header > .wordmark span{
    aligned here because every other table on the site is numeric. */
 .doc-t td:last-child{text-align:left}
 .doc-t td{vertical-align:top}
+
+/* The one off-page link in the section nav, and the hero's link into it. The
+   10 Oct review could not find the API from the page; the footer was not
+   enough, so it gets the headline's second line and a pinned nav chip. */
+.snav-out{
+  border-color:var(--brass) !important; color:var(--brass) !important;
+  background:var(--brass-wash); margin-right:10px; position:relative;
+}
+.snav-out::after{
+  content:""; position:absolute; right:-10px; top:50%; translate:0 -50%;
+  width:1px; height:18px; background:var(--line);
+}
+.h1-link{
+  color:inherit; text-decoration:none;
+  border-bottom:1px solid var(--rule); padding-bottom:2px;
+}
+.h1-link:hover{color:var(--brass); border-bottom-color:var(--brass)}
