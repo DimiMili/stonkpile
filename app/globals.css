@@ -1428,37 +1428,6 @@ header > .wordmark span{
 .eyebrow .bmark .brand-letter{ letter-spacing:0; font-size:9px }
 
 
-/* ---------- docs ----------
-   Added 10 Oct 2026. A reviewer looked for docs, found none, and said so twice.
-   Deliberately larger type than the dense board pages: this one is read rather
-   than scanned, and the same review called the site's fonts too small. */
-.doc-head{padding-block:28px 10px}
-.doc-head h1{margin-top:14px}
-.doc-head .standfirst{margin-top:14px}
-
-.code{
-  font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
-  font-size:13.5px; line-height:1.65; color:var(--ink);
-  background:var(--surface); border:1px solid var(--line);
-  border-left:3px solid var(--brass);
-  padding:16px 18px; margin:0 0 12px; overflow-x:auto;
-  white-space:pre; -webkit-overflow-scrolling:touch;
-}
-.code code{color:inherit; font-size:inherit}
-.code-out{border-left-color:var(--line); color:var(--muted)}
-
-.doc-rules{border-top:1px solid var(--line); padding-top:22px}
-.doc-rules .lookfor{margin-bottom:20px; max-width:66ch}
-.doc-rules .lookfor:last-child{margin-bottom:0}
-
-@media (max-width:640px){
-  .code{font-size:12.5px; padding:14px}
-}
-/* The notes column in the docs tables is prose, and td defaults to right
-   aligned here because every other table on the site is numeric. */
-.doc-t td:last-child{text-align:left}
-.doc-t td{vertical-align:top}
-
 /* Header row: wordmark left, Docs right. */
 .head-row{display:flex; align-items:center; justify-content:space-between; gap:16px}
 .head-row > .wordmark{margin:0 0 15px}
