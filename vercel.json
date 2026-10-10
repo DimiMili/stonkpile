@@ -1,0 +1,24 @@
+{
+  "rewrites": [
+    {
+      "source": "/_mintlify/:path*",
+      "destination": "https://stonkpile-a243e9fe.mintlify.site/_mintlify/:path*"
+    },
+    {
+      "source": "/api/request",
+      "destination": "https://stonkpile-a243e9fe.mintlify.site/_mintlify/api/request"
+    },
+    {
+      "source": "/docs",
+      "destination": "https://stonkpile-a243e9fe.mintlify.site/docs"
+    },
+    {
+      "source": "/docs/:match*",
+      "destination": "https://stonkpile-a243e9fe.mintlify.site/docs/:match*"
+    },
+    {
+      "source": "/mintlify-assets/:path+",
+      "destination": "https://stonkpile-a243e9fe.mintlify.site/mintlify-assets/:path+"
+    }
+  ]
+}
