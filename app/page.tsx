@@ -379,6 +379,13 @@ export default async function Page() {
             <b>{bandCount.unrated.toLocaleString()}</b> listings are unrated, because nothing
             was ever funded behind them.
           </p>
+          {/* Placed here rather than in the footer because this is the number
+              someone is most likely to act on, and the misreading is specific:
+              a high score looks like a safety certificate. It is not. */}
+          <p className="caveat">
+            A score measures the market, not the company. A token rating Prime can still
+            lose all of its value. <a href="/disclaimer">Terms</a>
+          </p>
           {/* The method used to sit here, in front of the board: ninety words on
               what is rated and how, then the four parts with a definition each,
               then two lines on what is never rated. A hundred and fifty words
@@ -514,6 +521,13 @@ export default async function Page() {
             <b>{deadest.withPool}</b> have a pool at all.
           </p>
         )}
+        {/* The single most common misunderstanding about this whole category,
+            put next to the issuers rather than in the footer, because this is
+            the section where someone decides which issuer to trust. */}
+        <p className="caveat">
+          These are generally not shares. Most are a claim on an issuer, and what you are
+          owed depends entirely on that issuer. <a href="/disclaimer">Terms</a>
+        </p>
       <Reveal label="Compare the seven issuers" count={`${T.universe.toLocaleString()} listings`} peek={260}>
         <div className="issuers">
           {ISSUER_ORDER.map((iss) => {
@@ -997,20 +1011,16 @@ export default async function Page() {
         </span>
         <span>Updated {stamp}</span>
 
-        {/* A securities-adjacent site run by one person needs this in writing,
-            and it costs nothing to be exact instead of shouting NFA. It says
-            what the numbers are, what they are not, and who is responsible for
-            the decision, which is the visitor. */}
+        {/* The long version moved to /disclaimer, and the points that apply to
+            one particular number moved next to that number. Nine lines of grey
+            text under the footer links is the one place on a site where nothing
+            is ever read; a sentence beside the rating is read by everyone who
+            looks at the rating. What stays here is the sentence that applies to
+            the whole page, and the way in. */}
         <span className="disclaim">
-          Nothing here is financial, investment, legal or tax advice, and nothing
-          here is an offer or a recommendation to buy or sell anything. Stonkpile
-          reports what public onchain sources say at the moment they are read.
-          Prices, liquidity and issuer data move constantly, can be wrong, stale
-          or manipulated, and a token passing every check on this page can still
-          lose all its value. Tokenized stocks are generally not shares: most are
-          a claim on an issuer, and your rights depend entirely on that issuer.
-          Verify everything yourself before you send a transaction. Do your own
-          research. You are responsible for what you do with this.
+          Not advice, not an offer, and not a guarantee. Every number here is a
+          reading of a public source at the moment it was taken, and can be stale,
+          wrong or manipulated. <a href="/disclaimer">Terms and disclaimer</a>
         </span>
       </footer>
     </div>

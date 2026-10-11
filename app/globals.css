@@ -15,6 +15,13 @@
   --brass:#8d6414; --brass-wash:rgba(141,100,20,.10);
   --up:#146b48; --down:#a8352e;
   --bar:#8d6414; --bar-track:#dcdfd6;
+  /* Churn scatter. The orange was #eb6834, which sits at 2.74:1 against this
+     background and fails the 3:1 floor for a graphical object; #c94f1d clears
+     it at 3.89:1 and keeps the blue/orange pairing, which is the one hue axis
+     red-green colour blindness leaves intact. Zone washes are the hue at a
+     tenth strength over the page, checked to keep both dots above 3:1. */
+  --ch-stock:#2a78d6; --ch-coin:#c94f1d;
+  --ch-z-churn:#e8dcd5; --ch-z-live:#d9e4da; --ch-z-quiet:#e7e4d2;
   color-scheme:light dark;
 }
 @media (prefers-color-scheme:dark){
@@ -25,6 +32,8 @@
     --brass:#d9ae51; --brass-wash:rgba(217,174,81,.12);
     --up:#41cb8b; --down:#ef6d62;
     --bar:#d9ae51; --bar-track:#242a33;
+    --ch-stock:#2a78d6; --ch-coin:#eb6834;
+    --ch-z-churn:#291a1e; --ch-z-live:#152523; --ch-z-quiet:#27241b;
   }
 }
 :root[data-theme="dark"]{
@@ -34,6 +43,8 @@
   --brass:#d9ae51; --brass-wash:rgba(217,174,81,.12);
   --up:#41cb8b; --down:#ef6d62;
   --bar:#d9ae51; --bar-track:#242a33;
+  --ch-stock:#2a78d6; --ch-coin:#eb6834;
+  --ch-z-churn:#291a1e; --ch-z-live:#152523; --ch-z-quiet:#27241b;
 }
 
 *{box-sizing:border-box}
@@ -45,7 +56,12 @@ body{
   padding-inline:16px; padding-block:0 56px;
   -webkit-font-smoothing:antialiased;
 }
-.wrap{max-width:1080px; margin:0 auto}
+/* 1080 was a reading measure applied to the whole document, including the
+   tables and charts, which are not prose. On a 1920 screen it left 40% of the
+   window empty and cut three section shortcuts off the end of the nav. The
+   prose keeps its own ch-based caps, so widening this moves only the things
+   that were being squeezed. */
+.wrap{max-width:1440px; margin:0 auto}
 .num{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-variant-numeric:tabular-nums}
 
 header{padding-block:44px 30px; border-bottom:2px solid var(--ink)}
@@ -715,8 +731,15 @@ td.dex .brand-mark,.dupe-row .brand-mark{border-radius:4px}
 .viz-legend{ display:flex; gap:16px; flex-wrap:wrap }
 .lg-item{ display:inline-flex; align-items:center; gap:7px; font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted) }
 .lg-dot{ width:10px; height:10px; border-radius:50%; display:inline-block }
-.lg-dot.s-stock{ background:#2a78d6 }
-.lg-dot.s-coin{ background:#eb6834 }
+.lg-dot.s-stock{ background:var(--ch-stock) }
+.lg-dot.s-coin{ background:var(--ch-coin) }
+/* The zone key is one group so it wraps away from the dot key as a unit
+   rather than leaving one orphan band on a line of its own. */
+.lg-zones{ display:inline-flex; gap:16px; flex-wrap:wrap }
+.lg-band{ width:14px; height:10px; border-radius:2px; display:inline-block; border:1px solid var(--line) }
+.lg-band.z-churn{ background:var(--ch-z-churn) }
+.lg-band.z-live{ background:var(--ch-z-live) }
+.lg-band.z-quiet{ background:var(--ch-z-quiet) }
 /* Segmented switch. The track carries the border so the two halves read as one
    control, and the selected half is filled the same way the section shortcuts
    mark the section you are in. */
@@ -751,9 +774,17 @@ td.dex .brand-mark,.dupe-row .brand-mark{border-radius:4px}
 
 /* A 2px surface ring keeps overlapping marks readable where the cloud is dense. */
 .viz .pt{ stroke:var(--bg); stroke-width:2; cursor:pointer; transition:r .1s ease }
-.viz .pt.s-stock{ fill:#2a78d6 }
-.viz .pt.s-coin{ fill:#eb6834 }
+.viz .pt.s-stock{ fill:var(--ch-stock) }
+.viz .pt.s-coin{ fill:var(--ch-coin) }
 .viz .pt.on{ stroke:var(--ink); stroke-width:2 }
+
+/* Zone washes. Flat fills rather than a gradient: a gradient would imply the
+   badness changes smoothly through the band, when the thing being marked is a
+   threshold. They sit under the grid so the grid still reads across them. */
+.viz .z{ stroke:none }
+.viz .z-churn{ fill:var(--ch-z-churn) }
+.viz .z-live{ fill:var(--ch-z-live) }
+.viz .z-quiet{ fill:var(--ch-z-quiet) }
 
 .viz-tip{
   position:absolute; transform:translate(-50%,-120%); pointer-events:none;
@@ -1528,3 +1559,28 @@ header > .wordmark span{
 /* The one note under the over-time chart. Short and set apart, because it is a
    caveat about the figures rather than a thing to read before them. */
 .ot-note{font-style:italic; max-width:68ch; margin-bottom:16px}
+
+/* ---- Caveats, spread through the page instead of piled in the footer ----
+   A rule on the left rather than a box: a box reads as a warning banner and
+   gets banner-blindness, while a short ruled line reads as a footnote to the
+   thing above it, which is what it is. Muted, one size down from body, never
+   competing with the finding it qualifies. */
+.caveat{
+  font-size:12.5px; line-height:1.6; color:var(--faint);
+  max-width:66ch; margin:10px 0 0; padding-left:11px;
+  border-left:2px solid var(--line);
+}
+.caveat a{ color:var(--faint); border-bottom-color:var(--line) }
+.caveat a:hover{ color:var(--brass); border-bottom-color:currentColor }
+
+/* ---- The terms page ---- */
+.terms{ display:grid; gap:30px; max-width:72ch }
+.term h2{
+  font-family:"IBM Plex Mono",monospace; font-size:13px; font-weight:600;
+  letter-spacing:.04em; text-transform:uppercase; color:var(--brass); margin:0 0 7px;
+}
+.term p{ margin:0; font-size:15.5px; line-height:1.65; color:var(--ink); text-wrap:pretty }
+@media (max-width:640px){
+  .term p{ font-size:15px }
+  .caveat{ font-size:12px }
+}

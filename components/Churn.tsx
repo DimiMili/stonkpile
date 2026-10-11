@@ -87,6 +87,32 @@ export function Churn({ points }: { points: ChurnPoint[] }) {
   const ticks = (from: number, to: number) =>
     Array.from({ length: to - from + 1 }, (_, i) => Math.pow(10, from + i));
 
+  // Zones. On log axes a ratio band is the strip between two parallel lines,
+  // so each one is a parallelogram clipped to the plot.
+  //
+  // Unclamped projections, unlike x() and y() above: a band that runs off the
+  // top of the plot has to be drawn running off the top and then trimmed. Clamp
+  // it instead and the parallelogram folds flat against the edge.
+  const xr = (v: number) =>
+    PAD.l + ((lg(v) - xMin) / (xMax - xMin)) * (W - PAD.l - PAD.r);
+  const yr = (v: number) =>
+    H - PAD.b - ((lg(v) - yMin) / (yMax - yMin)) * (H - PAD.t - PAD.b);
+
+  // The outer bounds are ratios no pool will ever reach, which is how the top
+  // and bottom bands get their open ends.
+  const ZONES = [
+    { k: "quiet", lo: 1e-9, hi: 1 },
+    { k: "live", lo: 1, hi: 10 },
+    { k: "churn", lo: 10, hi: 1e9 },
+  ];
+  const zband = (lo: number, hi: number) => {
+    const a = Math.pow(10, xMin), b = Math.pow(10, xMax);
+    return [
+      [xr(a), yr(a * lo)], [xr(b), yr(b * lo)],
+      [xr(b), yr(b * hi)], [xr(a), yr(a * hi)],
+    ].map(([px, py]) => `${px.toFixed(1)},${py.toFixed(1)}`).join(" ");
+  };
+
   // Only the worst get a name on the plot. A label on every point is unreadable
   // and a chart that labels nothing makes the reader do the work.
   const ranked = [...pts].sort((a, b) => b.volume / b.liquidity - a.volume / a.liquidity);
@@ -101,6 +127,14 @@ export function Churn({ points }: { points: ChurnPoint[] }) {
             <>
               <span className="lg-item"><i className="lg-dot s-stock" /> Tokenized stock</span>
               <span className="lg-item"><i className="lg-dot s-coin" /> Coin priced in a stock</span>
+              {/* The zones named in words as well as colour. A wash that only
+                  means something if you can tell green from red means nothing
+                  to one man in twelve. */}
+              <span className="lg-zones">
+                <span className="lg-item"><i className="lg-band z-churn" /> Over 10 turns a day</span>
+                <span className="lg-item"><i className="lg-band z-live" /> 1 to 10</span>
+                <span className="lg-item"><i className="lg-band z-quiet" /> Under one turn</span>
+              </span>
             </>
           )}
         </div>
@@ -151,6 +185,21 @@ export function Churn({ points }: { points: ChurnPoint[] }) {
         <div className="viz-wrap">
           <svg viewBox={`0 0 ${W} ${H}`} role="img" className="viz-svg"
                aria-label="Liquidity against 24 hour volume for every pool, log scale. Most pools sit near one turn a day; a handful sit a hundred times above it.">
+            {/* Zone washes, under everything. Faint on purpose: they are the
+                answer to "is this dot good or bad" at a glance, and the moment
+                they are strong enough to notice on their own they start
+                fighting the dots they exist to explain. */}
+            <defs>
+              <clipPath id="ch-plot">
+                <rect x={PAD.l} y={PAD.t} width={W - PAD.l - PAD.r} height={H - PAD.t - PAD.b} />
+              </clipPath>
+            </defs>
+            <g clipPath="url(#ch-plot)">
+              {ZONES.map((z) => (
+                <polygon key={z.k} className={`z z-${z.k}`} points={zband(z.lo, z.hi)} />
+              ))}
+            </g>
+
             {/* grid */}
             {ticks(xMin, xMax).map((t) => (
               <line key={`gx${t}`} x1={x(t)} y1={PAD.t} x2={x(t)} y2={H - PAD.b} className="g-line" />
