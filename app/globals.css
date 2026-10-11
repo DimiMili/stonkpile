@@ -1503,7 +1503,28 @@ header > .wordmark span{
 .report-do{min-width:min(100%,320px)}
 .report-fine{font-size:11.5px;color:var(--faint);margin:8px 0 0;max-width:46ch}
 @media (max-width:640px){
-  .report{padding:18px}
+  /* On a phone this block is the second thing you see, so it has to be short.
+     At full size it pushed the brand off the top of the screen before anyone
+     had read a word of the product. */
+  .report{padding:15px 16px; gap:14px; margin-block:22px 0}
+  .report-t{font-size:18px; line-height:1.25}
+  .report-s{display:none}
+  .report-k{margin-bottom:4px}
+  .report-do{min-width:100%}
+  .report-fine{font-size:11px; margin-top:6px}
+
   .ot-key{font-size:12px;padding:6px 10px}
   .ot-tip{min-width:150px;font-size:11.5px}
+
+  /* The stat row wrapped every label onto two lines and then set the number at
+     40px under it, so four numbers ate a whole screen. */
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .stat{padding:14px 12px 13px 0}
+  .stat .k{font-size:9.5px; letter-spacing:.1em; margin-bottom:5px}
+  .stat .v{font-size:26px}
+  .stat .v small{font-size:.42em}
+  .stat + .stat{padding-left:12px}
 }
+/* The one note under the over-time chart. Short and set apart, because it is a
+   caveat about the figures rather than a thing to read before them. */
+.ot-note{font-style:italic; max-width:68ch; margin-bottom:16px}

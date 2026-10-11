@@ -333,12 +333,9 @@ export default async function Page() {
         <h2>Tokenized stocks on Solana, over time</h2>
         {hasHistory ? (
           <>
-            <p className="sec-note">
-              {history.length} nightly records, the first on {since ? fmtDay(since) : "26 September"}.
-              Each line is indexed to 100 at that first reading, so they share a scale:
-              the gap between them is the finding, not the level. Taken after the US
-              close, so they will not match the live figures below. That is yesterday
-              against now, not a disagreement.
+            <p className="sec-note ot-note">
+              *Live records over time (indexed to 100). Taken after the US close, so a
+              discrepancy with the live figures below is to be expected.
             </p>
             <Overtime rows={otRows} />
           </>
