@@ -1438,3 +1438,72 @@ header > .wordmark span{
   white-space:nowrap; line-height:1;
 }
 .head-docs:hover{background:var(--brass-wash)}
+
+/* ---------- the category over time ----------
+   One chart, five series, indexed to 100 so they share an axis. The hues are
+   validated rather than picked: every adjacent pair clears the colour-blind
+   and normal-vision separation floors, all five sit inside the lightness band
+   for their own surface, and light and dark are separate steps rather than the
+   same colours dimmed. */
+:root{
+  --ot-liquidity:#A07410; --ot-universe:#0E6FA8; --ot-withPool:#2E7D52;
+  --ot-holders:#6B4FA8;   --ot-volume:#B23A6B;
+}
+:root[data-theme="dark"]{
+  --ot-liquidity:#B38C38; --ot-universe:#3C8FD4; --ot-withPool:#36A471;
+  --ot-holders:#8464C8;   --ot-volume:#D4578A;
+}
+.ot{margin-top:18px}
+.ot-keys{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
+.ot-key{
+  display:inline-flex; align-items:center; gap:8px;
+  border:1px solid var(--line); background:transparent; color:var(--ink);
+  font-family:inherit; font-size:13px; padding:7px 12px 7px 10px; cursor:pointer;
+}
+.ot-key:hover{border-color:var(--brass)}
+.ot-key:focus-visible{outline:2px solid var(--brass); outline-offset:2px}
+.ot-sw{width:11px;height:11px;border-radius:2px;flex:none;background:var(--line)}
+.ot-now{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.ot-key[aria-pressed="false"]{color:var(--faint);border-color:var(--line-soft)}
+.ot-key[aria-pressed="false"] .ot-now{color:var(--faint)}
+
+.ot-wrap{position:relative}
+.ot-svg{display:block;width:100%;height:auto;overflow:visible}
+.ot-grid line{stroke:var(--grid-line, #161a2110); stroke-width:1}
+:root[data-theme="dark"] .ot-grid line{stroke:#e7eae812}
+.ot-ax text{font-family:"IBM Plex Mono",monospace;font-size:11px;fill:var(--faint)}
+.ot-ln{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.ot-cross{stroke:var(--faint);stroke-width:1;stroke-dasharray:3 3}
+.ot-hit{fill:transparent;cursor:crosshair}
+.ot-svg circle{stroke:var(--bg);stroke-width:2}
+
+.ot-tip{
+  position:absolute; top:10px; pointer-events:none; min-width:172px;
+  background:var(--surface); border:1px solid var(--line); padding:10px 12px;
+  font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink);
+  box-shadow:0 8px 28px #00000022;
+}
+.ot-tip > i{display:block;font-style:normal;color:var(--faint);font-size:10.5px;
+  letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+.ot-r{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:3px}
+.ot-r span{display:flex;align-items:center;gap:6px;color:var(--muted)}
+.ot-d{display:inline-block;width:8px;height:8px;border-radius:2px;margin:0}
+.ot-r b{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:600}
+
+/* ---------- the weekly report, where Findings used to be ---------- */
+.report{
+  display:flex; align-items:center; justify-content:space-between; gap:22px;
+  flex-wrap:wrap; border:1px solid var(--line); border-left:3px solid var(--brass);
+  background:var(--surface); padding:20px 22px; margin-block:30px 0;
+}
+.report-k{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--brass);margin:0 0 6px}
+.report-t{font-family:"Bodoni Moda",Didot,Georgia,serif;font-size:23px;font-weight:600;margin:0}
+.report-s{font-size:13.5px;color:var(--muted);margin:5px 0 0;max-width:50ch}
+.report-do{min-width:min(100%,320px)}
+.report-fine{font-size:11.5px;color:var(--faint);margin:8px 0 0;max-width:46ch}
+@media (max-width:640px){
+  .report{padding:18px}
+  .ot-key{font-size:12px;padding:6px 10px}
+  .ot-tip{min-width:150px;font-size:11.5px}
+}

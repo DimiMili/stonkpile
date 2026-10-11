@@ -6,10 +6,11 @@ import { ToTop } from "@/components/ToTop";
 import { SectionNav } from "@/components/SectionNav";
 import { Lookup } from "@/components/Lookup";
 import { Copy } from "@/components/Copy";
-import { Spark } from "@/components/Spark";
 import { Reveal } from "@/components/Reveal";
+import { Overtime } from "@/components/Overtime";
+import { Subscribe } from "@/components/Subscribe";
 import { Churn, type ChurnPoint } from "@/components/Churn";
-import { history, hasHistory, series, since } from "@/lib/history";
+import { history, hasHistory, since } from "@/lib/history";
 import { Live } from "@/components/Live";
 import { RatingChip } from "@/components/Rating";
 import { Wordmark } from "@/components/SiteMark";
@@ -40,6 +41,7 @@ export async function generateMetadata(): Promise<Metadata> {
      It used to ask "Is this tokenized stock real?" over a bar chart of memecoin
      volume. That question is one section of the site now. */
   const T = idx.totals;
+
   const title =
     `Every tokenized stock on Solana, indexed. ` +
     `${T.tradeable} of ${T.universe.toLocaleString()} have a market, and those are rated.`;
@@ -119,6 +121,22 @@ function turnCell(volume: number, liquidity: number) {
 export default async function Page() {
   const idx = await buildIndex();
   const { totals: T, stocks, coins, marketSession: ms } = idx;
+  /* The five series the over-time chart draws, shaped here rather than in the
+     component so the component stays a drawing and knows nothing about our
+     snapshot schema. Volume is renamed on the way through: universeVolume24h
+     is accurate and unreadable. */
+  const otRows = history.map((h) => ({
+    date: h.date,
+    liquidity: h.liquidity,
+    universe: h.universe,
+    withPool: h.withPool,
+    holders: h.holders,
+    volume: h.universeVolume24h,
+  }));
+  const fmtDay = (iso: string) =>
+    new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", {
+      day: "numeric", month: "long", timeZone: "UTC",
+    });
 
   const board = stocks.filter((s) => s.quotedCount > 0).slice(0, 25);
   const max = Math.max(...board.map((r) => r.quotedVolume24h), 1);
@@ -299,37 +317,7 @@ export default async function Page() {
           past the two things they were meant to help you skip. */}
       <SectionNav />
 
-      <section className="standout" aria-label="Findings">
-        <p className="standout-k">Findings</p>
-        <ul>
-          {heaviest && (
-            <li>
-              The most liquid tokenized stock on Solana is <b>{clean(heaviest.name)}</b>, with{" "}
-              <b>{usd(heaviest.liquidity)}</b> behind it
-              {runnerUp ? <>, ahead of {clean(runnerUp.name)} on {usd(runnerUp.liquidity)}</> : null}.
-            </li>
-          )}
-          <li>
-            <b>{top10Share}%</b> of all the liquidity in the category sits in ten tokens, out of{" "}
-            <b>{T.universe.toLocaleString()}</b> that exist.
-          </li>
-          {deadest && (
-            <li>
-              {deadest.shown} lists <b>{deadest.listed.toLocaleString()}</b> tokenized stocks.{" "}
-              <b>{deadest.withPool}</b> of them have a pool.
-            </li>
-          )}
-          {fresh48 > 0 && (
-            <li>
-              <b>{fresh48}</b> new pools opened against a tokenized stock in the last 48 hours.
-            </li>
-          )}
-        </ul>
-        <p className="standout-note">
-          Worked out from the index each time this page rebuilds, not written by hand.{" "}
-          <a href="#depth">The whole ranking</a>.
-        </p>
-      </section>
+      <Subscribe />
 
 
       {/* The only part of this site that knows what yesterday looked like. A daily
@@ -337,40 +325,32 @@ export default async function Page() {
           git next to the code that produced it. Until a few days have accumulated
           there is nothing honest to draw, and this says so rather than inventing a
           trend from one measurement. */}
+      {/* The record, and the only thing on this page that compounds. It was six
+          stacked sparklines behind a Show-the-charts toggle, which is two
+          mistakes: six small statements instead of one large one, and the
+          single strongest thing we have hidden behind a click. */}
       <section id="history">
         <h2>Tokenized stocks on Solana, over time</h2>
-        <Reveal label="Show the charts" count={`${history.length} daily records`} peek={280}>
         {hasHistory ? (
           <>
-            <p className="lookfor">
-              <span className="k">What to look for</span>
-              Direction, not the level. A category growing its liquidity is being funded;
-              one adding tokens while liquidity sits still is adding listings.
-              <br />
-              <br />
-              Every figure here is last night&rsquo;s record, taken after the US close, so it
-              will not match the live numbers further down the page. That gap is yesterday
+            <p className="sec-note">
+              {history.length} nightly records, the first on {since ? fmtDay(since) : "26 September"}.
+              Each line is indexed to 100 at that first reading, so they share a scale:
+              the gap between them is the finding, not the level. Taken after the US
+              close, so they will not match the live figures below. That is yesterday
               against now, not a disagreement.
             </p>
-            <div className="sparks">
-              <Spark label="Liquidity, whole category" points={series((s) => s.liquidity)} format="usd" />
-              <Spark label="Tokenized stocks listed" points={series((s) => s.universe)} format="count" />
-              <Spark label="With a pool above $5k" points={series((s) => s.withPool)} format="plain" />
-              <Spark label="Coins priced in stocks" points={series((s) => s.quotedCoins)} format="count" />
-              <Spark label="Holders" points={series((s) => s.holders)} format="people" />
-              <Spark label="Used as a quote asset" points={series((s) => s.denominators)} format="plain" />
-            </div>
+            <Overtime rows={otRows} />
           </>
         ) : (
           <p className="collecting">
-            Collecting. One record a day lands in the repo after the US close, and these
-            charts fill in as it goes.{" "}
+            Collecting. One record a day lands in the repo after the US close, and this
+            chart fills in as it goes.{" "}
             {since ? <>First reading {since}.</> : <>The first lands tonight.</>}{" "}
             Nothing is drawn until there is something real to draw, because a trend line
             through one measurement is a lie.
           </p>
         )}
-        </Reveal>
       </section>
 
       {/* Where the money is. Every other table here ranks coins quoted against a
