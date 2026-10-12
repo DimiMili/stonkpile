@@ -86,6 +86,16 @@ export function RatingCard({
         Each part is scored out of 10 and carries its own weight, so ten across all four is
         exactly 100. Nothing here is about the company, or about whether the price is fair.
       </p>
+      {/* Stated here rather than buried on a methodology page, because this is
+          the screen where somebody decides whether to trust the number.
+          A reader who knows what the score cannot see can judge it. One who
+          finds out later, from somebody else, stops trusting all of it. */}
+      <p className="caveat">
+        Depth is read from indexed AMM pools. Market makers quoting from their own
+        inventory, request-for-quote venues and exchange order books can all fill
+        a trade this score cannot see, so a thin pool does not always mean a hard
+        exit. <a href="/disclaimer">What the rating covers</a>
+      </p>
       <ul className={`rt-pillars rt-b-${rating.band}`}>
         {rating.pillars.map((p) => (
           <li key={p.key}>

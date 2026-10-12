@@ -411,6 +411,10 @@ export default async function Page() {
               never the company behind it and never whether the price is fair. Four parts,
               each out of 10, each with its own weight, and ten across all four is exactly
               100. <a href="/rating">The four parts, with what each one measures</a>.
+              {" "}Depth is read from indexed AMM pools, so a market maker quoting from its
+              own inventory, an RFQ venue or an exchange order book can fill a trade this
+              score cannot see. A thin pool is a floor on what is visible, not a verdict on
+              whether you can get out.
             </p>
             <p className="sec-note">
               The scale: {BANDS.map((b, i) => (

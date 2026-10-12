@@ -276,16 +276,51 @@ function host(url?: string): string {
 /* ---------------- universe ---------------- */
 
 interface JupToken {
-  id: string; name?: string; symbol?: string; icon?: string;
+  id: string; name?: string; symbol?: string; icon?: string; tags?: string[];
   holderCount?: number; usdPrice?: number; liquidity?: number; mcap?: number;
   stats24h?: { buyVolume?: number; sellVolume?: number };
+}
+
+/** The issuer, as Jupiter's own verified list labels it.
+ *
+ *  This is the primary signal and the icon host below is the fallback, which
+ *  is the reverse of how it started. The icon host was a good check right up
+ *  until an issuer used somebody else's logo: Backpack serves every one of its
+ *  stock logos from backpack.exchange except SpaceX, which points at
+ *  TradingView, presumably because a private company had no logo of its own to
+ *  serve. One token, hosted one place instead of another, and the index
+ *  silently dropped the single highest-volume tokenized stock on Solana and
+ *  told anyone who looked it up that it was not a tokenized stock at all.
+ *
+ *  Three more went the same way for the plainer reason of having no icon at
+ *  all: JPSTx, BITXx and NEARon.
+ *
+ *  The tag is a better signal because it is the thing Jupiter actually curates.
+ *  It is still a trusted-source check rather than a name check, so the rule
+ *  that a copycat cannot talk its way in by calling itself AAPLx is unchanged.
+ *  Checked across the whole verified list before the switch: the two methods
+ *  agree on every one of the 1,856 tokens the host method already caught, with
+ *  zero disagreements, so this only ever adds. The host fallback stays because
+ *  Securitize and Superstate carry no issuer tag. */
+const ISSUER_TAGS: Record<string, Issuer> = {
+  xstocks: "xStocks", backpack: "Backpack", ondo: "Ondo",
+  prestocks: "PreStocks", tessera: "Tessera",
+  securitize: "Securitize", superstate: "Superstate",
+};
+
+function issuerOf(t: JupToken): Issuer | undefined {
+  for (const tag of t.tags || []) {
+    const hit = ISSUER_TAGS[tag.toLowerCase()];
+    if (hit) return hit;
+  }
+  return ISSUERS[host(t.icon)];
 }
 
 async function buildUniverse() {
   const toks = (await jget<JupToken[]>(JUP_VERIFIED)) || [];
   const uni = [];
   for (const t of toks) {
-    const issuer = ISSUERS[host(t.icon)];
+    const issuer = issuerOf(t);
     if (!issuer) continue;
     const s = t.stats24h || {};
     uni.push({

@@ -39,6 +39,10 @@ const BLOCKS: { h: string; p: string }[] = [
     p: "The rating measures whether a market exists and how it behaves: whether there is liquidity, whether volume is proportionate to it, whether a price feed is live. It says nothing about the company behind the ticker, nothing about whether the price is fair, and nothing about what happens next. A token passing every check on this site can still lose all of its value.",
   },
   {
+    h: "What the rating can and cannot see",
+    p: "The liquidity part of the score is read from indexed automated market maker pools. It does not see a market maker quoting from its own inventory, a request-for-quote venue, or an exchange order book, and all three can fill a trade that the pools alone could not. So a low score means the pools are thin, which is not the same as saying you cannot get out. Read it as a floor on what is visible rather than a measure of the whole market. Borrowing is not measured at all: none of these tokens currently has a lending market, and if that changes the score will not know until we add it.",
+  },
+  {
     h: "Tokenized stocks are generally not shares",
     p: "Most of what this site indexes is a claim on an issuer rather than ownership of a company. What you are entitled to, whether you can redeem, what happens in a corporate action and what you are left with if the issuer fails all depend entirely on that issuer and on the jurisdiction it operates from. Those terms are the issuer's to publish and yours to read. They are not equivalent to holding the underlying stock.",
   },
