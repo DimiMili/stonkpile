@@ -316,8 +316,53 @@ function issuerOf(t: JupToken): Issuer | undefined {
   return ISSUERS[host(t.icon)];
 }
 
+/**
+ * The verified list, fetched like it matters, because it does.
+ *
+ * Every other upstream here is allowed to fail quietly: a missing Pyth feed or
+ * a DexScreener timeout costs one column on one row. This one is different. If
+ * it comes back empty the universe is empty, and an empty universe does not
+ * degrade the site, it inverts it: every lookup starts answering "not a
+ * tokenized stock" about tokens that plainly are, with the same confidence it
+ * uses for a garbage string. That is the one failure mode this project cannot
+ * have, because being wrong in that direction is the thing it exists to stop.
+ *
+ * So: retried, and loud when it gives up. The status code goes to the log on
+ * the way past, because the first time this broke there was nothing in the
+ * logs to read and the cause had to be guessed at from the outside.
+ */
+async function fetchVerifiedList(): Promise<JupToken[]> {
+  let last = "";
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const r = await fetch(JUP_VERIFIED, {
+        headers: { "User-Agent": "stonkpile/0.2" },
+        next: { revalidate: REVALIDATE },
+      });
+      if (r.ok) {
+        const toks = (await r.json()) as JupToken[];
+        if (Array.isArray(toks) && toks.length) return toks;
+        last = `ok but ${Array.isArray(toks) ? "empty array" : typeof toks}`;
+      } else {
+        last = `HTTP ${r.status}`;
+      }
+    } catch (e) {
+      last = e instanceof Error ? e.message : String(e);
+    }
+    console.error(`[stonkpile] verified list attempt ${attempt}/3 failed: ${last}`);
+    if (attempt < 3) await new Promise((res) => setTimeout(res, attempt * 600));
+  }
+  throw new IndexUnavailable(`verified list unavailable after 3 attempts (${last})`);
+}
+
+/** Thrown when the index cannot be built from live sources. Routes turn this
+ *  into a 503 that says so, rather than a 200 that says nothing is real. */
+export class IndexUnavailable extends Error {
+  readonly code = "index_unavailable";
+}
+
 async function buildUniverse() {
-  const toks = (await jget<JupToken[]>(JUP_VERIFIED)) || [];
+  const toks = await fetchVerifiedList();
   const uni = [];
   for (const t of toks) {
     const issuer = issuerOf(t);
@@ -337,6 +382,15 @@ async function buildUniverse() {
     });
   }
   uni.sort((a, b) => b.volume24h - a.volume24h);
+  /* Four thousand verified tokens and not one of them from any of the seven
+     issuers is not a market condition, it is a broken read: a renamed tag, a
+     moved metadata host, a truncated body. Treat it as the outage it is
+     instead of publishing it as a finding. */
+  if (!uni.length) {
+    throw new IndexUnavailable(
+      `verified list returned ${toks.length} tokens, none resolving to a known issuer`,
+    );
+  }
   return uni;
 }
 
@@ -554,7 +608,7 @@ async function scanPairs(
 
 /* ---------------- main ---------------- */
 
-export async function buildIndex(): Promise<Index> {
+async function buildIndexFresh(): Promise<Index> {
   const uni = await buildUniverse();
   const stockMints = new Set(uni.map((t) => t.mint));
 
@@ -760,4 +814,50 @@ export async function buildIndex(): Promise<Index> {
     coins,
     lookup,
   };
+}
+
+/* ---------------- the one entry point ---------------- */
+
+/** Last index this instance built, kept whether or not it is still fresh. */
+let memo: { at: number; idx: Index } | null = null;
+/** A build already running in this instance, so ten calls make one fetch. */
+let inflight: Promise<Index> | null = null;
+
+/**
+ * The index, built at most once per instance per revalidate window.
+ *
+ * Three callers want this: the page, /api/verify and the MCP endpoint. The MCP
+ * endpoint is force-dynamic, so before this every tool call rebuilt the whole
+ * thing from scratch: the five megabyte verified list, then DexScreener once
+ * per liquid token. A handful of agents polling it is enough upstream traffic
+ * to get the verified list refused, which is the shape of what went wrong on
+ * 22 October. Sharing one build across callers is both faster and politer.
+ *
+ * And when a rebuild fails, the previous index is served instead of nothing.
+ * Stale numbers carry their own generatedAt and say how old they are. An empty
+ * index says, in confident English, that real tokens are fake. Given those two,
+ * stale wins every time.
+ */
+export async function buildIndex(): Promise<Index> {
+  if (memo && Date.now() - memo.at < REVALIDATE * 1000) return memo.idx;
+  if (inflight) return inflight;
+
+  inflight = buildIndexFresh()
+    .then((idx) => {
+      memo = { at: Date.now(), idx };
+      return idx;
+    })
+    .catch((e) => {
+      if (memo) {
+        const age = Math.round((Date.now() - memo.at) / 1000);
+        console.error(`[stonkpile] rebuild failed, serving index ${age}s old:`, e);
+        return memo.idx;
+      }
+      throw e;
+    })
+    .finally(() => {
+      inflight = null;
+    });
+
+  return inflight;
 }

@@ -216,13 +216,23 @@ export const TOOLS: Tool[] = [
       required: ["ticker"],
     },
     run: (a, d) => {
-      const key = String(a.ticker ?? "").toUpperCase();
+      /* Clients get the argument name wrong, and the honest answer to a missing
+         ticker is "you did not give me one", not a confident "no such stock"
+         about the string "undefined". */
+      const raw = String(a.ticker ?? a.query ?? a.symbol ?? "").trim();
+      if (!raw) {
+        return (
+          `No ticker given. Call this with {"ticker": "AAPL"} or {"ticker": "AAPLx"}.\n` +
+          `Nothing was looked up, so this is not a statement about any token.`
+        );
+      }
+      const key = raw.toUpperCase();
       const hits = d.lookup.filter(
         (l) => l.kind === "stock" && (l.symbol.toUpperCase() === key || l.underlying === key),
       );
       if (!hits.length) {
         return (
-          `No verified tokenized stock matches "${a.ticker}".\n` +
+          `No verified tokenized stock matches "${raw}".\n` +
           `Nothing with that ticker is issued by any of the seven issuers this index verifies. ` +
           `If you have seen a token using this name on Solana, it is not one of theirs.`
         );

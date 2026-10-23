@@ -15,7 +15,31 @@ export async function GET(req: Request) {
   const limit = Math.min(Number(url.searchParams.get("limit")) || 100, 1000);
   const slim = url.searchParams.get("slim") === "1";
 
-  const idx = await buildIndex();
+  /* Never publish an empty index as if it were a reading. Everything
+     downstream of this file, including the MCP server and anyone building on
+     the JSON, treats a 200 as a fact. */
+  let idx;
+  try {
+    idx = await buildIndex();
+  } catch (e) {
+    console.error("[stonkpile] /api/index unavailable:", e);
+    return Response.json(
+      {
+        error: "index_unavailable",
+        message:
+          "The index could not be built from its upstream sources just now. " +
+          "No counts are returned rather than zeroed ones. Retry shortly.",
+      },
+      {
+        status: 503,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Cache-Control": "no-store",
+          "Retry-After": "60",
+        },
+      },
+    );
+  }
 
   let stocks = idx.stocks;
   let coins = idx.coins;
