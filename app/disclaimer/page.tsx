@@ -43,6 +43,10 @@ const BLOCKS: { h: string; p: string }[] = [
     p: "The liquidity part of the score is read from indexed automated market maker pools. It does not see a market maker quoting from its own inventory, a request-for-quote venue, or an exchange order book, and all three can fill a trade that the pools alone could not. So a low score means the pools are thin, which is not the same as saying you cannot get out. Read it as a floor on what is visible rather than a measure of the whole market. Borrowing is not measured at all: none of these tokens currently has a lending market, and if that changes the score will not know until we add it.",
   },
   {
+    h: "The score does not check the price against the real stock",
+    p: "This is the thing people assume it does, so it is worth saying plainly. Nothing here measures how closely a tokenized stock follows the company's actual share price. The pricing part of the score asks two narrower questions: whether a 24/7 reference feed exists for that company at all, and whether a second issuer's token on the same company agrees, compared per underlying share. That compares issuers against each other, never against the exchange. The reason is simple: the equity price feeds this site used to read now sit behind paid authentication, so there is no reference price available to it. A token can therefore score well here while drifting from the stock it names, and the score would not know.",
+  },
+  {
     h: "Tokenized stocks are generally not shares",
     p: "Most of what this site indexes is a claim on an issuer rather than ownership of a company. What you are entitled to, whether you can redeem, what happens in a corporate action and what you are left with if the issuer fails all depend entirely on that issuer and on the jurisdiction it operates from. Those terms are the issuer's to publish and yours to read. They are not equivalent to holding the underlying stock.",
   },
@@ -74,7 +78,7 @@ export default function DisclaimerPage() {
         <p className="standfirst">
           Stonkpile is a record of what public onchain sources say about tokenized stocks on
           Solana. It is not a broker, not an adviser and not a guarantee. Here is the whole
-          of it, in seven short pieces.
+          of it, in {BLOCKS.length} short pieces.
         </p>
       </header>
 

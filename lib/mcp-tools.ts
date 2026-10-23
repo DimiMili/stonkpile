@@ -208,7 +208,7 @@ export const TOOLS: Tool[] = [
     title: "Verify a tokenized stock",
     description:
       "Is a given ticker a genuinely issued tokenized stock, or a lookalike? Returns the issuer, " +
-      "whether it trades at all, and what is priced against it. Issuers are identified by token " +
+      "whether it has a market at all, and what is priced against it. Issuers are identified by token " +
       "metadata host, not by name, so a token merely called 'AAPLx' will not pass.",
     inputSchema: {
       type: "object",
@@ -243,13 +243,13 @@ export const TOOLS: Tool[] = [
           const label = l.name ? `${l.symbol} (${l.name})` : l.symbol;
           if (!l.tradeable) {
             return (
-              `${label} - genuinely issued by ${l.issuer}, but it does not trade. ` +
+              `${label} - genuinely issued by ${l.issuer}, but it has no market. ` +
               `No pool above the $5k liquidity floor, so there is no price to speak of.\n` +
               `  mint: ${l.mint}`
             );
           }
           return (
-            `${label} - issued by ${l.issuer}. Trades.\n` +
+            `${label} - issued by ${l.issuer}. Has a market.\n` +
             `  mint: ${l.mint}\n` +
             `  liquidity: ${usd(row?.liquidity ?? 0)}, 24h volume: ${usd(row?.volume24h ?? 0)}\n` +
             `  holders: ${(row?.holders ?? 0).toLocaleString()}\n` +
